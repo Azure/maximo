@@ -1,0 +1,7 @@
+apiVersion: bas.ibm.com/v1
+kind: GenerateKey
+metadata:
+  name: bas-api-key
+  namespace: ibm-bas
+spec:
+  image_pull_secret: bas-images-pull-secret

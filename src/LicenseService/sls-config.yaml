@@ -1,0 +1,22 @@
+apiVersion: sls.ibm.com/v1
+kind: LicenseService
+metadata:
+  name: sls
+  namespace: ibm-sls
+spec:
+  license:
+    accept: true
+  mongo:
+    configDb: admin
+    nodes:
+    - host: mas-mongo-ce-0.mas-mongo-ce-svc.mongo.svc.cluster.local
+      port: 27017
+    - host: mas-mongo-ce-1.mas-mongo-ce-svc.mongo.svc.cluster.local
+      port: 27017
+    - host: mas-mongo-ce-2.mas-mongo-ce-svc.mongo.svc.cluster.local
+      port: 27017
+    secretName: sls-mongo-credentials
+  rlks:
+    storage:
+      class: azurefiles
+      size: 5G

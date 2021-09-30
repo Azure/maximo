@@ -1,0 +1,29 @@
+apiVersion: bas.ibm.com/v1
+kind: AnalyticsProxy
+metadata:
+  name: analyticsproxy
+  namespace: ibm-bas
+spec:
+  allowed_domains: '*'
+  db_archive:
+    frequency: '@monthly'
+    retention_age: 6
+    persistent_storage:
+      storage_class: azurefiles
+      storage_size: 10G
+  airgapped:
+    enabled: false
+    backup_deletion_frequency: '@daily'
+    backup_retention_period: 7
+  event_scheduler_frequency: '@hourly'
+  ibmproxyurl: 'https://iaps.ibm.com'
+  image_pull_secret: bas-images-pull-secret
+  postgres:
+    storage_class: managed-premium
+    storage_size: 10G
+  kafka:
+    storage_class: azurefiles
+    storage_size: 5G
+    zookeeper_storage_class: azurefiles
+    zookeeper_storage_size: 5G
+  env_type: lite
