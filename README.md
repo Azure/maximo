@@ -2,24 +2,28 @@
 
 This repository provides deployment guidance, scripts and best practices for running IBM Maximo 8.5.0 on OpenShift 4.8.10 using the Azure Cloud.
 
+> 🚧 **WARNING** this guide is currently in early stages and under active development. If you would like to contribute or use this right now, please reach out so we can support you.
+
 ## Getting Started
 
 To move forward with a Maximo install you will need a few basics:
 
-* An active Azure subscription with a quota of at least 40 vCPU allowed for your VM type of choice. Request [a quota increase](https://docs.microsoft.com/en-us/azure/azure-portal/supportability/regional-quota-requests) if needed.
-  * We have been using Dsv4 VMs with great success.
+* An active Azure subscription 
+  * A quota of at least 40 vCPU allowed for your VM type of choice (Dsv4 recommended). Request [a quota increase](https://docs.microsoft.com/en-us/azure/azure-portal/supportability/regional-quota-requests) if needed.
+  * You will need owner permissions or have someone with owner permissions within reach.
 * A domain or subdomain. If you don't have one, you can register one through Azure using an App Service Domain.
 * Access to the IBM licensing service for IBM Maximo.
+
+These are normally provided by your organization. You will only need the IBM License for Maximo during the last few steps. Once you have secured access to an Azure subscription, you need a few more things:
+
 * An Application Registration (SPN) with Contributor and User Access Administrator access on the Subscription you are intending to deploy into.
 * OpenShift Container Platform up and running on a cluster with at least 24 vCPUs active for the worker nodes. You can deploy Azure Red Hat OpenShift or [OpenShift Container Platform](/docs/openshift/ocp/README.md).
-* (Optional) Azure Files Storage Account if you are intending to use the [Azure Files CSI drivers](https://github.com/kubernetes-sigs/azurefile-csi-driver)
 
-For the installation you will need a few programs, these are: `oc` the OpenShift CLI, `openssl` and `kubectl`. You can [grab the OpenShift clients from Red Hat at their mirror](https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/). This will provide the `oc` CLI and also includes `kubectl`. You can install `openssl` by installing the OpenSSL package on most modern Linux distributions using your package manager.
+An Azure Files storage account is optional if you are intending to [use  Azure Files](docs/azure/using-azure-files.md) in your deployment.
 
-> [!NOTE]
-> It is recommended to use a Linux, Windows Subsystem for Linux or macOS system to complete the installation. You will need some command line binaries that are not as readily available on Windows.
+> 💡 **TIP**: It is recommended to use a Linux, Windows Subsystem for Linux or macOS system to complete the installation. You will need some command line binaries that are not as readily available on Windows.
 
-Knowledge of Kubernetes is not required but seriously recommended as a lot of Kubernetes concepts will come by.
+For the installation you will need a few programs, these are: `oc` the OpenShift CLI, `openssl` and `kubectl`. You can [grab the OpenShift clients from Red Hat at their mirror](https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/). This will provide the `oc` CLI and also includes `kubectl`. You can install `openssl` by installing the OpenSSL package on most modern Linux distributions using your package manager. Knowledge of Kubernetes is not required but recommended as a lot of Kubernetes concepts will come by.
 
 After these services have been installed and configured, you can successfully install and configure Maximo Application Suite (MAS) on OpenShift running on Azure.
 
