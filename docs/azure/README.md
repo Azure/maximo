@@ -2,6 +2,7 @@
 
 ## Getting Started
 
+* Set up service principal
 
 ## Contributing
 
