@@ -88,9 +88,8 @@ cert-manager-webhook-c4b5687dc-thh2b      1/1     Running   0          2d1h
 
 In this example, we will be installing the community edition of MongoDB on OpenShift using self signed certs. [MongoDB Community Edition](https://www.mongodb.com) is the free version of MongoDB. This version does not come with enterprise support nor certain features typically required by enterprises. We recommend exploring the options below for production use:
 
-* MongoDB on Azure CosmosDB
-* MongoDB Atlas on Azure
-* MongoDB Enterprise
+* [Azure CosmosDB for MongoDB](https://docs.microsoft.com/en-us/azure/cosmos-db/mongodb/mongodb-introduction)
+* [MongoDB Atlas on Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/)
 
 If you are not using our globally available service, Azure CosmosDB, then we recommend starting with a minimum 3 node ReplicaSet, with 1 node in each availability zone (outside of the OpenShift cluster). Please verify your deployment will be in the the same region / zones your OpenShift cluster are deployed into.
 
@@ -355,8 +354,6 @@ If you have an IBM Passport Advantage account, you may download the latest versi
 
 ### TODO
 
-* [ ] Update service descriptions
-* [ ] Fix links
 * [ ] Create steps for installing Maximo from the operator hub
 
 ## Contributing
