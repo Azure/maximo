@@ -59,6 +59,9 @@ Maximo Application Suite (MAS or Maximo) can be installed on OpenShift. IBM prov
 
 All of the steps below assume you are logged on to your OpenShift cluster and you have the `oc` CLI available.
 
+> 💡 **TIP**:
+> Copy the `oc` client to your /usr/bin directory to access the client from any directory. This will be required for some installing scripts.
+
 ### Installing cert-manager
 
 [cert-manager](https://github.com/jetstack/cert-manager) is a Kubernetes add-on to automate the management and issuance of TLS certificates from various issuing sources. It is required for [Maximo](https://www.ibm.com/docs/en/mas85/8.5.0?topic=installation-system-requirements#mas-requirements). For more installation and usage information check out the [cert-manager documentation](https://cert-manager.io/v0.16-docs/installation/openshift/).
@@ -67,26 +70,294 @@ Installation of cert-manager is relatively straight forward. Create a namespace 
 
 ```bash
 oc create namespace cert-manager
-oc apply -f https://github.com/jetstack/cert-manager/releases/download/v1.1.0/cert-manager.yaml
+oc create -f https://github.com/jetstack/cert-manager/releases/download/v1.1.0/cert-manager.yaml
 ```
 
 To validate everything is up and running, check `oc get po -n cert-manager`. If you have the [kubectl cert-manager extension](https://cert-manager.io/docs/usage/kubectl-plugin/#installation) installed, you can also verify the install with `kubectl cert-manager check api`.
 
 ```bash
-roeland@metanoia:~$ oc get po -n cert-manager
+oc get po -n cert-manager
+
 NAME                                      READY   STATUS    RESTARTS   AGE
 cert-manager-5597cff495-dh278             1/1     Running   0          2d1h
 cert-manager-cainjector-bd5f9c764-2j29c   1/1     Running   0          2d1h
 cert-manager-webhook-c4b5687dc-thh2b      1/1     Running   0          2d1h
 ```
 
+### Installing MongoDB
+
+In this example, we will be installing the community edition of MongoDB on OpenShift using self signed certs. [MongoDB Community Edition](https://www.mongodb.com) is the free version of MongoDB. This version does not come with enterprise support nor certain features typically required by enterprises. We recommend exploring the options below for production use:
+
+* MongoDB on Azure CosmosDB
+* MongoDB Atlas on Azure
+* MongoDB Enterprise
+
+If you are not using our globally available service, Azure CosmosDB, then we recommend starting with a minimum 3 node ReplicaSet, with 1 node in each availability zone (outside of the OpenShift cluster). Please verify your deployment will be in the the same region / zones your OpenShift cluster are deployed into.
+
+ To get started, you will clone a github repository and execute a few scripts:
+
+```bash
+#clone repo
+git clone https://github.com/ibm-watson-iot/iot-docs.git
+
+#navigate to the certs directory
+cd mongodb/iot-docs/mongodb/certs/
+
+#generate self signed certs
+./generateSelfSignedCert.sh
+
+#navigate back a directory to: /mongodb/iot-docs/mongodb
+cd ..
+
+#export the following variables, replacing the password
+export MONGODB_STORAGE_CLASS="managed-premium"
+export MONGO_NAMESPACE=mongo
+export MONGO_PASSWORD="<enterpassword>"
+
+#install MongoDB
+./install-mongo-ce.sh
+```
+
+This install can take up to 15 minutes. Once completed, verify the services are online by checking the status of the key: "status.phase":
+
+```bash
+oc get MongoDBCommunity -n mongo -o yaml | grep phase
+
+status.phase = Running
+```
+
+Capture the connection string by running the following command:
+
+```bash
+oc get MongoDBCommunity -n mongo -o yaml | grep mongoUri
+
+mongoUri: mongodb://mas-mongo-ce-0.mas-mongo-ce-svc.mongo.svc.cluster.local:27017,mas-mongo-ce-1.mas-mongo-ce-svc.mongo.svc.cluster.local:27017,mas-mongo-ce-2.mas-mongo-ce-svc.mongo.svc.cluster.local:27017
+```
+
+Finally, retrieve the certificates from one of the running containers:
+
+```bash
+oc exec -it mas-mongo-ce-0 --container mongod -n mongo -- openssl s_client -servername mas-mongo-ce-0.mas-mongo-ce-svc.mongo.svc.cluster.local -connect mas-mongo-ce-0.mas-mongo-ce-svc.mongo.svc.cluster.local:27017 -showcerts
+```
+
+Copy the certs from the output. These will be used during the Maximo initial setup:
+
+```bash
+BEGIN CERTIFICATE
+...
+END CERTIFICATE
+
+BEGIN CERTIFICATE
+...
+END CERTIFICATE
+```
+
+### Installing Service Binding Operator
+
+[Service Binding Operator](https://github.com/redhat-developer/service-binding-operator/blob/master/README.md) enables application developers to more easily bind applications together with operator managed backing services such as databases, without having to perform manual configuration of secrets, configmaps, etc.
+
+To install, run the following commands:
+
+```bash
+oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/ServiceBinding/service-binding-operator.yaml -n openshift-operators
+installplan=$(oc get installplan -n openshift-operators | grep -i service-binding | awk '{print $1}'); echo "installplan: $installplan"
+oc patch installplan ${installplan} -n openshift-operators --type merge --patch '{"spec":{"approved":true}}'
+```
+
+To validate everything is up and running, check `oc get operator/ibm-sls.ibm-sls`.
+
+```bash
+oc get operator/ibm-sls.ibm-sls
+
+NAME              AGE
+ibm-sls.ibm-sls   5d7h
+```
+
+### Installing IBM Catalog Operator
+
+[IBM Catalog Operator](https://) is an index of operators available to automate deployment and maintenance of IBM Software products into Red Hat® OpenShift® clusters. Operators within this catalog have been built following Kubernetes best practices and IBM standards to provide a consistent integrated set of capabilities.
+
+To install, run the following commands:
+
+```bash
+oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/OperatorCatalogs/catalog-source.yaml -n openshift-marketplace
+```
+
+To validate everything is up and running, check `oc get catalogsource/ibm-operator-catalog -n openshift-marketplace`.
+
+```bash
+oc get catalogsource/ibm-operator-catalog -n openshift-marketplace
+
+NAME                   DISPLAY                TYPE   PUBLISHER   AGE
+ibm-operator-catalog   IBM Operator Catalog   grpc   IBM         5d21h
+```
+
+### Installing IBM Behavior Analytics Services Operator (BAS)
+
+[IBM Behavior Analytics Services Operator](https://catalog.redhat.com/software/operators/detail/5fabe3c360c9b64020a34f02) is a service that collects, transforms and transmits product usage data.
+
+To install, run the following commands:
+
+```bash
+oc new-project ibm-bas
+oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/BehaviorService/bas-og.yaml -n ibm-bas
+oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/BehaviorService/bas-subscription.yaml -n ibm-bas
+```
+
+Next, you will need to create 2 secrets. Be sure to update the username and password in the example below:
+
+```bash
+oc create secret generic database-credentials --from-literal=db_username=<enterusername> --from-literal=db_password=<enterpassword> -n ibm-bas
+oc create secret generic grafana-credentials --from-literal=grafana_username=<enterusername> --from-literal=grafana_password=<enterpassword> -n ibm-bas
+```
+
+Finally, deploy the Analytics Proxy. This will take up to 30 minutes to complete:
+
+> 🚧 **WARNING** The below configuration is using the `azurefiles` storage class created in a previous step. If you did not configure this, you will need to update the class with another option.
+
+```bash
+oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/BehaviorService/bas-analytics-proxy.yaml -n ibm-bas
+```
+
+Once this is complete, retrieve the bas endpoint and the API Key for use when doing the initial setup of Maximo:
+
+```bash
+oc get routes bas-endpoint -n ibm-bas
+oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/BehaviorService/bas-api-key.yaml -n ibm-bas
+```
+
+Wait a few minutes and then fetch the key:
+```bash
+oc get secret bas-api-key -n ibm-bas --output="jsonpath={.data.apikey}" | base64 -d
+```
+
+Finally, retrieve the certificates from the public endpoint (bas-endpoint from above):
+
+```bash
+openssl s_client -servername bas-endpoint-ibm-bas.apps.{clustername}.{domain}.{extension} -connect bas-endpoint-ibm-bas.apps.{clustername}.{domain}.{extension}:443 -showcerts
+```
+
+Copy the certs from the output. These will be used during the Maximo initial setup:
+
+```bash
+BEGIN CERTIFICATE
+...
+END CERTIFICATE
+
+BEGIN CERTIFICATE
+...
+END CERTIFICATE
+```
+
+### Installing IBM Suite License Service (SLS)
+
+[IBM Suite License Service](https://github.com/IBM/ibm-licensing-operator) (SLS) is a token-based licensing system based on Rational License Key Server (RLKS) with MongoDB as the data store.
+
+To configure this service, you will need the following:
+
+* IBM Entitlement Key
+* MongoDB Info
+  * Hostnames / Ports
+  * Database Name
+  * Admin Credentials
+
+Create a new project and store the docker secret with IBM entitlement key:
+
+```bash
+oc new-project ibm-sls
+export ENTITLEMENT_KEY=<Entitlement Key>
+oc -n ibm-sls create secret docker-registry ibm-entitlement --docker-server=cp.icr.io --docker-username=cp  --docker-password=$ENTITLEMENT_KEY
+```
+
+Next retrieve the YAML file that will contain the credentials to your MongoDB instance. It is highly recommended this file is removed after deployment. You may also just deploy this YAML code directly in the OCP console instead of pushing a file.
+
+Retrieve and edit the yaml file, updating credentials:
+
+```bash
+wget https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseService/sls-mongo.yaml
+nano sls-mongo.yaml
+```
+
+YAML file will look like the following:
+
+```yml
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  name: sls-mongo-credentials
+  namespace: ibm-sls
+stringData:
+  username: ‘<username>’
+  password: ‘<password>’
+```
+
+Save the file and upload it to OCP:
+
+```bash
+oc create -f sls-mongo.yaml -n ibm-sls
+```
+
+Deploy the operator group and subscription configurations:
+
+```bash
+oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseService/sls-og.yaml -n ibm-sls
+oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseService/sls-subscription.yaml -n ibm-sls
+```
+
+Retrieve and edit the config yaml file, updating the host information:
+
+```bash
+wget https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseService/sls-config.yaml
+nano sls-config.yaml
+```
+
+> 🚧 **WARNING** The below configuration is using the `azurefiles` storage class created in a previous step. If you did not configure this, you will need to update the class with another option.
+
+YAML file will look like the following:
+
+```yml
+apiVersion: sls.ibm.com/v1
+kind: LicenseService
+metadata:
+  name: sls
+  namespace: ibm-sls
+spec:
+  license:
+    accept: true
+  mongo:
+    configDb: admin
+    nodes:
+    - host: mas-mongo-ce-0.mas-mongo-ce-svc.mongo.svc.cluster.local
+      port: 27017
+    - host: mas-mongo-ce-1.mas-mongo-ce-svc.mongo.svc.cluster.local
+      port: 27017
+    - host: mas-mongo-ce-2.mas-mongo-ce-svc.mongo.svc.cluster.local
+      port: 27017
+    secretName: sls-mongo-credentials
+  rlks:
+    storage:
+      class: azurefiles
+      size: 5G
+```
+
+Deploy the service configuration:
+
+```bash
+oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseService/sls-config.yaml -n ibm-sls
+```
+
+### Installing IBM Maximo Application Suite
+
+[IBM Maximo Application Suite](https://www.ibm.com/products/maximo) is an intelligent asset management, monitoring, predictive maintenance, computer vision, safety and reliability in a single platform.
+
+If you have an IBM Passport Advantage account, you may download the latest version of Maximo from the service portal. If not, you can install directly using the IBM Maximo Operator inside of OpenShift. In this example, we will install using the operator.
+
 ### TODO
 
-* [ ] Install MongoDB Community Edition
-* [ ] Install Service Binding Operator
-* [ ] Install IBM Catalog Operator
-* [ ] Install IBM Behavior Analytics Service (BAS)
-* [ ] Install IBM License Service
+* [ ] Update service descriptions
+* [ ] Fix links
+* [ ] Create steps for installing Maximo from the operator hub
 
 ## Contributing
 
