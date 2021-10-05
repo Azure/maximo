@@ -352,6 +352,27 @@ oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseServ
 
 If you have an IBM Passport Advantage account, you may download the latest version of Maximo from the service portal. If not, you can install directly using the IBM Maximo Operator inside of OpenShift. In this example, we will install using the operator.
 
+## Installing Cloud Pak for Data
+
+Maximo Application Suite (MAS or Maximo) can be installed on OpenShift. IBM provides documentation for Maximo on its [documentation site](https://www.ibm.com/docs/en/mas85/8.5.0). Make sure to refer to the documentation for [Maximo 8.5.0](https://www.ibm.com/docs/en/mas85/8.5.0), as that is the version we are describing throughout this document.
+
+All of the steps below assume you are logged on to your OpenShift cluster and you have the `oc` CLI available.
+
+### Installing Cloud Pak Foundational Services
+
+https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/cpd/install/preinstall-foundational-svcs.html
+
+### Installing Cloud Pak for Data
+
+https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/cpd/install/preinstall-operator-subscriptions.html#preinstall-operator-subscriptions__install-plan#preinstall-operator-subscriptions__install-plan
+
+
+https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/cpd/install/install-overview.html
+
+1. cloud-pak-for-data-operator.yaml
+1. cloud-pak-enable-operators.yaml
+1. cloud-pak-install.yaml
+
 ### TODO
 
 * [ ] Create steps for installing Maximo from the operator hub

@@ -3,7 +3,8 @@ kind: StorageClass
 metadata:
   name: azurefiles
 provisioner: kubernetes.io/azure-file
-parameters:
-  skuName: Standard_LRS
-  location: eastus
-  storageAccount: masstoragetest
+reclaimPolicy: Delete
+mountOptions:
+  - dir_mode=0777
+  - file_mode=0777
+volumeBindingMode: Immediate
