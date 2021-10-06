@@ -359,8 +359,27 @@ Maximo Application Suite (MAS or Maximo) can be installed on OpenShift. IBM prov
 All of the steps below assume you are logged on to your OpenShift cluster and you have the `oc` CLI available.
 
 ### Installing Cloud Pak Foundational Services
+https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/cpd/install/preinstall-operator-subscriptions.html
 
 https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/cpd/install/preinstall-foundational-svcs.html
+
+
+
+```bash
+1. oc new-project ibm-common-services
+1. cloud-pak-operator-group.yaml
+1. scheduling-service-operator.yaml
+1. cloud-pak-foundational-subscription.yaml
+```
+
+Check status:
+```bash
+oc --namespace ibm-common-services get csv
+
+oc get crd | grep operandrequest
+
+oc api-resources --api-group operator.ibm.com
+```
 
 ### Installing Cloud Pak for Data
 
@@ -370,12 +389,19 @@ https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/cpd/in
 https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/cpd/install/install-overview.html
 
 1. cloud-pak-for-data-operator.yaml
+1. oc new-project cp4d
 1. cloud-pak-enable-operators.yaml
 1. cloud-pak-install.yaml
 
-### TODO
+Approve Install Plan:
+installplan=$(oc get installplan -n cp4d | grep -i ibm-cert-manager-operator | awk '{print $1}'); echo "installplan: $installplan"
+oc patch installplan ${installplan} -n cp4d --type merge --patch '{"spec":{"approved":true}}'
 
-* [ ] Create steps for installing Maximo from the operator hub
+installplan=$(oc get installplan -n cp4d | grep -i ibm-zen-operator | awk '{print $1}'); echo "installplan: $installplan"
+oc patch installplan ${installplan} -n cp4d --type merge --patch '{"spec":{"approved":true}}'
+
+### Installing Db2 Warehouse
+
 
 ## Contributing
 
