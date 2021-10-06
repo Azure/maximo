@@ -359,6 +359,22 @@ Maximo Application Suite (MAS or Maximo) can be installed on OpenShift. IBM prov
 All of the steps below assume you are logged on to your OpenShift cluster and you have the `oc` CLI available.
 
 ### Installing Cloud Pak Foundational Services
+
+Prerequisites for Cloud Pak for Data (CP4D):
+
+1. OpenShift Container Storage
+
+#### Setting up OpenShift Container Storage (OCS)
+
+First we need to make a new machineset for OCS - it needs a minimum of 30 vCPUs and 72GB of RAM. Our existing cluster is not big enough for that.
+
+```bash
+oc apply -f src/MachineSets/ocs-z1.yaml
+oc create ns openshift-storage
+oc annotate namespace openshift-storage openshift.io/node-selector="components=ocs"
+
+
+
 https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/cpd/install/preinstall-operator-subscriptions.html
 
 https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/cpd/install/preinstall-foundational-svcs.html
@@ -401,6 +417,7 @@ installplan=$(oc get installplan -n cp4d | grep -i ibm-zen-operator | awk '{prin
 oc patch installplan ${installplan} -n cp4d --type merge --patch '{"spec":{"approved":true}}'
 
 ### Installing Db2 Warehouse
+
 
 
 ## Contributing
