@@ -1,0 +1,65 @@
+apiVersion: machine.openshift.io/v1beta1
+kind: MachineSet
+metadata:
+  labels:
+    machine.openshift.io/cluster-api-cluster: mascluster-xtz8t
+    machine.openshift.io/cluster-api-machine-role: worker
+    machine.openshift.io/cluster-api-machine-type: worker
+  name: ocs-z1
+  namespace: openshift-machine-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      machine.openshift.io/cluster-api-cluster: mascluster-xtz8t
+      machine.openshift.io/cluster-api-machineset: mascluster-xtz8t-worker-ocs-z1
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        components: ocs
+        machine.openshift.io/cluster-api-cluster: mascluster-xtz8t
+        machine.openshift.io/cluster-api-machine-role: worker
+        machine.openshift.io/cluster-api-machine-type: worker
+        machine.openshift.io/cluster-api-machineset: mascluster-xtz8t-worker-ocs-z1
+    spec:
+      metadata:
+        creationTimestamp: null
+        labels:
+          node-role.kubernetes.io/worker: ""
+      providerSpec:
+        value:
+          apiVersion: azureproviderconfig.openshift.io/v1beta1
+          credentialsSecret:
+            name: azure-cloud-credentials
+            namespace: openshift-machine-api
+          image:
+            offer: ""
+            publisher: ""
+            resourceID: /resourceGroups/mascluster-xtz8t-rg/providers/Microsoft.Compute/images/mascluster-xtz8t
+            sku: ""
+            version: ""
+          internalLoadBalancer: ""
+          kind: AzureMachineProviderSpec
+          location: eastus
+          managedIdentity: mascluster-xtz8t-identity
+          metadata:
+            creationTimestamp: null
+          natRule: null
+          networkResourceGroup: mascluster-xtz8t-rg
+          osDisk:
+            diskSizeGB: 128
+            managedDisk:
+              storageAccountType: Premium_LRS
+            osType: Linux
+          publicIP: false
+          publicLoadBalancer: mascluster-xtz8t
+          resourceGroup: mascluster-xtz8t-rg
+          sshPrivateKey: ""
+          sshPublicKey: ""
+          subnet: mascluster-xtz8t-worker-subnet
+          userDataSecret:
+            name: worker-user-data
+          vmSize: Standard_B8s_v4
+          vnet: mascluster-xtz8t-vnet
+          zone: "1"
