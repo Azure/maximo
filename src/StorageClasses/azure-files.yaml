@@ -3,8 +3,14 @@ kind: StorageClass
 metadata:
   name: azurefiles
 provisioner: kubernetes.io/azure-file
-reclaimPolicy: Delete
+reclaimPolicy: Retain
 mountOptions:
   - dir_mode=0777
   - file_mode=0777
-volumeBindingMode: Immediate
+  - uid=0
+  - gid=0
+  - mfsymlinks
+  - cache=strict
+  - actimeo=30
+parameters:
+  skuName: Standard_LRS

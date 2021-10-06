@@ -70,5 +70,4 @@ spec:
   license:
     accept: true
     license: Enterprise
-  storageClass: azurefiles #RWX (ReadWriteMany)
-  zenCoreMetadbStorageClass: managed-premium #RWO (ReadWriteOnce)
+  storageVendor: ocs
