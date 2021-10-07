@@ -418,7 +418,7 @@ oc patch installplan ${installplan} -n cp4d --type merge --patch '{"spec":{"appr
 
 ### Installing Db2 Warehouse
 
-
+oc adm policy add-cluster-role-to-user system:controller:persistent-volume-binder system:serviceaccount:cp4d:zen-databases-sa
 
 ## Contributing
 

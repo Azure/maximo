@@ -6,6 +6,8 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
+  annotations:
+    openshift.io/node-selector: components=mas-manage-db2
   name: cp4d
 ---
 apiVersion: operators.coreos.com/v1
@@ -70,5 +72,4 @@ spec:
   license:
     accept: true
     license: Enterprise
-  storageClass: azurefiles #RWX (ReadWriteMany)
-  zenCoreMetadbStorageClass: managed-premium #RWO (ReadWriteOnce)
+  storageVendor: ocs

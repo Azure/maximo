@@ -5,31 +5,31 @@ metadata:
     machine.openshift.io/cluster-api-cluster: mascluster-xtz8t
     machine.openshift.io/cluster-api-machine-role: worker
     machine.openshift.io/cluster-api-machine-type: worker
-  name: ocs-z1
+  name: mas-manage-db2-z1
   namespace: openshift-machine-api
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
-      components: ocs
+      components: mas-manage-db2
       machine.openshift.io/cluster-api-cluster: mascluster-xtz8t
-      machine.openshift.io/cluster-api-machineset: mascluster-xtz8t-worker-ocs-z1
+      machine.openshift.io/cluster-api-machineset: mascluster-xtz8t-worker-mas-manage-db2-z1
   template:
     metadata:
       creationTimestamp: null
       labels:
-        components: ocs
+        components: mas-manage-db2
         machine.openshift.io/cluster-api-cluster: mascluster-xtz8t
         machine.openshift.io/cluster-api-machine-role: worker
         machine.openshift.io/cluster-api-machine-type: worker
-        machine.openshift.io/cluster-api-machineset: mascluster-xtz8t-worker-ocs-z1
+        machine.openshift.io/cluster-api-machineset: mascluster-xtz8t-worker-mas-manage-db2-z1
     spec:
       metadata:
         creationTimestamp: null
         labels:
-          components: ocs
-          cluster.ocs.openshift.io/openshift-storage: ""
+          components: mas-manage-db2
           node-role.kubernetes.io/worker: ""
+          icp4data: mas-manage-db2wh
       providerSpec:
         value:
           apiVersion: azureproviderconfig.openshift.io/v1beta1
@@ -74,31 +74,31 @@ metadata:
     machine.openshift.io/cluster-api-cluster: mascluster-xtz8t
     machine.openshift.io/cluster-api-machine-role: worker
     machine.openshift.io/cluster-api-machine-type: worker
-  name: ocs-z2
+  name: mas-manage-db2-z2
   namespace: openshift-machine-api
 spec:
   replicas: 1
   selector:
     matchLabels:
-      components: ocs
+      components: mas-manage-db2
       machine.openshift.io/cluster-api-cluster: mascluster-xtz8t
-      machine.openshift.io/cluster-api-machineset: mascluster-xtz8t-worker-ocs-z2
+      machine.openshift.io/cluster-api-machineset: mascluster-xtz8t-worker-mas-manage-db2-z2
   template:
     metadata:
       creationTimestamp: null
       labels:
-        components: ocs
+        components: mas-manage-db2
         machine.openshift.io/cluster-api-cluster: mascluster-xtz8t
         machine.openshift.io/cluster-api-machine-role: worker
         machine.openshift.io/cluster-api-machine-type: worker
-        machine.openshift.io/cluster-api-machineset: mascluster-xtz8t-worker-ocs-z2
+        machine.openshift.io/cluster-api-machineset: mascluster-xtz8t-worker-mas-manage-db2-z2
     spec:
       metadata:
         creationTimestamp: null
         labels:
-          components: ocs
-          cluster.ocs.openshift.io/openshift-storage: ""
+          components: mas-manage-db2
           node-role.kubernetes.io/worker: ""
+          icp4data: mas-manage-db2wh
       providerSpec:
         value:
           apiVersion: azureproviderconfig.openshift.io/v1beta1
