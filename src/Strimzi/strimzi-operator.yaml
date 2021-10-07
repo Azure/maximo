@@ -1,0 +1,12 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: strimzi-cluster-operator.v0.22.1
+  namespace: ibm-strimzi
+spec:
+  channel: strimzi-0.22.x
+  installPlanApproval: Automatic
+  name: strimzi-kafka-operator
+  source: community-operators
+  sourceNamespace: openshift-marketplace
+  startingCSV: strimzi-cluster-operator.v0.22.1

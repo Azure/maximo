@@ -1,0 +1,12 @@
+apiVersion: metaoperator.cpd.ibm.com/v1
+kind: CPDService
+metadata:
+  name: lite-cpdservice
+  namespace: cp4d35
+spec:
+  serviceName: lite
+  version: latest
+  storageClass: 'ocs-storagecluster-cephfs'
+  overrideConfig: Override
+  license:
+    accept: true

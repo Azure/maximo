@@ -358,12 +358,6 @@ Maximo Application Suite (MAS or Maximo) can be installed on OpenShift. IBM prov
 
 All of the steps below assume you are logged on to your OpenShift cluster and you have the `oc` CLI available.
 
-### Installing Cloud Pak Foundational Services
-
-Prerequisites for Cloud Pak for Data (CP4D):
-
-1. OpenShift Container Storage
-
 #### Setting up OpenShift Container Storage (OCS)
 
 First we need to make a new machineset for OCS - it needs a minimum of 30 vCPUs and 72GB of RAM. Our existing cluster is not big enough for that.
@@ -372,7 +366,13 @@ First we need to make a new machineset for OCS - it needs a minimum of 30 vCPUs 
 oc apply -f src/MachineSets/ocs-z1.yaml
 oc create ns openshift-storage
 oc annotate namespace openshift-storage openshift.io/node-selector="components=ocs"
+```
 
+### Installing Cloud Pak Foundational Services
+
+Prerequisites for Cloud Pak for Data (CP4D):
+
+1. OpenShift Container Storage
 
 
 https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/cpd/install/preinstall-operator-subscriptions.html
@@ -380,13 +380,10 @@ https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/cpd/in
 https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/cpd/install/preinstall-foundational-svcs.html
 
 
-
-```bash
 1. oc new-project ibm-common-services
 1. cloud-pak-operator-group.yaml
 1. scheduling-service-operator.yaml
 1. cloud-pak-foundational-subscription.yaml
-```
 
 Check status:
 ```bash
@@ -419,6 +416,10 @@ oc patch installplan ${installplan} -n cp4d --type merge --patch '{"spec":{"appr
 ### Installing Db2 Warehouse
 
 oc adm policy add-cluster-role-to-user system:controller:persistent-volume-binder system:serviceaccount:cp4d:zen-databases-sa
+
+### Installing Strimzi (Kafka)
+
+Need to use strimzi-0.22.x. Versions > 0.22 remove the betav1 APIs that the BAS Kafka services depend on.
 
 ## Contributing
 
