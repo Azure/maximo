@@ -358,6 +358,12 @@ Maximo Application Suite (MAS or Maximo) can be installed on OpenShift. IBM prov
 
 All of the steps below assume you are logged on to your OpenShift cluster and you have the `oc` CLI available.
 
+### Installing Cloud Pak Foundational Services
+
+Prerequisites for Cloud Pak for Data (CP4D):
+
+1. OpenShift Container Storage
+
 #### Setting up OpenShift Container Storage (OCS)
 
 First we need to make a new machineset for OCS - it needs a minimum of 30 vCPUs and 72GB of RAM. Our existing cluster is not big enough for that.
@@ -366,13 +372,7 @@ First we need to make a new machineset for OCS - it needs a minimum of 30 vCPUs 
 oc apply -f src/MachineSets/ocs-z1.yaml
 oc create ns openshift-storage
 oc annotate namespace openshift-storage openshift.io/node-selector="components=ocs"
-```
 
-### Installing Cloud Pak Foundational Services
-
-Prerequisites for Cloud Pak for Data (CP4D):
-
-1. OpenShift Container Storage
 
 
 https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/cpd/install/preinstall-operator-subscriptions.html
@@ -380,10 +380,13 @@ https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/cpd/in
 https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/cpd/install/preinstall-foundational-svcs.html
 
 
+
+```bash
 1. oc new-project ibm-common-services
 1. cloud-pak-operator-group.yaml
 1. scheduling-service-operator.yaml
 1. cloud-pak-foundational-subscription.yaml
+```
 
 Check status:
 ```bash
@@ -417,9 +420,36 @@ oc patch installplan ${installplan} -n cp4d --type merge --patch '{"spec":{"appr
 
 oc adm policy add-cluster-role-to-user system:controller:persistent-volume-binder system:serviceaccount:cp4d:zen-databases-sa
 
-### Installing Strimzi (Kafka)
+## Installing Kafka
 
-Need to use strimzi-0.22.x. Versions > 0.22 remove the betav1 APIs that the BAS Kafka services depend on.
+You need to use strimzi-0.22.x. Versions > 0.22 remove the betav1 APIs that the BAS Kafka services depend on.
+
+1. Install Strimzi TODO
+1. Grab the CA for Strimzi, hop onto a container and execute `
+
+To test if Kafka is up and running successfully on your cluster you can use kcat (kafkacat). To do so, execute the following steps:
+
+1. Deploy and enter a kcat container 
+1. Create a ca.pem file on / and enter your CA credentials from the `openssl s_client` step
+
+```bash
+kcat -b maskafka-kafka-2.maskafka-kafka-brokers.ibm-strimzi.svc:9093 -X security.protocol=SASL_SSL -X sasl.mechanism=SCRAM-SHA-512 -X sasl.username=mas-user -X sasl.password=Y0i9PygsAUAI -X ssl.ca.location=ca.pem -L
+
+Metadata for all topics (from broker 2: sasl_ssl://maskafka-kafka-2.maskafka-kafka-brokers.ibm-strimzi.svc:9093/2):
+ 3 brokers:
+  broker 0 at maskafka-kafka-0.maskafka-kafka-brokers.ibm-strimzi.svc:9093
+  broker 2 at maskafka-kafka-2.maskafka-kafka-brokers.ibm-strimzi.svc:9093
+  broker 1 at maskafka-kafka-1.maskafka-kafka-brokers.ibm-strimzi.svc:9093 (controller)
+ 0 topics:
+```
+
+### Configuring Maximo with Kafka
+
+Enter all the brokers with port 9093. The brokers are <cluster-name>-kafka-<n>.<cluster-name>-kafka-brokers.<namespace>.svc, e.g.  maskafka-kafka-0.maskafka-kafka-brokers.ibm-strimzi.svc for a cluster called `maskafka` installed in namespace `ibm-strimzi`. To get the credentials for Kafka execute `oc extract secret/mas-user --to=- -n ibm-strimzi`.
+
+## To get your credentials to login
+
+For Maximo: `oc extract secret/nonprod-credentials-superuser -n mas-nonprod-core --to=-`
 
 ## Contributing
 
