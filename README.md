@@ -13,6 +13,7 @@ To move forward with a Maximo install you will need a few basics:
   * You will need owner permissions or have someone with owner permissions within reach.
 * A domain or subdomain. If you don't have one, you can register one through Azure using an App Service Domain.
 * Access to the IBM licensing service for IBM Maximo.
+* Access to IBM downloads to download the Maximo Installer (masinstall)
 
 These are normally provided by your organization. You will only need the IBM License for Maximo during the last few steps. Once you have secured access to an Azure subscription, you need a few more things:
 
@@ -27,17 +28,36 @@ For the installation you will need a few programs, these are: `oc` the OpenShift
 
 After these services have been installed and configured, you can successfully install and configure Maximo Application Suite (MAS) on OpenShift running on Azure.
 
-### Azure configuration
+## What needs to be done
+
+The goal of this guide is to get a Maximo product running on top of Maximo Core on top of OpenShift on top of Azure. For example with Maximo Monitor, that would look like this:
+
+TODO: Diagram
+
+For us to get there we need to execute the following steps:
+
+1. Prepare and configure Azure resources for OpenShift and Maximo install
+1. Deploy OpenShift
+1. Install Maximo Core and its dependencies (BAS, SLS, MongoDB)
+1. Install OpenShift Container Storage
+1. Install any dependencies that your Maximo product has
+1. Deploy the Maximo solution 
+
+## Step 1: Preparing Azure
 
 Please follow [this guide](docs/azure/README.md) to configure Azure.
 
-### OpenShift
+## Step 2: Deploying OpenShift
 
 Please follow [this guide](docs/openshift/ocp/README.md) to configure OpenShift Container Platform on Azure. Guidance for ARO will follow later.
 
 ### Azure Files CSI drivers
 
 If you are planning on using the Azure Files CSI driver instead of the Azure Disk CSI drivers, you will need to install the driver. It is not provided by OpenShift right out of the box. Please follow [these instructions](docs/azure/using-azure-files.md) to set up Azure Files with OpenShift.
+
+### Enabling OIDC authentication against Azure AD
+
+TODO
 
 ### Finishing up
 
@@ -53,16 +73,27 @@ Once you have confirmed everything looks good, you can proceed with the requirem
 
 <!-- this can be split off later to the apps section -->
 
-## Installing Maximo
+## Installing Maximo Core
 
 Maximo Application Suite (MAS or Maximo) can be installed on OpenShift. IBM provides documentation for Maximo on its [documentation site](https://www.ibm.com/docs/en/mas85/8.5.0). Make sure to refer to the documentation for [Maximo 8.5.0](https://www.ibm.com/docs/en/mas85/8.5.0), as that is the version we are describing throughout this document.
 
-All of the steps below assume you are logged on to your OpenShift cluster and you have the `oc` CLI available.
+This steps referring to the base suite to install, also referred to as Maximo Core. All of the steps below assume you are logged on to your OpenShift cluster and you have the `oc` CLI available.
 
 > 💡 **TIP**:
 > Copy the `oc` client to your /usr/bin directory to access the client from any directory. This will be required for some installing scripts.
 
-### Installing cert-manager
+### Step 3: Prerequisites
+
+Maximo Core has a few requirements that have to be available before it can be installed. These are:
+
+1. cert-manager
+1. MongoDB CE
+1. Service Binding Operator
+1. IBM Catalog Operator
+1. IBM Behavioral Analytics Systems (BAS)
+1. IBM Suite Licensing Services (SLS)
+ 
+#### Installing cert-manager
 
 [cert-manager](https://github.com/jetstack/cert-manager) is a Kubernetes add-on to automate the management and issuance of TLS certificates from various issuing sources. It is required for [Maximo](https://www.ibm.com/docs/en/mas85/8.5.0?topic=installation-system-requirements#mas-requirements). For more installation and usage information check out the [cert-manager documentation](https://cert-manager.io/v0.16-docs/installation/openshift/).
 
@@ -84,7 +115,7 @@ cert-manager-cainjector-bd5f9c764-2j29c   1/1     Running   0          2d1h
 cert-manager-webhook-c4b5687dc-thh2b      1/1     Running   0          2d1h
 ```
 
-### Installing MongoDB
+#### Installing MongoDB
 
 In this example, we will be installing the community edition of MongoDB on OpenShift using self signed certs. [MongoDB Community Edition](https://www.mongodb.com) is the free version of MongoDB. This version does not come with enterprise support nor certain features typically required by enterprises. We recommend exploring the options below for production use:
 
@@ -151,7 +182,7 @@ BEGIN CERTIFICATE
 END CERTIFICATE
 ```
 
-### Installing Service Binding Operator
+#### Installing Service Binding Operator
 
 [Service Binding Operator](https://github.com/redhat-developer/service-binding-operator/blob/master/README.md) enables application developers to more easily bind applications together with operator managed backing services such as databases, without having to perform manual configuration of secrets, configmaps, etc.
 
@@ -172,7 +203,7 @@ NAME              AGE
 ibm-sls.ibm-sls   5d7h
 ```
 
-### Installing IBM Catalog Operator
+#### Installing IBM Catalog Operator
 
 [IBM Catalog Operator](https://) is an index of operators available to automate deployment and maintenance of IBM Software products into Red Hat® OpenShift® clusters. Operators within this catalog have been built following Kubernetes best practices and IBM standards to provide a consistent integrated set of capabilities.
 
@@ -191,7 +222,7 @@ NAME                   DISPLAY                TYPE   PUBLISHER   AGE
 ibm-operator-catalog   IBM Operator Catalog   grpc   IBM         5d21h
 ```
 
-### Installing IBM Behavior Analytics Services Operator (BAS)
+#### Installing IBM Behavior Analytics Services Operator (BAS)
 
 [IBM Behavior Analytics Services Operator](https://catalog.redhat.com/software/operators/detail/5fabe3c360c9b64020a34f02) is a service that collects, transforms and transmits product usage data.
 
@@ -248,7 +279,7 @@ BEGIN CERTIFICATE
 END CERTIFICATE
 ```
 
-### Installing IBM Suite License Service (SLS)
+#### Installing IBM Suite License Service (SLS)
 
 [IBM Suite License Service](https://github.com/IBM/ibm-licensing-operator) (SLS) is a token-based licensing system based on Rational License Key Server (RLKS) with MongoDB as the data store.
 
@@ -346,9 +377,7 @@ Deploy the service configuration:
 oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseService/sls-config.yaml -n ibm-sls
 ```
 
-### Installing IBM Maximo Application Suite
-
-[IBM Maximo Application Suite](https://www.ibm.com/products/maximo) is an intelligent asset management, monitoring, predictive maintenance, computer vision, safety and reliability in a single platform.
+### Step 3: Installing IBM Maximo Application Suite
 
 If you have an IBM Passport Advantage account, you may download the latest version of Maximo from the service portal. If not, you can install directly using the IBM Maximo Operator inside of OpenShift. In this example, we will install using the operator.
 
