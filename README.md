@@ -1,6 +1,8 @@
 # Introduction
 
-This repository provides deployment guidance, scripts and best practices for running IBM Maximo 8.5.0 on OpenShift 4.8.10 using the Azure Cloud.
+This repository provides deployment guidance, scripts and best practices for running IBM Maximo Application Suite (Maximo or MAS) on OpenShift using the Azure Cloud. The instruction below have been tested with Maximo 8.5.0 on OpenShift 4.8.
+
+TODO: Explain Maximo vs Maximo Apps and breakdown in the repo organization
 
 > 🚧 **WARNING** this guide is currently in early stages and under active development. If you would like to contribute or use this right now, please reach out so we can support you.
 
@@ -36,18 +38,18 @@ TODO: Diagram
 
 For us to get there we need to execute the following steps:
 
-1. Prepare and configure Azure resources for OpenShift and Maximo install
-1. Deploy OpenShift
-1. Install Maximo Core and its dependencies (BAS, SLS, MongoDB)
-1. Install OpenShift Container Storage
-1. Install any dependencies that your Maximo product has
-1. Deploy the Maximo solution 
+1. [Prepare and configure Azure](#step-1-preparing-azure) resources for OpenShift and Maximo install
+2. [Deploy OpenShift](#step-2-deploy-openshift)
+3. [Install the dependencies of the Maximo](#step-3a-dependencies-for-maximo) and then [Maximo itself](#step-3b-installing-maximo) (Core)
+4. Install OpenShift Container Storage
+5. Install any dependencies that your Maximo product has
+6. Deploy the Maximo solution.
 
 ## Step 1: Preparing Azure
 
 Please follow [this guide](docs/azure/README.md) to configure Azure.
 
-## Step 2: Deploying OpenShift
+## Step 2: Deploy OpenShift
 
 Please follow [this guide](docs/openshift/ocp/README.md) to configure OpenShift Container Platform on Azure. Guidance for ARO will follow later.
 
@@ -82,9 +84,9 @@ This steps referring to the base suite to install, also referred to as Maximo Co
 > 💡 **TIP**:
 > Copy the `oc` client to your /usr/bin directory to access the client from any directory. This will be required for some installing scripts.
 
-### Step 3: Prerequisites
+### Step 3a: Dependencies for Maximo
 
-Maximo Core has a few requirements that have to be available before it can be installed. These are:
+Maximo has a few requirements that have to be available before it can be installed. These are:
 
 1. cert-manager
 1. MongoDB CE
@@ -377,7 +379,7 @@ Deploy the service configuration:
 oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseService/sls-config.yaml -n ibm-sls
 ```
 
-### Step 3: Installing IBM Maximo Application Suite
+### Step 3b: Installing Maximo
 
 If you have an IBM Passport Advantage account, you may download the latest version of Maximo from the service portal. If not, you can install directly using the IBM Maximo Operator inside of OpenShift. In this example, we will install using the operator.
 
