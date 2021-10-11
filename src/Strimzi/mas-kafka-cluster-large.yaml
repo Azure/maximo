@@ -16,12 +16,24 @@ spec:
       -Xms: 6156m
       -Xmx: 6156m
     replicas: 3
-    listeners:      
-      tls:
-        authentication:
-          type: scram-sha-512
-        networkPolicyPeers:
-          - namespaceSelector: {}
+    listeners: 
+      - name: plain
+        port: 9092
+        type: internal
+        tls: false
+      - name: tls
+        port: 9093
+        type: internal
+        tls: true   
+      - tls:
+          authentication:
+            type: scram-sha-512
+          networkPolicyPeers:
+            - namespaceSelector: {}
+    authorization:
+      type: simple
+      superUsers:
+        - CN=mas-user
     config:
       offsets.topic.replication.factor: 3
       transaction.state.log.replication.factor: 3
