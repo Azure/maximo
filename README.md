@@ -379,11 +379,37 @@ Deploy the service configuration:
 oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseService/sls-config.yaml -n ibm-sls
 ```
 
+#### Setting up OpenShift Container Storage (OCS)
+
+First we need to make a new machineset for OCS - it needs a minimum of 30 vCPUs and 72GB of RAM. Our existing cluster is not big enough for that.
+
+```bash
+oc apply -f src/MachineSets/ocs-z1.yaml
+oc create ns openshift-storage
+oc annotate namespace openshift-storage openshift.io/node-selector="components=ocs"
+```
+
 ### Step 3b: Installing Maximo
 
 If you have an IBM Passport Advantage account, you may download the latest version of Maximo from the service portal. If not, you can install directly using the IBM Maximo Operator inside of OpenShift. In this example, we will install using the operator.
 
-## Installing Cloud Pak for Data
+## Installing Cloud Pak for Data 3.5
+
+
+```bash
+1. oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cpd-meta-ops-namespace.yaml
+1. oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cp4d35-namespace.yaml
+1. export ENTITLEMENT_KEY=<keyhere>
+1. oc -n cpd-meta-ops create secret docker-registry ibm-entitlement-key --docker-server=cp.icr.io --docker-username=cp --docker-password=$ENTITLEMENT_KEY
+1. oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/scheduling-service-operator.yaml -n cpd-meta-ops
+1. oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cloud-pak-for-data-operator.yaml -n cpd-meta-ops
+1. oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cloud-pak-cpdservice.yaml -n cp4d35
+
+```
+
+
+
+<!-- ## Installing Cloud Pak for Data 4.0
 
 Maximo Application Suite (MAS or Maximo) can be installed on OpenShift. IBM provides documentation for Maximo on its [documentation site](https://www.ibm.com/docs/en/mas85/8.5.0). Make sure to refer to the documentation for [Maximo 8.5.0](https://www.ibm.com/docs/en/mas85/8.5.0), as that is the version we are describing throughout this document.
 
@@ -395,21 +421,11 @@ Prerequisites for Cloud Pak for Data (CP4D):
 
 1. OpenShift Container Storage
 
-#### Setting up OpenShift Container Storage (OCS)
-
-First we need to make a new machineset for OCS - it needs a minimum of 30 vCPUs and 72GB of RAM. Our existing cluster is not big enough for that.
-
-```bash
-oc apply -f src/MachineSets/ocs-z1.yaml
-oc create ns openshift-storage
-oc annotate namespace openshift-storage openshift.io/node-selector="components=ocs"
-
 
 
 https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/cpd/install/preinstall-operator-subscriptions.html
 
 https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/cpd/install/preinstall-foundational-svcs.html
-
 
 
 ```bash
@@ -445,7 +461,7 @@ installplan=$(oc get installplan -n cp4d | grep -i ibm-cert-manager-operator | a
 oc patch installplan ${installplan} -n cp4d --type merge --patch '{"spec":{"approved":true}}'
 
 installplan=$(oc get installplan -n cp4d | grep -i ibm-zen-operator | awk '{print $1}'); echo "installplan: $installplan"
-oc patch installplan ${installplan} -n cp4d --type merge --patch '{"spec":{"approved":true}}'
+oc patch installplan ${installplan} -n cp4d --type merge --patch '{"spec":{"approved":true}}' -->
 
 ### Installing Db2 Warehouse
 
