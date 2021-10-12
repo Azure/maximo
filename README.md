@@ -405,7 +405,6 @@ oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakFor
 oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/scheduling-service-operator.yaml -n cpd-meta-ops
 oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cloud-pak-for-data-operator.yaml -n cpd-meta-ops
 oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cloud-pak-cpdservice.yaml -n cp4d35
-
 ```
 
 
