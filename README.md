@@ -214,9 +214,9 @@ END CERTIFICATE
 
 #### Installing Service Binding Operator
 
-[Service Binding Operator](https://github.com/redhat-developer/service-binding-operator/blob/master/README.md) enables application developers to more easily bind applications together with operator managed backing services such as databases, without having to perform manual configuration of secrets, configmaps, etc.
+[Service Binding Operator](https://github.com/redhat-developer/service-binding-operator/blob/master/README.md) enables application developers to more easily bind applications together with operator managed backing services such as databases, without having to perform manual configuration of secrets, configmaps, etc. 
 
-To install, run the following commands:
+We have to put this operator on manual approval and you can NOT and should NOT upgrade the operator to a newer version. Maximo requires 0.8.0 specifically. To install, run the following commands:
 
 ```bash
 oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/ServiceBinding/service-binding-operator.yaml -n openshift-operators
@@ -224,13 +224,15 @@ installplan=$(oc get installplan -n openshift-operators | grep -i service-bindin
 oc patch installplan ${installplan} -n openshift-operators --type merge --patch '{"spec":{"approved":true}}'
 ```
 
-To validate everything is up and running, check `oc get operator/ibm-sls.ibm-sls`.
+To validate everything is up and running, check `oc get csv service-binding-operator.v0.8.0`.
 
 ```bash
-oc get operator/ibm-sls.ibm-sls
+oc get csv service-binding-operator.v0.8.0
 
-NAME              AGE
-ibm-sls.ibm-sls   5d7h
+# It should print the below, pay attention to the Succeeded.
+
+NAME                              DISPLAY                    VERSION   REPLACES                          PHASE
+service-binding-operator.v0.8.0   Service Binding Operator   0.8.0     service-binding-operator.v0.7.1   Succeeded
 ```
 
 #### Installing IBM Catalog Operator
