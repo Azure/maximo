@@ -453,14 +453,26 @@ Be cautious handling Cloud Pak for Data (CP4D) as it is quite a delicate web of 
 Cloud Pak for Data 3.5 can only be installed in the namespace where the operator has been installed.
 
 ```bash
+# Create namespace
 oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cpd-meta-ops-namespace.yaml
-oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cp4d35-namespace.yaml
+
+# Create a pull secret, needed for the meta-api
+
 export ENTITLEMENT_KEY=<keyhere>
-oc -n cpd-meta-ops create secret docker-registry ibm-entitlement-key --docker-server=cp.icr.io --docker-username=cp --docker-password=$ENTITLEMENT_KEY
+oc -n cpd-meta-ops create secret docker-registry ibm-entitlement-key --docker-server=cp.icr.io 
+--docker-username=cp --docker-password=$ENTITLEMENT_KEY 
+
+# Create operator group and operators
 oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cp4d35-operator-group.yaml -n cpd-meta-ops
 oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/scheduling-service-operator.yaml -n cpd-meta-ops
-oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cloud-pak-for-data-operator.yaml -n cpd-meta-ops
-oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cloud-pak-cpdservice.yaml -n cp4d35
+oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/
+cloud-pak-for-data-operator.yaml -n cpd-meta-ops
+
+oc get -n cpd-meta-ops csv
+
+# Proceed when both operators are marked as succeeded. This install cp4d 3.5
+
+oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cloud-pak-cpdservice.yaml -n cpd-meta-ops
 ```
 
 You can retrieve the password for CP4D by extracting the `admin-user-details` secret:

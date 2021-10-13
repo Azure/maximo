@@ -6,16 +6,16 @@ metadata:
     app.kubernetes.io/managed-by: ibm-cp-data-operator
     app.kubernetes.io/name: ibm-cp-data-operator-my-cpdservice
   name: lite-cpdservice
-  namespace: cp4d35
+  namespace: cpd-meta-ops
 spec:
   serviceName: lite
   license:
     accept: true
   optionalModules: []
-  flags: ''
+  flags: ""
   scale: medium
   overrideConfig: ocs
   version: latest
   autoPatch: false
-  customOverride: ''
+  customOverride: ""
   storageClass: ocs-storagecluster-cephfs
