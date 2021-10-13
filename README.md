@@ -277,6 +277,10 @@ Finally, deploy the Analytics Proxy. This will take up to 30 minutes to complete
 > 🚧 **WARNING** The below configuration is using the `azurefiles` storage class created in a previous step. If you did not configure this, you will need to update the class with another option.
 
 ```bash
+# Grant Azure files permissions to this namespace
+oc policy add-role-to-user admin system:serviceaccount:kube-system:persistent-volume-binder -n ibm-sls
+
+# Deploy
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/BehaviorService/bas-service.yaml
 
 # You can monitor the progress, keep an eye on the status section:
@@ -324,7 +328,7 @@ To configure this service, you will need the following:
 
 * IBM Entitlement Key
 * MongoDB Info
-  * Hostnames / Ports
+  * Hostnames and ports (27017 by default)
   * Database Name
   * Admin Credentials
 
@@ -333,65 +337,30 @@ Create a new project and store the docker secret with IBM entitlement key:
 ```bash
 oc new-project ibm-sls
 export ENTITLEMENT_KEY=<Entitlement Key>
-oc -n ibm-sls create secret docker-registry ibm-entitlement --docker-server=cp.icr.io --docker-username=cp  --docker-password=$ENTITLEMENT_KEY
+oc create secret docker-registry ibm-entitlement --docker-server=cp.icr.io --docker-username=cp  --docker-password=$ENTITLEMENT_KEY -n ibm-sls 
 ```
 
-Next retrieve the YAML file that will contain the credentials to your MongoDB instance. It is highly recommended this file is removed after deployment. You may also just deploy this YAML code directly in the OCP console instead of pushing a file.
-
-Retrieve and edit the yaml file, updating credentials:
+Next we need to provide the mongo credentials to SLS, we do this by creating a secret for it. In case you forgot the MongoDB password, retrieve it:
 
 ```bash
-wget https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseService/sls-mongo.yaml
-nano sls-mongo.yaml
+oc extract secret/mas-mongo-ce-admin-password --to=- -n mongo
 ```
 
-YAML file will look like the following:
-
-```yml
-apiVersion: v1
-kind: Secret
-type: Opaque
-metadata:
-  name: sls-mongo-credentials
-  namespace: ibm-sls
-stringData:
-  username: ‘<username>’
-  password: ‘<password>’
-```
-
-Save the file and upload it to OCP:
+Then create the secret:
 
 ```bash
-oc apply -f sls-mongo.yaml -n ibm-sls
+oc create secret generic sls-mongo-credentials --from-literal=username=admin --from-literal=password=<MONGO_PASSWORD> -n ibm-sls
 ```
 
 Deploy the operator group and subscription configurations:
 
 ```bash
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseService/sls-og.yaml -n ibm-sls
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseService/sls-subscription.yaml -n ibm-sls
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseService/sls-operator.yaml
 ```
 
-Retrieve and edit the config yaml file, updating the host information:
-
-```bash
-wget https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseService/sls-config.yaml
-nano sls-config.yaml
-```
-
-> 🚧 **WARNING** The below configuration is using the `azurefiles` storage class created in a previous step. If you did not configure this, you will need to update the class with another option.
-
-YAML file will look like the following:
+This will take a while, as usual, check its progress with `oc get csv -n ibm-sls`. Once done, deploy the sls-service. For this we need to make sure the correct details for Mongo are provided. The default is likely correct, but you should review the `sls-service.yaml` file and make sure the section for mongo is up-to-date:
 
 ```yml
-apiVersion: sls.ibm.com/v1
-kind: LicenseService
-metadata:
-  name: sls
-  namespace: ibm-sls
-spec:
-  license:
-    accept: true
   mongo:
     configDb: admin
     nodes:
@@ -402,16 +371,24 @@ spec:
     - host: mas-mongo-ce-2.mas-mongo-ce-svc.mongo.svc.cluster.local
       port: 27017
     secretName: sls-mongo-credentials
-  rlks:
-    storage:
-      class: azurefiles
-      size: 5G
 ```
+
+> 🚧 **WARNING** The YAML configuration is using the `azurefiles` storage class created in a previous step. If you did not configure this, you will need to update the class with another option.
 
 Deploy the service configuration:
 
 ```bash
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseService/sls-config.yaml -n ibm-sls
+# Grant Azure files permissions to this namespace
+oc policy add-role-to-user admin system:serviceaccount:kube-system:persistent-volume-binder -n ibm-sls
+
+# Deploy
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseService/sls-service.yaml
+```
+
+Wait for IBM SLS to come up, you can check its progress and also grab the connection details:
+
+```bash
+oc get LicenseService sls -n ibm-sls -o yaml
 ```
 
 ### Step 3b: Installing Maximo
