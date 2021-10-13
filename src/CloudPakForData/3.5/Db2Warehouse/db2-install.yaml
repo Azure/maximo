@@ -13,7 +13,7 @@ spec:
 apiVersion: databases.cpd.ibm.com/v1
 kind: Db2whService
 metadata:
-  name: db2service1
+  name: db2wh-cr35
   namespace: cpd-meta-ops
 spec:
   license:

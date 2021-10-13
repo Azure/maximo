@@ -2,7 +2,7 @@ apiVersion: machine.openshift.io/v1beta1
 kind: MachineSet
 metadata:
   labels:
-    machine.openshift.io/cluster-api-cluster: mascluster-xtz8t
+    machine.openshift.io/cluster-api-cluster: newcluster-nmpqp
     machine.openshift.io/cluster-api-machine-role: worker
     machine.openshift.io/cluster-api-machine-type: worker
   name: mas-manage-db2-z1
@@ -12,17 +12,17 @@ spec:
   selector:
     matchLabels:
       components: mas-manage-db2
-      machine.openshift.io/cluster-api-cluster: mascluster-xtz8t
-      machine.openshift.io/cluster-api-machineset: mascluster-xtz8t-worker-mas-manage-db2-z1
+      machine.openshift.io/cluster-api-cluster: newcluster-nmpqp
+      machine.openshift.io/cluster-api-machineset: newcluster-nmpqp-worker-mas-manage-db2-z1
   template:
     metadata:
       creationTimestamp: null
       labels:
         components: mas-manage-db2
-        machine.openshift.io/cluster-api-cluster: mascluster-xtz8t
+        machine.openshift.io/cluster-api-cluster: newcluster-nmpqp
         machine.openshift.io/cluster-api-machine-role: worker
         machine.openshift.io/cluster-api-machine-type: worker
-        machine.openshift.io/cluster-api-machineset: mascluster-xtz8t-worker-mas-manage-db2-z1
+        machine.openshift.io/cluster-api-machineset: newcluster-nmpqp-worker-mas-manage-db2-z1
     spec:
       metadata:
         creationTimestamp: null
@@ -30,6 +30,10 @@ spec:
           components: mas-manage-db2
           node-role.kubernetes.io/worker: ""
           icp4data: mas-manage-db2wh
+      taints:
+      - effect: NoSchedule
+        key: icp4data
+        value: mas-manage-db2wh
       providerSpec:
         value:
           apiVersion: azureproviderconfig.openshift.io/v1beta1
@@ -39,39 +43,39 @@ spec:
           image:
             offer: ""
             publisher: ""
-            resourceID: /resourceGroups/mascluster-xtz8t-rg/providers/Microsoft.Compute/images/mascluster-xtz8t
+            resourceID: /resourceGroups/newcluster-nmpqp-rg/providers/Microsoft.Compute/images/newcluster-nmpqp
             sku: ""
             version: ""
           internalLoadBalancer: ""
           kind: AzureMachineProviderSpec
           location: eastus
-          managedIdentity: mascluster-xtz8t-identity
+          managedIdentity: newcluster-nmpqp-identity
           metadata:
             creationTimestamp: null
           natRule: null
-          networkResourceGroup: mascluster-xtz8t-rg
+          networkResourceGroup: newcluster-nmpqp-rg
           osDisk:
             diskSizeGB: 128
             managedDisk:
               storageAccountType: Premium_LRS
             osType: Linux
           publicIP: false
-          publicLoadBalancer: mascluster-xtz8t
-          resourceGroup: mascluster-xtz8t-rg
+          publicLoadBalancer: newcluster-nmpqp
+          resourceGroup: newcluster-nmpqp-rg
           sshPrivateKey: ""
           sshPublicKey: ""
-          subnet: mascluster-xtz8t-worker-subnet
+          subnet: newcluster-nmpqp-worker-subnet
           userDataSecret:
             name: worker-user-data
           vmSize: Standard_B12ms
-          vnet: mascluster-xtz8t-vnet
+          vnet: newcluster-nmpqp-vnet
           zone: "1"
 ---
 apiVersion: machine.openshift.io/v1beta1
 kind: MachineSet
 metadata:
   labels:
-    machine.openshift.io/cluster-api-cluster: mascluster-xtz8t
+    machine.openshift.io/cluster-api-cluster: newcluster-nmpqp
     machine.openshift.io/cluster-api-machine-role: worker
     machine.openshift.io/cluster-api-machine-type: worker
   name: mas-manage-db2-z2
@@ -81,17 +85,17 @@ spec:
   selector:
     matchLabels:
       components: mas-manage-db2
-      machine.openshift.io/cluster-api-cluster: mascluster-xtz8t
-      machine.openshift.io/cluster-api-machineset: mascluster-xtz8t-worker-mas-manage-db2-z2
+      machine.openshift.io/cluster-api-cluster: newcluster-nmpqp
+      machine.openshift.io/cluster-api-machineset: newcluster-nmpqp-worker-mas-manage-db2-z2
   template:
     metadata:
       creationTimestamp: null
       labels:
         components: mas-manage-db2
-        machine.openshift.io/cluster-api-cluster: mascluster-xtz8t
+        machine.openshift.io/cluster-api-cluster: newcluster-nmpqp
         machine.openshift.io/cluster-api-machine-role: worker
         machine.openshift.io/cluster-api-machine-type: worker
-        machine.openshift.io/cluster-api-machineset: mascluster-xtz8t-worker-mas-manage-db2-z2
+        machine.openshift.io/cluster-api-machineset: newcluster-nmpqp-worker-mas-manage-db2-z2
     spec:
       metadata:
         creationTimestamp: null
@@ -99,6 +103,10 @@ spec:
           components: mas-manage-db2
           node-role.kubernetes.io/worker: ""
           icp4data: mas-manage-db2wh
+      taints:
+      - effect: NoSchedule
+        key: icp4data
+        value: mas-manage-db2wh
       providerSpec:
         value:
           apiVersion: azureproviderconfig.openshift.io/v1beta1
@@ -108,30 +116,30 @@ spec:
           image:
             offer: ""
             publisher: ""
-            resourceID: /resourceGroups/mascluster-xtz8t-rg/providers/Microsoft.Compute/images/mascluster-xtz8t
+            resourceID: /resourceGroups/newcluster-nmpqp-rg/providers/Microsoft.Compute/images/newcluster-nmpqp
             sku: ""
             version: ""
           internalLoadBalancer: ""
           kind: AzureMachineProviderSpec
           location: eastus
-          managedIdentity: mascluster-xtz8t-identity
+          managedIdentity: newcluster-nmpqp-identity
           metadata:
             creationTimestamp: null
           natRule: null
-          networkResourceGroup: mascluster-xtz8t-rg
+          networkResourceGroup: newcluster-nmpqp-rg
           osDisk:
             diskSizeGB: 128
             managedDisk:
               storageAccountType: Premium_LRS
             osType: Linux
           publicIP: false
-          publicLoadBalancer: mascluster-xtz8t
-          resourceGroup: mascluster-xtz8t-rg
+          publicLoadBalancer: newcluster-nmpqp
+          resourceGroup: newcluster-nmpqp-rg
           sshPrivateKey: ""
           sshPublicKey: ""
-          subnet: mascluster-xtz8t-worker-subnet
+          subnet: newcluster-nmpqp-worker-subnet
           userDataSecret:
             name: worker-user-data
           vmSize: Standard_B12ms
-          vnet: mascluster-xtz8t-vnet
+          vnet: newcluster-nmpqp-vnet
           zone: "2"

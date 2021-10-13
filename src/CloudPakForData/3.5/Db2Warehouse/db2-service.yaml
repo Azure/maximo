@@ -1,0 +1,10 @@
+apiVersion: databases.cpd.ibm.com/v1
+kind: Db2whService
+metadata:
+  name: db2wh-cr35n
+  namespace: cpd-meta-ops
+spec:
+  license:
+    accept: true
+    license: Enterprise
+  db_type: db2wh
