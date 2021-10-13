@@ -1,0 +1,18 @@
+apiVersion: operator.ibm.com/v1alpha1
+kind: OperandRequest
+metadata:
+  name: empty-request
+  namespace: cp4d
+spec:
+  requests: []
+---
+apiVersion: cpd.ibm.com/v1
+kind: Ibmcpd
+metadata:
+  name: ibmcpd-cr
+  namespace: cp4d
+spec:
+  license:
+    accept: true
+    license: Enterprise
+  storageVendor: ocs

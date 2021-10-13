@@ -41,7 +41,7 @@ For us to get there we need to execute the following steps:
 1. [Prepare and configure Azure](#step-1-preparing-azure) resources for OpenShift and Maximo install
 2. [Deploy OpenShift](#step-2-deploy-openshift)
 3. [Install the dependencies of the Maximo](#step-3a-dependencies-for-maximo) and then [Maximo itself](#step-3b-installing-maximo) (Core)
-4. Install OpenShift Container Storage
+4. Install Cloud Pak for Data and OCS
 5. Install any dependencies that your Maximo product has
 6. Deploy the Maximo solution.
 
@@ -379,22 +379,50 @@ Deploy the service configuration:
 oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseService/sls-config.yaml -n ibm-sls
 ```
 
-#### Setting up OpenShift Container Storage (OCS)
-
-First we need to make a new machineset for OCS - it needs a minimum of 30 vCPUs and 72GB of RAM. Our existing cluster is not big enough for that.
-
-```bash
-oc apply -f src/MachineSets/ocs-z1.yaml
-oc create ns openshift-storage
-oc annotate namespace openshift-storage openshift.io/node-selector="components=ocs"
-```
-
 ### Step 3b: Installing Maximo
 
 If you have an IBM Passport Advantage account, you may download the latest version of Maximo from the service portal. If not, you can install directly using the IBM Maximo Operator inside of OpenShift. In this example, we will install using the operator.
 
-## Installing Cloud Pak for Data 3.5
+Before you can proceed with installing you need to make sure you have a working version of Java in your path. This is needed to accept the license terms for Maximo. The installer for Maximo can be downloaded from [IBM Passport Advantage](https://www.ibm.com/support/fixcentral/swg/downloadFixes?parent=ibm%7ETivoli&product=ibm/Tivoli/IBM+Maximo+Application+Suite&release=8.4.0&platform=All&function=fixId&fixids=8.4.2-IBM-MAS-FP0001&includeRequisites=1&includeSupersedes=0&downloadMethod=http). You will need subscriber access to that. Talk to your IBM representative to get that.
 
+Install Maximo by exporting your ENTITLEMENT_KEY and then running the install-mas.sh script.
+
+```bash
+export ENTITLEMENT_KEY=eyJ0eXAiOiJKV<snip>
+chmod +x install-mas.sh
+./install-mas.sh -i dev -d dev.apps.mascluster.maximoonazure.com --accept-license
+```
+
+This will take a while to deploy the MAS operator and instantiate it. When complete the output will look like this:
+
+```
+Administration Dashboard URL
+--------------------------------------------------------------------------------
+https://admin.dev.apps.mascluster.maximoonazure.com
+
+Super User Credentials
+--------------------------------------------------------------------------------
+Username: L3OUkILDwaGDM3vWCXMROVJSlmmUnfTC
+Password: Wmb73X4somethinglong
+
+Please make a record of the superuser credentials.
+
+If this is a new installation, you can now complete the initial setup
+Sign in as the superuser at this URL:
+https://admin.dev.apps.mascluster.maximoonazure.com/initialsetup
+```
+
+When using self signed certificates, you will need to visit the https://api.<clusterdomain> page. In our example this is https://api.dev.apps.mascluster.maximoonazure.com/. Navigate there and accept any certificates that pop up.
+
+Navigate to the initial setup page and ...
+
+## Step 4: Installing Cloud Pak for Data
+
+Be cautious handling Cloud Pak for Data (CP4D) as it is quite a delicate web of dependencies. It is easy to mess one up, so make sure you understand what you do before you deviate from the path below. 
+
+### Installing CP4D 3.5
+
+Cloud Pak for Data 3.5 can only be installed in the namespace where the operator has been installed.
 
 ```bash
 oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cpd-meta-ops-namespace.yaml
@@ -407,7 +435,90 @@ oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakFor
 oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cloud-pak-cpdservice.yaml -n cp4d35
 ```
 
+You can retrieve the password for CP4D by extracting the `admin-user-details` secret:
 
+```
+oc extract secret/admin-user-details --keys=initial_admin_password --to=- -n cpd-meta-ops
+```
+
+### Installing CP4D 4.0
+
+CP4D 4.0 has a requirements:
+
+1. IBM Catalog Source set up
+1. OpenShift Container Storage (OCS) deployed and configured
+
+During the install, the operators install many other operators, such as the IBM Namedscope Operator, the IBM Zen Operator and IBM Cert Manager.
+
+#### Installing OpenShift Container Storage
+
+Go to the OperatorHub and find the Operator for OpenShift Container Storage. By default it wants to install into the `openshift-storage`, this is fine. Go ahead and install the operator into `openshift-storage`.
+
+Next, before we create a cluster, we need to make a new machineset for OCS, it is quite needy. A minimum of 30 vCPUs and 72GB of RAM is required. In our sizing we use 4x B8ms for this machineset, the bare minimum and put them on their own nodes so there's no resource contention. 
+
+```bash
+oc apply -f src/MachineSets/ocs-z1.yaml
+
+# Create the namespace
+oc create ns openshift-storage
+```
+
+After provisioning the cluster, go to the OpenShift Container Storage operator in the `openshift-storage` namespace and create a `StorageCluster`. Following settings (which are the default):
+* managed-premium as StorageClass
+* Requested capacity, 2TB or 0.5TB
+* Selected nodes: you will see that the operator already pre-selects the nodes we just created. If not, pick the ocs-* nodes
+
+Press next. On the next blade, security and network: leave as is, Default (SDN) and no encryption. Press next. In the last blade, confirm it all and deploy. This takes a while, so check back a while later. You can see if OCS is up and running by going to Storage -> Overview in the OpenShift Admin UI.
+
+#### Installing CP4D Operators
+
+CP4D will install its operators in a namespace called ibm-common-services and the actual deployment will be in another namespace (e.g. cp4d). In this guide we combine the CP4D foundational services together with CP4D operator itself, which is an easier approach. 
+
+```bash
+oc apply -f src/CloudPakForData/4.0/cloud-pak-install-operators.yaml
+```
+
+This needs a little bit, so have some patience for things to install. You can check the status with:
+
+```bash 
+oc get -n ibm-common-services csv
+```
+
+Output should look like below:
+
+<pre>
+roeland@metanoia:~/maximo$ oc get -n ibm-common-services csv
+NAME                                           DISPLAY                                VERSION   REPLACES                                      PHASE
+cpd-platform-operator.v2.0.4                   Cloud Pak for Data Platform Operator   2.0.4                                                   Succeeded
+ibm-cert-manager-operator.v3.14.0              IBM Cert Manager                       3.14.0    ibm-cert-manager-operator.v3.13.0             Succeeded
+ibm-common-service-operator.v3.12.0            IBM Cloud Pak foundational services    3.12.0    ibm-common-service-operator.v3.11.0           Succeeded
+ibm-cpd-scheduling-operator.v1.2.3             IBM CPD Scheduling                     1.2.3     ibm-cpd-scheduling-operator.v1.2.2            Succeeded
+ibm-namespace-scope-operator.v1.6.0            IBM NamespaceScope Operator            1.6.0     ibm-namespace-scope-operator.v1.5.0           Succeeded
+ibm-zen-operator.v1.4.0                        IBM Zen Service                        1.4.0     ibm-zen-operator.v1.3.0                       Succeeded
+operand-deployment-lifecycle-manager.v1.10.0   Operand Deployment Lifecycle Manager   1.10.0    operand-deployment-lifecycle-manager.v1.9.0   Succeeded
+</pre>
+
+One the operator is done, you can proceed and deploy the actual CP4D instance. The api service is called Ibmcpd and is easiest created with YAML. Besides the Ibmcpd you also need an empty OperandRequest to allow the Namespacescope operator to reach from ibm-common-services into your target namespace (in our deployment this is cp4d).
+
+```bash
+oc apply -f src/CloudPakForData/4.0/cloud-pak-install-instance.yaml
+```
+
+This will take about 30 minutes. You can check the status by checking the ZenService lite-cr and Ibmcpd ibmcpd-cr for their status.
+
+```bash
+oc get ZenService lite-cr -n cp4d -o yaml
+oc get Ibmcpd ibmcpd-cr -n cp4d -o yaml
+```
+
+Once installed, a route will appear and a password is created. Grab the details:
+
+```bash
+oc get routes -n cp4d
+oc extract secret/admin-user-details --keys=initial_admin_password --to=- -n cp4d
+```
+
+Visit the URL (https). The username is admin, the password is in the secret.
 
 <!-- ## Installing Cloud Pak for Data 4.0
 
@@ -463,9 +574,16 @@ oc patch installplan ${installplan} -n cp4d --type merge --patch '{"spec":{"appr
 installplan=$(oc get installplan -n cp4d | grep -i ibm-zen-operator | awk '{print $1}'); echo "installplan: $installplan"
 oc patch installplan ${installplan} -n cp4d --type merge --patch '{"spec":{"approved":true}}' -->
 
-### Installing Db2 Warehouse
+## Step 5: Installing Db2 Warehouse
 
+To deploy a Db2 warehouse for use with CP4D you need to install the DB2 Operator into an operator group in a namespace and create an instance of the `Db2whService`. 
+
+The YAML in src/Db2Warehouse/db2-install.yaml will do that for you:
+
+```bash
+oc apply -f db2-install.yaml
 oc adm policy add-cluster-role-to-user system:controller:persistent-volume-binder system:serviceaccount:cp4d:zen-databases-sa
+```
 
 ## Installing Kafka
 
@@ -476,7 +594,7 @@ You need to use strimzi-0.22.x. Versions > 0.22 remove the betav1 APIs that the 
 
 To test if Kafka is up and running successfully on your cluster you can use kcat (kafkacat). To do so, execute the following steps:
 
-1. Deploy and enter a kcat container 
+1. Deploy and enter a kcat container
 1. Create a ca.pem file on / and enter your CA credentials from the `openssl s_client` step
 
 ```bash

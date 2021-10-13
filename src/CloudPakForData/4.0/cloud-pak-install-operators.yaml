@@ -6,8 +6,6 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
-  annotations:
-    openshift.io/node-selector: components=mas-manage-db2
   name: cp4d
 ---
 apiVersion: operators.coreos.com/v1
@@ -54,22 +52,3 @@ spec:
   name: cpd-platform-operator
   source: ibm-operator-catalog
   sourceNamespace: openshift-marketplace
----
-apiVersion: operator.ibm.com/v1alpha1
-kind: OperandRequest
-metadata:
-  name: empty-request
-  namespace: cp4d
-spec:
-  requests: []
----
-apiVersion: cpd.ibm.com/v1
-kind: Ibmcpd
-metadata:
-  name: ibmcpd-cr
-  namespace: cp4d
-spec:
-  license:
-    accept: true
-    license: Enterprise
-  storageVendor: ocs
