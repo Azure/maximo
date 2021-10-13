@@ -262,15 +262,14 @@ To install, run the following commands:
 
 ```bash
 oc new-project ibm-bas
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/BehaviorService/bas-og.yaml -n ibm-bas
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/BehaviorService/bas-subscription.yaml -n ibm-bas
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/BehaviorService/bas-operator.yaml
 ```
 
 Next, you will need to create 2 secrets. Be sure to update the username and password in the example below:
 
 ```bash
-oc apply secret generic database-credentials --from-literal=db_username=<enterusername> --from-literal=db_password=<enterpassword> -n ibm-bas
-oc apply secret generic grafana-credentials --from-literal=grafana_username=<enterusername> --from-literal=grafana_password=<enterpassword> -n ibm-bas
+oc create secret generic database-credentials --from-literal=db_username=<enterusername> --from-literal=db_password=<enterpassword> -n ibm-bas
+oc create secret generic grafana-credentials --from-literal=grafana_username=<enterusername> --from-literal=grafana_password=<enterpassword> -n ibm-bas
 ```
 
 Finally, deploy the Analytics Proxy. This will take up to 30 minutes to complete:
@@ -278,14 +277,20 @@ Finally, deploy the Analytics Proxy. This will take up to 30 minutes to complete
 > 🚧 **WARNING** The below configuration is using the `azurefiles` storage class created in a previous step. If you did not configure this, you will need to update the class with another option.
 
 ```bash
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/BehaviorService/bas-analytics-proxy.yaml -n ibm-bas
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/BehaviorService/bas-service.yaml
+
+# You can monitor the progress, keep an eye on the status section:
+oc describe AnalyticsProxy analyticsproxy -n ibm-bas
+
+# or use oc status
+oc status
 ```
 
 Once this is complete, retrieve the bas endpoint and the API Key for use when doing the initial setup of Maximo:
 
 ```bash
 oc get routes bas-endpoint -n ibm-bas
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/BehaviorService/bas-api-key.yaml -n ibm-bas
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/BehaviorService/bas-api-key.yaml
 ```
 
 Wait a few minutes and then fetch the key:
