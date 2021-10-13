@@ -474,7 +474,67 @@ https://admin.nonprod.apps.newcluster.maximoonazure.com/initialsetup
 
 When using self signed certificates, you will need to visit the https://api.<clusterdomain> page. In our example this is https://api.nonprod.apps.newcluster.maximoonazure.com/. Navigate there and accept any certificates that pop up.
 
-https://admin.nonprod.apps.newcluster.maximoonazure.com/initialsetup
+Navigate to https://admin.nonprod.apps.newcluster.maximoonazure.com/initialsetup and accept the SSL certs. You'll be welcomed with a wizard and then a screen like this:
+
+![Maximo initial setup overview](docs/images/maximo-setup-initial.png)
+
+We need to configure each of these dependencies. To gather the information, please execute the following steps:
+
+```bash
+# Mongo Details
+echo -e 'Mongo Hosts:'; oc get MongoDBCommunity -n mongo  -o 'jsonpath={..status.mongoUri}' | sed -e "s/mongodb\:\/\///;s/\,/\n/g"; echo -e ""
+
+echo -e "Mongo DB certificate:"
+oc exec -it mas-mongo-ce-0 --container mongod -n mongo -- bash -c "echo | openssl s_client -servername mas-mongo-ce-0.mas-mongo-ce-svc.mongo.svc.cluster.local -connect mas-mongo-ce-0.mas-mongo-ce-svc.mongo.svc.cluster.local:27017 -showcerts 2>/dev/null |  openssl x509 -text | sed -n -e '/BEGIN\ CERTIFICATE/,/END\ CERTIFICATE/ p'"
+
+echo "Mongo password:" $(oc extract secret/mas-mongo-ce-admin-password --to=- -n mongo)
+
+# BAS Details
+echo "Bas endpoint:" https://$(oc get routes bas-endpoint -n ibm-bas |awk 'NR==2 {print $2}')
+echo "Bas API key:" $(oc get secret bas-api-key -n ibm-bas --output="jsonpath={.data.apikey}" | base64 -d)
+
+# SLS Details
+
+# Grab the ca.crt
+oc extract secrets/sls-cert-ca -n ibm-sls --to=- | openssl x509
+
+# And the API key
+oc describe LicenseService sls | grep "Registration Key"
+```
+
+##### Step 3b.a: Set up MongoDB
+
+Grab the details for MongoDB with the script above and enter it below. The authdb = admin, authentication = default. Hit confirm on the certificate and save the settings.
+
+![MongoDB configuration](docs/images/maximo-setup-mongocfg.png)
+
+##### Step 3b.b: Set up BAS
+
+For BAS you need an API key and the BAS endpoint (public endpoint). Grab both with the scripts above and enter below. Hit confirm on the certificate and then save.
+
+![BAS configuration](docs/images/maximo-setup-bascfg.png)
+
+##### Step 3b.c: Set up SLS
+
+For SLS you'll need to do two steps, first set up the below with the details gathered from above. 
+
+![SLS configuration](docs/images/maximo-setup-slscfg.png)
+
+After that you'll be greeted with a wizard that calibrates SLS for licensing:
+
+![SLS configuration](docs/images/maximo-setup-slscfg-validation.png)
+
+Once it completes it'll generate some details you need to generate the license.dat file.
+
+##### Step 3b.d: Generate a license.dat file and finalize workspace
+
+With the configuration for all the pieces complete, you'll get a challenge from the SLS. You are provided with a hostname and an ethernet address. Click on the link to take you to the IBM License Center and create a license.dat file. If you have no access, work with someone who does. Take the license.dat and upload it into the page:
+
+![SLS configuration](docs/images/maximo-setup-post-config.png)
+
+
+Once the license is loaded, set up a workspace. This has to be a unique name. Once done, hit "SAVE" and then "FINISH" on the top right. Maximo will no finalize the setup.
+
 
 ## Step 4: Installing Cloud Pak for Data
 
