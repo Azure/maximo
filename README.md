@@ -130,8 +130,8 @@ Maximo has a few requirements that have to be available before it can be install
 Installation of cert-manager is relatively straight forward. Create a namespace and install:
 
 ```bash
-oc create namespace cert-manager
-oc create -f https://github.com/jetstack/cert-manager/releases/download/v1.1.0/cert-manager.yaml
+oc apply namespace cert-manager
+oc apply -f https://github.com/jetstack/cert-manager/releases/download/v1.1.0/cert-manager.yaml
 ```
 
 To validate everything is up and running, check `oc get po -n cert-manager`. If you have the [kubectl cert-manager extension](https://cert-manager.io/docs/usage/kubectl-plugin/#installation) installed, you can also verify the install with `kubectl cert-manager check api`.
@@ -219,7 +219,7 @@ END CERTIFICATE
 To install, run the following commands:
 
 ```bash
-oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/ServiceBinding/service-binding-operator.yaml -n openshift-operators
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/ServiceBinding/service-binding-operator.yaml -n openshift-operators
 installplan=$(oc get installplan -n openshift-operators | grep -i service-binding | awk '{print $1}'); echo "installplan: $installplan"
 oc patch installplan ${installplan} -n openshift-operators --type merge --patch '{"spec":{"approved":true}}'
 ```
@@ -240,7 +240,7 @@ ibm-sls.ibm-sls   5d7h
 To install, run the following commands:
 
 ```bash
-oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/OperatorCatalogs/catalog-source.yaml -n openshift-marketplace
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/OperatorCatalogs/catalog-source.yaml -n openshift-marketplace
 ```
 
 To validate everything is up and running, check `oc get catalogsource/ibm-operator-catalog -n openshift-marketplace`.
@@ -260,15 +260,15 @@ To install, run the following commands:
 
 ```bash
 oc new-project ibm-bas
-oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/BehaviorService/bas-og.yaml -n ibm-bas
-oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/BehaviorService/bas-subscription.yaml -n ibm-bas
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/BehaviorService/bas-og.yaml -n ibm-bas
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/BehaviorService/bas-subscription.yaml -n ibm-bas
 ```
 
 Next, you will need to create 2 secrets. Be sure to update the username and password in the example below:
 
 ```bash
-oc create secret generic database-credentials --from-literal=db_username=<enterusername> --from-literal=db_password=<enterpassword> -n ibm-bas
-oc create secret generic grafana-credentials --from-literal=grafana_username=<enterusername> --from-literal=grafana_password=<enterpassword> -n ibm-bas
+oc apply secret generic database-credentials --from-literal=db_username=<enterusername> --from-literal=db_password=<enterpassword> -n ibm-bas
+oc apply secret generic grafana-credentials --from-literal=grafana_username=<enterusername> --from-literal=grafana_password=<enterpassword> -n ibm-bas
 ```
 
 Finally, deploy the Analytics Proxy. This will take up to 30 minutes to complete:
@@ -276,14 +276,14 @@ Finally, deploy the Analytics Proxy. This will take up to 30 minutes to complete
 > 🚧 **WARNING** The below configuration is using the `azurefiles` storage class created in a previous step. If you did not configure this, you will need to update the class with another option.
 
 ```bash
-oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/BehaviorService/bas-analytics-proxy.yaml -n ibm-bas
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/BehaviorService/bas-analytics-proxy.yaml -n ibm-bas
 ```
 
 Once this is complete, retrieve the bas endpoint and the API Key for use when doing the initial setup of Maximo:
 
 ```bash
 oc get routes bas-endpoint -n ibm-bas
-oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/BehaviorService/bas-api-key.yaml -n ibm-bas
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/BehaviorService/bas-api-key.yaml -n ibm-bas
 ```
 
 Wait a few minutes and then fetch the key:
@@ -355,14 +355,14 @@ stringData:
 Save the file and upload it to OCP:
 
 ```bash
-oc create -f sls-mongo.yaml -n ibm-sls
+oc apply -f sls-mongo.yaml -n ibm-sls
 ```
 
 Deploy the operator group and subscription configurations:
 
 ```bash
-oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseService/sls-og.yaml -n ibm-sls
-oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseService/sls-subscription.yaml -n ibm-sls
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseService/sls-og.yaml -n ibm-sls
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseService/sls-subscription.yaml -n ibm-sls
 ```
 
 Retrieve and edit the config yaml file, updating the host information:
@@ -404,7 +404,7 @@ spec:
 Deploy the service configuration:
 
 ```bash
-oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseService/sls-config.yaml -n ibm-sls
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseService/sls-config.yaml -n ibm-sls
 ```
 
 ### Step 3b: Installing Maximo
@@ -454,25 +454,23 @@ Cloud Pak for Data 3.5 can only be installed in the namespace where the operator
 
 ```bash
 # Create namespace
-oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cpd-meta-ops-namespace.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cpd-meta-ops-namespace.yaml
 
 # Create a pull secret, needed for the meta-api
 
 export ENTITLEMENT_KEY=<keyhere>
-oc -n cpd-meta-ops create secret docker-registry ibm-entitlement-key --docker-server=cp.icr.io 
---docker-username=cp --docker-password=$ENTITLEMENT_KEY 
+oc -n cpd-meta-ops create secret docker-registry ibm-entitlement-key --docker-server=cp.icr.io --docker-username=cp --docker-password=$ENTITLEMENT_KEY 
 
 # Create operator group and operators
-oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cp4d35-operator-group.yaml -n cpd-meta-ops
-oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/scheduling-service-operator.yaml -n cpd-meta-ops
-oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/
-cloud-pak-for-data-operator.yaml -n cpd-meta-ops
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cp4d35-operator-group.yaml -n cpd-meta-ops
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/scheduling-service-operator.yaml -n cpd-meta-ops
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cloud-pak-for-data-operator.yaml -n cpd-meta-ops
 
 oc get -n cpd-meta-ops csv
 
 # Proceed when both operators are marked as succeeded. This install cp4d 3.5
 
-oc create -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cloud-pak-cpdservice.yaml -n cpd-meta-ops
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cloud-pak-cpdservice.yaml -n cpd-meta-ops
 ```
 
 You can retrieve the password for CP4D by extracting the `admin-user-details` secret:
@@ -500,7 +498,7 @@ Next, before we create a cluster, we need to make a new machineset for OCS, it i
 oc apply -f src/MachineSets/ocs-z1.yaml
 
 # Create the namespace
-oc create ns openshift-storage
+oc apply ns openshift-storage
 ```
 
 After provisioning the cluster, go to the OpenShift Container Storage operator in the `openshift-storage` namespace and create a `StorageCluster`. Following settings (which are the default):
@@ -622,12 +620,14 @@ The YAML in src/Db2Warehouse/db2-install.yaml will do that for you:
 
 ```bash
 oc apply -f db2-operator.yaml
+
 ```
 
 When you install the CP4D DB2 Warehouse Operator, it will also grab the DB2U operator as DB2WH first deploys a regular DB2U to build a warehouse on top. After deploying the operator, you can create a Db2whService in your cp4d namespace. Once you have done this, an instance will light up in your cp4d.
 
 ```bash
 oc apply -f db2-service.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/Db2Warehouse/rook-ceph-operator-config.yaml -n openshift-storage
 ```
 
 In cp4d you will see a "database" link pop up. Now if you go to instances and hit "New instance" on the top right you will be greeted with this:
