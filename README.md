@@ -61,6 +61,34 @@ If you are planning on using the Azure Files CSI driver instead of the Azure Dis
 
 TODO
 
+### Updating pull secrets
+
+You will need to update the pull secrets to make sure that all containers on OpenShift can pull from the IBM repositories. This means using your entitlement key to be able to pull the containers. This is needed specifically for the install of Db2wh, as there is no other way to slip your entitlement key in. Detailed steps can be found in the [IBM Documentation for CP4D](https://www.ibm.com/docs/en/cpfs?topic=312-installing-foundational-services-by-using-console).
+
+```bash
+oc extract secret/pull-secret -n openshift-config --keys=.dockerconfigjson --to=. --confirm
+echo "cp:<your_entitlement_key>" | base64 - w0
+```
+
+Next, edit .dockerconfigjson using your favorite text editor and update the JSON so that your `cp.icr.io` block is added to the `auths` block:
+
+```json
+{
+  "auths": {
+     "cp.icr.io" : {
+        "auth": "<the_string_created_by_the_base64_command_above>",
+        "email": "<your_email_address>"
+     }
+  }
+}
+```
+
+After that push your updated .dockerconfigjson:
+
+```bash
+oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson
+```
+
 ### Finishing up
 
 Once you have to OpenShift installed, visit the admin URL and try to log in to validate everything is up and running. The URL will look something like `console-openshift-console.apps.{clustername}.{domain}.{extension}`. The username is kubeadmin and the password was provided to you by the installer.
@@ -75,7 +103,7 @@ Once you have confirmed everything looks good, you can proceed with the requirem
 
 <!-- this can be split off later to the apps section -->
 
-## Installing Maximo Core
+## Step 3: Installing Maximo Core
 
 Maximo Application Suite (MAS or Maximo) can be installed on OpenShift. IBM provides documentation for Maximo on its [documentation site](https://www.ibm.com/docs/en/mas85/8.5.0). Make sure to refer to the documentation for [Maximo 8.5.0](https://www.ibm.com/docs/en/mas85/8.5.0), as that is the version we are describing throughout this document.
 
@@ -418,7 +446,7 @@ Navigate to the initial setup page and ...
 
 ## Step 4: Installing Cloud Pak for Data
 
-Be cautious handling Cloud Pak for Data (CP4D) as it is quite a delicate web of dependencies. It is easy to mess one up, so make sure you understand what you do before you deviate from the path below. 
+Be cautious handling Cloud Pak for Data (CP4D) as it is quite a delicate web of dependencies. It is easy to mess one up, so make sure you understand what you do before you deviate from the path below.
 
 ### Installing CP4D 3.5
 
@@ -581,7 +609,22 @@ To deploy a Db2 warehouse for use with CP4D you need to install the DB2 Operator
 The YAML in src/Db2Warehouse/db2-install.yaml will do that for you:
 
 ```bash
-oc apply -f db2-install.yaml
+oc apply -f db2-operator.yaml
+```
+
+When you install the CP4D DB2 Warehouse Operator, it will also grab the DB2U operator as DB2WH first deploys a regular DB2U to build a warehouse on top. After deploying the operator, you can create a Db2whService in your cp4d namespace. Once you have done this, an instance will light up in your cp4d.
+
+```bash
+oc apply -f db2-service.yaml
+```
+
+In cp4d you will see a "database" link pop up. Now if you go to instances and hit "New instance" on the top right you will be greeted with this:
+
+![Copy login panel](docs/images/cp4d-db2wh-instance.png)
+
+### Dedicated nodes
+
+```
 oc adm policy add-cluster-role-to-user system:controller:persistent-volume-binder system:serviceaccount:cp4d:zen-databases-sa
 ```
 
