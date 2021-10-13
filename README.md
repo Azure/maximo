@@ -116,7 +116,7 @@ This steps referring to the base suite to install, also referred to as Maximo Co
 
 Maximo has a few requirements that have to be available before it can be installed. These are:
 
-1. cert-manager
+1. JetStack cert-manager
 1. MongoDB CE
 1. Service Binding Operator
 1. IBM Catalog Operator
@@ -126,24 +126,29 @@ Maximo has a few requirements that have to be available before it can be install
 #### Installing cert-manager
 
 [cert-manager](https://github.com/jetstack/cert-manager) is a Kubernetes add-on to automate the management and issuance of TLS certificates from various issuing sources. It is required for [Maximo](https://www.ibm.com/docs/en/mas85/8.5.0?topic=installation-system-requirements#mas-requirements). For more installation and usage information check out the [cert-manager documentation](https://cert-manager.io/v0.16-docs/installation/openshift/).
-
 Installation of cert-manager is relatively straight forward. Create a namespace and install:
 
 ```bash
-oc apply namespace cert-manager
-oc apply -f https://github.com/jetstack/cert-manager/releases/download/v1.1.0/cert-manager.yaml
+oc create namespace cert-manager
+oc apply -f https://github.com/jetstack/cert-manager/releases/download/v1.5.4/cert-manager.yaml
 ```
 
 To validate everything is up and running, check `oc get po -n cert-manager`. If you have the [kubectl cert-manager extension](https://cert-manager.io/docs/usage/kubectl-plugin/#installation) installed, you can also verify the install with `kubectl cert-manager check api`.
 
 ```bash
 oc get po -n cert-manager
+```
 
+Output should be like this:
+
+<pre>
 NAME                                      READY   STATUS    RESTARTS   AGE
 cert-manager-5597cff495-dh278             1/1     Running   0          2d1h
 cert-manager-cainjector-bd5f9c764-2j29c   1/1     Running   0          2d1h
 cert-manager-webhook-c4b5687dc-thh2b      1/1     Running   0          2d1h
-```
+</pre>
+
+> ❗ **IMPORTANT** TODO: This is colliding with IBM cert-manager, need to figure out how to make Maximo happy. Right now the only fix is to remove all duplicate CertificateRequests (the ones from IBM cert-manager)
 
 #### Installing MongoDB
 
@@ -393,6 +398,47 @@ oc get LicenseService sls -n ibm-sls -o yaml
 
 ### Step 3b: Installing Maximo
 
+#### Deploying using the Operator (recommended)
+
+Maximo install is the same as the other services: install an operator and then create a Suite service. First we need to deploy the operator:
+
+```bash
+oc apply -f src/MAS/mas-operator.yaml
+```
+
+Check progress of the operator installation:
+
+```bash
+oc get csv -n mas-test-core
+```
+
+Once it says succeeded for MAS, the Truststore and the Common Service Operator (ignore the Service Binding Operator) it is time to install Maximo.
+
+Open the YAML file and **modify the `domain` field and update it to your specific domain and configuration**. Once you have done that:
+ 
+```bash
+oc apply -f src/MAS/mas-service.yaml
+```
+
+Check the progress with:
+
+```bash
+oc describe Suite test -n mas-test-core
+oc get all -n mas-test-core
+```
+
+Once the route is up for the admin dashboard, we can proceed with the initial set up. Grab the username and password by extracting the secret:
+
+```bash
+oc extract secret/nonprod-credentials-superuser -n mas-nonprod-core --to=-
+```
+
+Skip the step below and proceed with the Maximo set up.
+
+#### Deploying with install-mas.sh (not recommended)
+
+Not recommended, use the YAML way instead.
+
 If you have an IBM Passport Advantage account, you may download the latest version of Maximo from the service portal. If not, you can install directly using the IBM Maximo Operator inside of OpenShift. In this example, we will install using the operator.
 
 Before you can proceed with installing you need to make sure you have a working version of Java in your path. This is needed to accept the license terms for Maximo. The installer for Maximo can be downloaded from [IBM Passport Advantage](https://www.ibm.com/support/fixcentral/swg/downloadFixes?parent=ibm%7ETivoli&product=ibm/Tivoli/IBM+Maximo+Application+Suite&release=8.4.0&platform=All&function=fixId&fixids=8.4.2-IBM-MAS-FP0001&includeRequisites=1&includeSupersedes=0&downloadMethod=http). You will need subscriber access to that. Talk to your IBM representative to get that.
@@ -402,15 +448,15 @@ Install Maximo by exporting your ENTITLEMENT_KEY and then running the install-ma
 ```bash
 export ENTITLEMENT_KEY=eyJ0eXAiOiJKV<snip>
 chmod +x install-mas.sh
-./install-mas.sh -i dev -d dev.apps.mascluster.maximoonazure.com --accept-license
+./install-mas.sh -i dev -d nonprod.apps.newcluster.maximoonazure.com --accept-license
 ```
 
-This will take a while to deploy the MAS operator and instantiate it. When complete the output will look like this:
+This will take a while to deploy the MAS operator and instantiate it. When completed the output will look like this:
 
 ```
 Administration Dashboard URL
 --------------------------------------------------------------------------------
-https://admin.dev.apps.mascluster.maximoonazure.com
+https://admin.nonprod.apps.newcluster.maximoonazure.com
 
 Super User Credentials
 --------------------------------------------------------------------------------
@@ -421,12 +467,14 @@ Please make a record of the superuser credentials.
 
 If this is a new installation, you can now complete the initial setup
 Sign in as the superuser at this URL:
-https://admin.dev.apps.mascluster.maximoonazure.com/initialsetup
+https://admin.nonprod.apps.newcluster.maximoonazure.com/initialsetup
 ```
 
-When using self signed certificates, you will need to visit the https://api.<clusterdomain> page. In our example this is https://api.dev.apps.mascluster.maximoonazure.com/. Navigate there and accept any certificates that pop up.
+#### Setting up Maximo
 
-Navigate to the initial setup page and ...
+When using self signed certificates, you will need to visit the https://api.<clusterdomain> page. In our example this is https://api.nonprod.apps.newcluster.maximoonazure.com/. Navigate there and accept any certificates that pop up.
+
+https://admin.nonprod.apps.newcluster.maximoonazure.com/initialsetup
 
 ## Step 4: Installing Cloud Pak for Data
 
