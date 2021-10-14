@@ -493,6 +493,10 @@ echo "Mongo password:" $(oc extract secret/mas-mongo-ce-admin-password --to=- -n
 echo "Bas endpoint:" https://$(oc get routes bas-endpoint -n ibm-bas |awk 'NR==2 {print $2}')
 echo "Bas API key:" $(oc get secret bas-api-key -n ibm-bas --output="jsonpath={.data.apikey}" | base64 -d)
 
+# Grab the TLS certificates
+
+echo | openssl s_client -servername bas-endpoint-ibm-bas.apps.newcluster.maximoonazure.com -connect bas-endpoint-ibm-bas.apps.newcluster.maximoonazure.com:443 -showcerts 2>/dev/null | sed -n -e '/BEGIN\ CERTIFICATE/,/END\ CERTIFICATE/ p'
+
 # SLS Details
 
 # Grab the ca.crt
@@ -511,6 +515,8 @@ Grab the details for MongoDB with the script above and enter it below. The authd
 ##### Step 3b.b: Set up BAS
 
 For BAS you need an API key and the BAS endpoint (public endpoint). Grab both with the scripts above and enter below. Hit confirm on the certificate and then save.
+
+> ❗ **IMPORTANT** BAS requires both certificates loaded to proceed. Make sure you add both the wildcard and the TLS cert for the ingress-operator
 
 ![BAS configuration](docs/images/maximo-setup-bascfg.png)
 
@@ -610,7 +616,7 @@ oc apply -f src/CloudPakForData/4.0/cloud-pak-install-operators.yaml
 
 This needs a little bit, so have some patience for things to install. You can check the status with:
 
-```bash 
+```bash
 oc get -n ibm-common-services csv
 ```
 
@@ -704,7 +710,9 @@ oc patch installplan ${installplan} -n cp4d --type merge --patch '{"spec":{"appr
 installplan=$(oc get installplan -n cp4d | grep -i ibm-zen-operator | awk '{print $1}'); echo "installplan: $installplan"
 oc patch installplan ${installplan} -n cp4d --type merge --patch '{"spec":{"approved":true}}' -->
 
-## Step 5: Installing Db2 Warehouse
+## Step 5: Maximo solution dependencies
+
+### Installing Db2 Warehouse
 
 To deploy a Db2 warehouse for use with CP4D you need to install the DB2 Operator into an operator group in a namespace and create an instance of the `Db2whService`. 
 
@@ -726,13 +734,42 @@ In cp4d you will see a "database" link pop up. Now if you go to instances and hi
 
 ![Copy login panel](docs/images/cp4d-db2wh-instance.png)
 
-### Dedicated nodes
+Click on it, press next and deploy.
+
+In this deployment we are using OCS as the certified deployment mechanism. The specifications are [provided by IBM in their documentation](https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/svc-db2w/db2wh-cert-storage.html).
+
+TODO: deployment
+
+
+
+#### Dedicated nodes
+
+In order to use dedicated nodes for the db2wh deployment you need to create a new machineset with a taint of `ipd4data`. Dedicated nodes are recommended for production deployments. 
+
+Apply the taint to your machine like so:
+
+```yml
+taints:
+- effect: NoSchedule
+  key: icp4data
+  value: mas-manage-db2wh
+```
+
+We have provided a MachineSet definition in `src/MachineSets/db2.yaml` that has the correct taints and recommend sizing for a small DB2 cluster.
+
+When you deploy the db2 cluster, the taint it needs in the deployment is "mas-manage-db2wh". By default the db2wh can't see the machinesets from its service account (zen-databases-sa). Grant it permission to allow to see the machines so it can validate if taints and tolerations are going hand in hand.
+
+> 💡 **NOTE** Do not use node selectors, because this can cause ceph to be unavailable on your DB2 nodes
 
 ```
 oc adm policy add-cluster-role-to-user system:controller:persistent-volume-binder system:serviceaccount:cp4d:zen-databases-sa
 ```
 
-## Installing Kafka
+#### Configuring Maximo with DB2WH
+
+Go to the configuration panel for Maximo by pressing on the cog on the top right or by going to https://<admin.maximocluster.domain>/config. It will ask you for some details that you can get from the CP4D DB2 overview. On your DB2 Warehouse instance, go to details. In the overview you will get the JDBC URL. Something like `jdbc:db2://<CLUSTER_ACCESSIBLE_IP>:32209/BLUDB:user=admin;password=<password>;securityMechanism=9;encryptionAlgorithm=2`. If you click on the copy icon, it gives you the required details.
+
+### Installing Kafka
 
 You need to use strimzi-0.22.x. Versions > 0.22 remove the betav1 APIs that the BAS Kafka services depend on.
 
