@@ -493,7 +493,7 @@ echo "Mongo password:" $(oc extract secret/mas-mongo-ce-admin-password --to=- -n
 echo "Bas endpoint:" https://$(oc get routes bas-endpoint -n ibm-bas |awk 'NR==2 {print $2}')
 echo "Bas API key:" $(oc get secret bas-api-key -n ibm-bas --output="jsonpath={.data.apikey}" | base64 -d)
 
-# Grab the TLS certificates
+# Grab the TLS certificates, you'll need both
 
 echo | openssl s_client -servername bas-endpoint-ibm-bas.apps.newcluster.maximoonazure.com -connect bas-endpoint-ibm-bas.apps.newcluster.maximoonazure.com:443 -showcerts 2>/dev/null | sed -n -e '/BEGIN\ CERTIFICATE/,/END\ CERTIFICATE/ p'
 
@@ -503,7 +503,7 @@ echo | openssl s_client -servername bas-endpoint-ibm-bas.apps.newcluster.maximoo
 oc extract secrets/sls-cert-ca -n ibm-sls --to=- | openssl x509
 
 # And the API key
-oc describe LicenseService sls | grep "Registration Key"
+oc describe LicenseService sls -n ibm-sls | grep "Registration Key"
 ```
 
 ##### Step 3b.a: Set up MongoDB
@@ -771,30 +771,78 @@ Go to the configuration panel for Maximo by pressing on the cog on the top right
 
 ### Installing Kafka
 
-You need to use strimzi-0.22.x. Versions > 0.22 remove the betav1 APIs that the BAS Kafka services depend on.
+You need to use strimzi-0.22.x. Versions > 0.22 remove the betav1 APIs that the BAS Kafka services depend on. Strimzi comes as an operator, a service and a user that all need to be deployed. 
 
-1. Install Strimzi TODO
-1. Grab the CA for Strimzi, hop onto a container and execute `
-
-To test if Kafka is up and running successfully on your cluster you can use kcat (kafkacat). To do so, execute the following steps:
-
-1. Deploy and enter a kcat container
-1. Create a ca.pem file on / and enter your CA credentials from the `openssl s_client` step
+Kafka is quite CPU and memory intensive and needs plenty of resources. You'll likely need to scale up your MachineSets to be able to host Kafka.
 
 ```bash
-kcat -b maskafka-kafka-2.maskafka-kafka-brokers.ibm-strimzi.svc:9093 -X security.protocol=SASL_SSL -X sasl.mechanism=SCRAM-SHA-512 -X sasl.username=mas-user -X sasl.password=Y0i9PygsAUAI -X ssl.ca.location=ca.pem -L
+# Setup namespace, operator group and operator
+oc apply -f strimzi-operator.yaml
 
-Metadata for all topics (from broker 2: sasl_ssl://maskafka-kafka-2.maskafka-kafka-brokers.ibm-strimzi.svc:9093/2):
- 3 brokers:
-  broker 0 at maskafka-kafka-0.maskafka-kafka-brokers.ibm-strimzi.svc:9093
-  broker 2 at maskafka-kafka-2.maskafka-kafka-brokers.ibm-strimzi.svc:9093
-  broker 1 at maskafka-kafka-1.maskafka-kafka-brokers.ibm-strimzi.svc:9093 (controller)
- 0 topics:
+# Wait for strimzi operator be completed
+oc get csv -n strimzi-kafka
 ```
 
-### Configuring Maximo with Kafka
+Once completed, allow Azure Files (backing for Kafka) and install the service (server, user)
 
-Enter all the brokers with port 9093. The brokers are <cluster-name>-kafka-<n>.<cluster-name>-kafka-brokers.<namespace>.svc, e.g.  maskafka-kafka-0.maskafka-kafka-brokers.ibm-strimzi.svc for a cluster called `maskafka` installed in namespace `ibm-strimzi`. To get the credentials for Kafka execute `oc extract secret/mas-user --to=- -n ibm-strimzi`.
+```bash
+oc policy add-role-to-user admin system:serviceaccount:kube-system:persistent-volume-binder -n strimzi-kafka
+oc apply -f strimzi-service.yaml
+```
+
+Monitor for completion on the Kafka resource
+
+```bash
+# Grab the TLS cert from the Kafka service
+oc get KafkaUser,Kafka -n strimzi-kafka -o yaml
+
+# Grab the password
+oc extract secret/masuser --to=- -n strimzi-kafka
+```
+
+To test if Kafka is up and running successfully on your cluster you can use kcat (kafkacat). We recommend testing Kafka, because getting the details right is a bit finicky, and if you get it wrong the IoT install fails and you can't really roll it back - meaning you need to reinstall mas.
+
+To check with kcat, execute the following steps, fire up a kcat container:
+
+```bash
+oc debug  --image edenhill/kcat:1.7.0 -n strimzi-kafka
+```
+
+Create a ca.pem fil on / with the details from the Kafka service. Next, execute the following kcat command:
+
+```bash
+kcat -b maskafka-kafka-2.maskafka-kafka-brokers.strimzi-kafka.svc:9093 -X security.protocol=SASL_SSL -X sasl.mechanism=SCRAM-SHA-512 -X sasl.username=masuser -X sasl.password=password -X ssl.ca.location=ca.pem -L
+```
+
+Output like this:
+
+<pre>
+
+Metadata for all topics (from broker 2: sasl_ssl://maskafka-kafka-2.maskafka-kafka-brokers.strimzi-kafka.svc:9093/2):
+ 3 brokers:
+  broker 0 at maskafka-kafka-0.maskafka-kafka-brokers.strimzi-kafka.svc:9093
+  broker 2 at maskafka-kafka-2.maskafka-kafka-brokers.strimzi-kafka.svc:9093
+  broker 1 at maskafka-kafka-1.maskafka-kafka-brokers.strimzi-kafka.svc:9093 (controller)
+ 0 topics:
+</pre>
+
+#### Configuring Maximo with Kafka
+
+Enter all the brokers with port 9093 (TLS) or 9092 (non-TLS). The brokers are <cluster-name>-kafka-<n>.<cluster-name>-kafka-broker.<namespace>.svc, e.g.  maskafka-kafka-0.maskafka-kafka-brokers.strimzi-kafka.svc for a cluster called `maskafka` installed in namespace `strimzi-kafka`. You can see them listed with kcat too for convenience. To get the credentials for Kafka execute `oc extract secret/mas-user --to=- -n strimzi-kafka`.
+
+Make sure to load the TLS cert onto the Kafka configuration or your connection to port 9093 will fail. If you use port 9092 (non-TLS) the TLS certificate isn't needed.
+
+### Installion IoT tools
+
+The IBM IoT tools requires MongoDB, Kafka and DB2WH, all of which are available if you followed the steps above. If not, please install any missing dependencies.
+
+Go to the Maximo Configuration -> Catalog -> Tools and click on IoT. Next click Continue on the right.
+
+The IoT tool needs an ibm-entitlement key for the cp.icr.io repository. This is your regular IBM entitlement key. Create as such:
+
+```bash
+oc create secret docker-registry ibm-entitlement --docker-username=cp --docker-password=<YOUR_KEY> --docker-server=cp.icr.io -n cp4d
+```
 
 ## To get your credentials to login
 
