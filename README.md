@@ -769,6 +769,18 @@ oc adm policy add-cluster-role-to-user system:controller:persistent-volume-binde
 
 Go to the configuration panel for Maximo by pressing on the cog on the top right or by going to https://<admin.maximocluster.domain>/config. It will ask you for some details that you can get from the CP4D DB2 overview. On your DB2 Warehouse instance, go to details. In the overview you will get the JDBC URL. Something like `jdbc:db2://<CLUSTER_ACCESSIBLE_IP>:32209/BLUDB:user=admin;password=<password>;securityMechanism=9;encryptionAlgorithm=2`. If you click on the copy icon, it gives you the required details.
 
+Please read the [Maximo documentation on how to specify the URL for DB2WH specifically](https://www.ibm.com/docs/en/mas85/8.5.0?topic=administering-configuring-suite#data) as it depends on the Maximo application you are deploying. Especially so for manage and monitor (requires SSL).
+
+To grab the URL check the svc endpoint that sits in front of the nodes. To get that, execute the following:
+
+```bash
+oc get svc -n cp4d | grep db2u-engn
+```
+
+Your URL shuld be formed like this: `jdbc:db2://hostname:port/database_name;sslConnection=true`.
+
+Your host is in the list of services above. For example c-db2wh-1634180797242781-db2u-engn-svc.cp4d.svc.cp4d.svc. The port is 50000 for plain or 50001 for SSL, you should use 50001. For the connection string to work with Monnitor you MUST specify `;sslConnection=true` to the end of the connection string.
+
 ### Installing Kafka
 
 You need to use strimzi-0.22.x. Versions > 0.22 remove the betav1 APIs that the BAS Kafka services depend on. Strimzi comes as an operator, a service and a user that all need to be deployed. 
@@ -841,8 +853,12 @@ Go to the Maximo Configuration -> Catalog -> Tools and click on IoT. Next click 
 The IoT tool needs an ibm-entitlement key for the cp.icr.io repository. This is your regular IBM entitlement key. Create as such:
 
 ```bash
-oc create secret docker-registry ibm-entitlement --docker-username=cp --docker-password=<YOUR_KEY> --docker-server=cp.icr.io -n cp4d
+oc create secret docker-registry ibm-entitlement --docker-username=cp --docker-password=<YOUR_KEY> --docker-server=cp.icr.io -n mas-nonprod-core
+
+oc create ns mas-nonprod-iot
+oc create secret docker-registry ibm-entitlement --docker-username=cp --docker-password=<YOUR_KEY> --docker-server=cp.icr.io -n mas-nonprod-iot
 ```
+
 
 ## To get your credentials to login
 
