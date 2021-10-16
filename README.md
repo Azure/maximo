@@ -496,30 +496,13 @@ chmod +x install-mas.sh
 ./install-mas.sh -i dev -d nonprod.apps.newcluster.maximoonazure.com --accept-license
 ```
 
-This will take a while to deploy the MAS operator and instantiate it. When completed the output will look like this:
-
-```
-Administration Dashboard URL
---------------------------------------------------------------------------------
-https://admin.nonprod.apps.newcluster.maximoonazure.com
-
-Super User Credentials
---------------------------------------------------------------------------------
-Username: L3OUkILDwaGDM3vWCXMROVJSlmmUnfTC
-Password: Wmb73X4somethinglong
-
-Please make a record of the superuser credentials.
-
-If this is a new installation, you can now complete the initial setup
-Sign in as the superuser at this URL:
-https://admin.nonprod.apps.newcluster.maximoonazure.com/initialsetup
-```
+This will take a while to deploy the MAS operator and instantiate it.
 
 #### Setting up Maximo
 
-When using self signed certificates, you will need to visit the https://api.<clusterdomain> page. In our example this is https://api.nonprod.apps.newcluster.maximoonazure.com/. Navigate there and accept any certificates that pop up.
+You can get to Maximo on the domain you specified, in our guide this is admin.<cluster_url> (which is in our set up <deployment_name>.apps.cluster.domain). Note that you should always use https to approach. With regular http, you'll get a route not found error. When using self signed certificates (like we do), you will need to visit the api.<cluster_url> page. Navigate there and accept any certificates that pop up.
 
-Navigate to https://admin.nonprod.apps.newcluster.maximoonazure.com/initialsetup and accept the SSL certs. You'll be welcomed with a wizard and then a screen like this:
+Navigate to the /initialsetup page on your Maximo instance and accept the SSL certs. You'll be welcomed with a wizard and then a screen like this:
 
 ![Maximo initial setup overview](docs/images/maximo-setup-initial.png)
 
