@@ -1,8 +1,53 @@
-# Introduction
+# Maximo on Azure
 
 This repository provides deployment guidance, scripts and best practices for running IBM Maximo Application Suite (Maximo or MAS) on OpenShift using the Azure Cloud. The instruction below have been tested with Maximo 8.5.0 on OpenShift 4.8.
 
-TODO: Explain Maximo vs Maximo Apps and breakdown in the repo organization
+## Table of Contents
+
+* [Maximo on Azure](#maximo-on-azure)
+   * [Introduction](#introduction)
+   * [Getting Started](#getting-started)
+   * [What needs to be done](#what-needs-to-be-done)
+   * [Step 1: Preparing Azure](#step-1-preparing-azure)
+   * [Step 2: Deploy and preparing OpenShift](#step-2-deploy-and-preparing-openshift)
+      * [Azure Files CSI drivers](#azure-files-csi-drivers)
+      * [Enabling OIDC authentication against Azure AD](#enabling-oidc-authentication-against-azure-ad)
+      * [Updating pull secrets](#updating-pull-secrets)
+      * [Finishing up](#finishing-up)
+   * [Step 3: Installing Maximo Core](#step-3-installing-maximo-core)
+      * [Step 3a: Dependencies for Maximo](#step-3a-dependencies-for-maximo)
+         * [Installing cert-manager](#installing-cert-manager)
+         * [Installing MongoDB](#installing-mongodb)
+         * [Installing Service Binding Operator](#installing-service-binding-operator)
+         * [Installing IBM Catalog Operator](#installing-ibm-catalog-operator)
+         * [Installing IBM Behavior Analytics Services Operator (BAS)](#installing-ibm-behavior-analytics-services-operator-bas)
+         * [Installing IBM Suite License Service (SLS)](#installing-ibm-suite-license-service-sls)
+      * [Step 3b: Installing Maximo](#step-3b-installing-maximo)
+         * [Deploying using the Operator (recommended)](#deploying-using-the-operator-recommended)
+         * [Deploying with install-mas.sh (not recommended)](#deploying-with-install-massh-not-recommended)
+         * [Setting up Maximo](#setting-up-maximo)
+            * [Step 3b.a: Set up MongoDB](#step-3ba-set-up-mongodb)
+            * [Step 3b.b: Set up BAS](#step-3bb-set-up-bas)
+            * [Step 3b.c: Set up SLS](#step-3bc-set-up-sls)
+            * [Step 3b.d: Generate a license.dat file and finalize workspace](#step-3bd-generate-a-licensedat-file-and-finalize-workspace)
+   * [Step 4: Installing Cloud Pak for Data](#step-4-installing-cloud-pak-for-data)
+      * [Installing CP4D 3.5](#installing-cp4d-35)
+      * [Installing CP4D 4.0](#installing-cp4d-40)
+         * [Installing OpenShift Container Storage](#installing-openshift-container-storage)
+         * [Installing CP4D Operators](#installing-cp4d-operators)
+   * [Step 5: Maximo solution dependencies](#step-5-maximo-solution-dependencies)
+      * [Installing Db2 Warehouse](#installing-db2-warehouse)
+         * [Dedicated nodes](#dedicated-nodes)
+         * [Deploying Db2 Warehouse](#deploying-db2-warehouse)
+         * [Configuring Maximo with DB2WH](#configuring-maximo-with-db2wh)
+      * [Installing Kafka](#installing-kafka)
+         * [Configuring Maximo with Kafka](#configuring-maximo-with-kafka)
+      * [Installion IoT tools](#installion-iot-tools)
+   * [To get your credentials to login](#to-get-your-credentials-to-login)
+   * [Contributing](#contributing)
+   * [Trademarks](#trademarks)
+
+## Introduction
 
 > 🚧 **WARNING** this guide is currently in early stages and under active development. If you would like to contribute or use this right now, please reach out so we can support you.
 
@@ -49,13 +94,13 @@ For us to get there we need to execute the following steps:
 
 Please follow [this guide](docs/azure/README.md) to configure Azure.
 
-## Step 2: Deploy OpenShift
+## Step 2: Deploy and preparing OpenShift
 
 Please follow [this guide](docs/openshift/ocp/README.md) to configure OpenShift Container Platform on Azure. Guidance for ARO will follow later.
 
 ### Azure Files CSI drivers
 
-If you are planning on using the Azure Files CSI driver instead of the Azure Disk CSI drivers, you will need to install the driver. It is not provided by OpenShift right out of the box. Please follow [these instructions](docs/azure/using-azure-files.md) to set up Azure Files with OpenShift.
+If you are planning on using the Azure Files CSI driver instead of the Azure Disk CSI drivers, you will need to install the driver. It is not provided by OpenShift right out of the box. Please follow [these instructions](docs/azure/using-azure-files.md) to set up Azure Files with OpenShift. The Azurefiles storageclass is used throughout this guide.
 
 ### Enabling OIDC authentication against Azure AD
 
