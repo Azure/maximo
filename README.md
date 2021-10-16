@@ -224,7 +224,7 @@ END CERTIFICATE
 We have to put this operator on manual approval and you can NOT and should NOT upgrade the operator to a newer version. Maximo requires 0.8.0 specifically. To install, run the following commands:
 
 ```bash
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/ServiceBinding/service-binding-operator.yaml -n openshift-operators
+oc apply -f src/servicebinding/service-binding-operator.yaml -n openshift-operators
 installplan=$(oc get installplan -n openshift-operators | grep -i service-binding | awk '{print $1}'); echo "installplan: $installplan"
 oc patch installplan ${installplan} -n openshift-operators --type merge --patch '{"spec":{"approved":true}}'
 ```
@@ -247,7 +247,7 @@ service-binding-operator.v0.8.0   Service Binding Operator   0.8.0     service-b
 To install, run the following commands:
 
 ```bash
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/OperatorCatalogs/catalog-source.yaml -n openshift-marketplace
+oc apply -f src/operatorcatalogs/catalog-source.yaml -n openshift-marketplace
 ```
 
 To validate everything is up and running, check `oc get catalogsource/ibm-operator-catalog -n openshift-marketplace`.
@@ -267,7 +267,7 @@ To install, run the following commands:
 
 ```bash
 oc new-project ibm-bas
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/BehaviorService/bas-operator.yaml
+oc apply -f src/bas/bas-operator.yaml
 ```
 
 Next, you will need to create 2 secrets. Be sure to update the username and password in the example below:
@@ -286,7 +286,7 @@ Finally, deploy the Analytics Proxy. This will take up to 30 minutes to complete
 oc policy add-role-to-user admin system:serviceaccount:kube-system:persistent-volume-binder -n ibm-sls
 
 # Deploy
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/BehaviorService/bas-service.yaml
+oc apply -f src/bas/bas-service.yaml
 
 # You can monitor the progress, keep an eye on the status section:
 oc describe AnalyticsProxy analyticsproxy -n ibm-bas
@@ -299,7 +299,7 @@ Once this is complete, retrieve the bas endpoint and the API Key for use when do
 
 ```bash
 oc get routes bas-endpoint -n ibm-bas
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/BehaviorService/bas-api-key.yaml
+oc apply -f src/bas/bas-api-key.yaml
 ```
 
 Wait a few minutes and then fetch the key:
@@ -360,7 +360,7 @@ oc create secret generic sls-mongo-credentials --from-literal=username=admin --f
 Deploy the operator group and subscription configurations:
 
 ```bash
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseService/sls-operator.yaml
+oc apply -f src/sls/sls-operator.yaml
 ```
 
 This will take a while, as usual, check its progress with `oc get csv -n ibm-sls`. Once done, deploy the sls-service. For this we need to make sure the correct details for Mongo are provided. The default is likely correct, but you should review the `sls-service.yaml` file and make sure the section for mongo is up-to-date:
@@ -387,7 +387,7 @@ Deploy the service configuration:
 oc policy add-role-to-user admin system:serviceaccount:kube-system:persistent-volume-binder -n ibm-sls
 
 # Deploy
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/LicenseService/sls-service.yaml
+oc apply -f src/sls/sls-service.yaml
 ```
 
 Wait for IBM SLS to come up, you can check its progress and also grab the connection details:
@@ -403,7 +403,7 @@ oc get LicenseService sls -n ibm-sls -o yaml
 Maximo install is the same as the other services: install an operator and then create a Suite service. First we need to deploy the operator:
 
 ```bash
-oc apply -f src/MAS/mas-operator.yaml
+oc apply -f src/mas/mas-operator.yaml
 ```
 
 Check progress of the operator installation:
@@ -417,7 +417,7 @@ Once it says succeeded for MAS, the Truststore and the Common Service Operator (
 Open the YAML file and **modify the `domain` field and update it to your specific domain and configuration**. Once you have done that:
  
 ```bash
-oc apply -f src/MAS/mas-service.yaml
+oc apply -f src/mas/mas-service.yaml
 ```
 
 Check the progress with:
@@ -588,15 +588,16 @@ During the install, the operators install many other operators, such as the IBM 
 
 #### Installing OpenShift Container Storage
 
-Go to the OperatorHub and find the Operator for OpenShift Container Storage. By default it wants to install into the `openshift-storage`, this is fine. Go ahead and install the operator into `openshift-storage`.
-
-Next, before we create a cluster, we need to make a new machineset for OCS, it is quite needy. A minimum of 30 vCPUs and 72GB of RAM is required. In our sizing we use 4x B8ms for this machineset, the bare minimum and put them on their own nodes so there's no resource contention. 
+OpenShift Container Storage provides ceph to our cluster. Ceph is used by a variety of Maximo services to store its data. Before we can deploy OCS, we need to make a new machineset for it as it is quite needy: a minimum of 30 vCPUs and 72GB of RAM is required. In our sizing we use 4x B8ms for this machineset, the bare minimum and put them on their own nodes so there's no resource contention. After the machineset we need the OCS operator. Alternatively, you can install it from the OperatorHub.
 
 ```bash
-oc apply -f src/MachineSets/ocs-z1.yaml
+oc apply -f src/machinesets/ocs-z1.yaml
 
 # Create the namespace
 oc apply ns openshift-storage
+
+# Install the operator
+oc apply -f src/ocs/ocs-operator.yaml
 ```
 
 After provisioning the cluster, go to the OpenShift Container Storage operator in the `openshift-storage` namespace and create a `StorageCluster`. Following settings (which are the default):
@@ -727,20 +728,11 @@ When you install the CP4D DB2 Warehouse Operator, it will also grab the DB2U ope
 
 ```bash
 oc apply -f db2-service.yaml
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/Db2Warehouse/rook-ceph-operator-config.yaml -n openshift-storage
 ```
 
-In cp4d you will see a "database" link pop up. Now if you go to instances and hit "New instance" on the top right you will be greeted with this:
-
-![Copy login panel](docs/images/cp4d-db2wh-instance.png)
-
-Click on it, press next and deploy.
-
-In this deployment we are using OCS as the certified deployment mechanism. The specifications are [provided by IBM in their documentation](https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/svc-db2w/db2wh-cert-storage.html).
-
-TODO: deployment
-
-
+<!-- I don't think we need this anymore? @ranieuwe 
+    oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/Db2Warehouse/rook-ceph-operator-config.yaml -n openshift-storage
+-->
 
 #### Dedicated nodes
 
@@ -755,7 +747,11 @@ taints:
   value: mas-manage-db2wh
 ```
 
-We have provided a MachineSet definition in `src/MachineSets/db2.yaml` that has the correct taints and recommend sizing for a small DB2 cluster.
+We have provided a MachineSet definition in `src/machinesets/db2.yaml` that has the correct taints and recommend sizing for a small DB2 cluster. Install these machines before you deploy DB2. Do so as follows:
+
+```bash
+oc apply -f src/machinesets/db2.yaml
+```
 
 When you deploy the db2 cluster, the taint it needs in the deployment is "mas-manage-db2wh". By default the db2wh can't see the machinesets from its service account (zen-databases-sa). Grant it permission to allow to see the machines so it can validate if taints and tolerations are going hand in hand.
 
@@ -764,6 +760,16 @@ When you deploy the db2 cluster, the taint it needs in the deployment is "mas-ma
 ```
 oc adm policy add-cluster-role-to-user system:controller:persistent-volume-binder system:serviceaccount:cp4d:zen-databases-sa
 ```
+
+#### Deploying Db2 Warehouse
+
+In cp4d you will now see a "database" link pop up. Now if you go to instances and hit "New instance" on the top right you will be greeted with this:
+
+![Copy login panel](docs/images/cp4d-db2wh-instance.png)
+
+Click on it, press next and deploy. In this deployment we are using OCS as the certified deployment mechanism. The specifications are [provided by IBM in their documentation](https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/svc-db2w/db2wh-cert-storage.html).
+
+TODO: further notes
 
 #### Configuring Maximo with DB2WH
 
@@ -844,6 +850,8 @@ Enter all the brokers with port 9093 (TLS) or 9092 (non-TLS). The brokers are <c
 
 Make sure to load the TLS cert onto the Kafka configuration or your connection to port 9093 will fail. If you use port 9092 (non-TLS) the TLS certificate isn't needed.
 
+TODO: Details steps to get the CORRECT certificates (both!)
+
 ### Installion IoT tools
 
 The IBM IoT tools requires MongoDB, Kafka and DB2WH, all of which are available if you followed the steps above. If not, please install any missing dependencies.
@@ -859,6 +867,7 @@ oc create ns mas-nonprod-iot
 oc create secret docker-registry ibm-entitlement --docker-username=cp --docker-password=<YOUR_KEY> --docker-server=cp.icr.io -n mas-nonprod-iot
 ```
 
+TODO: Instruct on how to recover from a botched Maximo deploy/cert wise? e.g. go into mongodb, kill tables and update truststore.jks with keytool
 
 ## To get your credentials to login
 
