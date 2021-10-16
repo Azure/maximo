@@ -19,7 +19,7 @@ This repository provides deployment guidance, scripts and best practices for run
          * [Installing cert-manager](#installing-cert-manager)
          * [Installing MongoDB](#installing-mongodb)
          * [Installing Service Binding Operator](#installing-service-binding-operator)
-         * [Installing IBM Catalog Operator](#installing-ibm-catalog-operator)
+         * [Installing IBM Catalog Operator](#installing-ibm-operator-catalog)
          * [Installing IBM Behavior Analytics Services Operator (BAS)](#installing-ibm-behavior-analytics-services-operator-bas)
          * [Installing IBM Suite License Service (SLS)](#installing-ibm-suite-license-service-sls)
       * [Step 3b: Installing Maximo](#step-3b-installing-maximo)
@@ -65,7 +65,7 @@ To move forward with a Maximo install you will need a few basics:
 These are normally provided by your organization. You will only need the IBM License for Maximo during the last few steps. Once you have secured access to an Azure subscription, you need a few more things:
 
 * An Application Registration (SPN) with Contributor and User Access Administrator access on the Subscription you are intending to deploy into.
-* OpenShift Container Platform up and running on a cluster with at least 24 vCPUs active for the worker nodes. You can deploy Azure Red Hat OpenShift or [OpenShift Container Platform](/docs/openshift/ocp/README.md).
+* OpenShift Container Platform up and running on a cluster with at least 24 vCPUs active for the worker nodes. You can deploy Azure Red Hat OpenShift or [OpenShift Container Platform](docs/openshift/ocp/README.md).
 
 An Azure Files storage account is optional if you are intending to [use  Azure Files](docs/azure/using-azure-files.md) in your deployment.
 
@@ -285,9 +285,9 @@ NAME                              DISPLAY                    VERSION   REPLACES 
 service-binding-operator.v0.8.0   Service Binding Operator   0.8.0     service-binding-operator.v0.7.1   Succeeded
 ```
 
-#### Installing IBM Catalog Operator
+#### Installing IBM Operator Catalog
 
-[IBM Catalog Operator](https://) is an index of operators available to automate deployment and maintenance of IBM Software products into Red Hat® OpenShift® clusters. Operators within this catalog have been built following Kubernetes best practices and IBM standards to provide a consistent integrated set of capabilities.
+The [IBM Operator Catalog](https://www.ibm.com/docs/en/app-connect/containers_cd?topic=access-enabling-operator-catalog) is an index of operators available to automate deployment and maintenance of IBM Software products into Red Hat OpenShift clusters. Operators within this catalog have been built following Kubernetes best practices and IBM standards to provide a consistent integrated set of capabilities.
 
 To install, run the following commands:
 
