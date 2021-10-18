@@ -15,6 +15,19 @@ spec:
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
+  name: ibm-truststore-mgr-1.x-ibm-operator-catalog-openshift-marketplace
+  namespace: ibm-sls
+spec:
+  source: ibm-operator-catalog
+  sourceNamespace: openshift-marketplace
+  name: ibm-truststore-mgr
+  channel: 1.x
+  startingCSV: ibm-truststore-mgr.v1.0.0
+  installPlanApproval: Automatic
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
   name: ibm-sls
   namespace: ibm-sls
 spec:
