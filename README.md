@@ -193,7 +193,7 @@ cert-manager-cainjector-bd5f9c764-2j29c   1/1     Running   0          2d1h
 cert-manager-webhook-c4b5687dc-thh2b      1/1     Running   0          2d1h
 </pre>
 
-> ❗ **IMPORTANT** TODO: This is colliding with IBM cert-manager, need to figure out how to make Maximo happy. Right now the only fix is to remove all duplicate CertificateRequests (the ones from IBM cert-manager)
+> ❗ **IMPORTANT** This collides with IBM Cert Manager because they are fighting to sign the CertificateRequests. Funny enough, Maximo does *not* like IBM Cert Manager. The solution is to not use IBM Cert Manager. If you do have a need for it, the fix is to delete all duplicate CertificateRequests created by IBM Cert Manager. Easiest way to grab them is `oc get CertificateRequest -A`
 
 #### Installing MongoDB
 
@@ -311,7 +311,6 @@ ibm-operator-catalog   IBM Operator Catalog   grpc   IBM         5d21h
 To install, run the following commands:
 
 ```bash
-oc new-project ibm-bas
 oc apply -f src/bas/bas-operator.yaml
 ```
 
@@ -328,7 +327,7 @@ Finally, deploy the Analytics Proxy. This will take up to 30 minutes to complete
 
 ```bash
 # Grant Azure files permissions to this namespace
-oc policy add-role-to-user admin system:serviceaccount:kube-system:persistent-volume-binder -n ibm-sls
+oc policy add-role-to-user admin system:serviceaccount:kube-system:persistent-volume-binder -n ibm-bas
 
 # Deploy
 oc apply -f src/bas/bas-service.yaml
@@ -347,28 +346,7 @@ oc get routes bas-endpoint -n ibm-bas
 oc apply -f src/bas/bas-api-key.yaml
 ```
 
-Wait a few minutes and then fetch the key:
-```bash
-oc get secret bas-api-key -n ibm-bas --output="jsonpath={.data.apikey}" | base64 -d
-```
-
-Finally, retrieve the certificates from the public endpoint (bas-endpoint from above):
-
-```bash
-openssl s_client -servername bas-endpoint-ibm-bas.apps.{clustername}.{domain}.{extension} -connect bas-endpoint-ibm-bas.apps.{clustername}.{domain}.{extension}:443 -showcerts
-```
-
-Copy the certs from the output. These will be used during the Maximo initial setup:
-
-```bash
-BEGIN CERTIFICATE
-...
-END CERTIFICATE
-
-BEGIN CERTIFICATE
-...
-END CERTIFICATE
-```
+To get the credentials and details from BAS, please see [Setting up Maximo](#setting-up-maximo).
 
 #### Installing IBM Suite License Service (SLS)
 
@@ -390,25 +368,25 @@ export ENTITLEMENT_KEY=<Entitlement Key>
 oc create secret docker-registry ibm-entitlement --docker-server=cp.icr.io --docker-username=cp  --docker-password=$ENTITLEMENT_KEY -n ibm-sls 
 ```
 
-Next we need to provide the mongo credentials to SLS, we do this by creating a secret for it. In case you forgot the MongoDB password, retrieve it:
-
-```bash
-oc extract secret/mas-mongo-ce-admin-password --to=- -n mongo
-```
-
-Then create the secret:
-
-```bash
-oc create secret generic sls-mongo-credentials --from-literal=username=admin --from-literal=password=<MONGO_PASSWORD> -n ibm-sls
-```
-
-Deploy the operator group and subscription configurations:
+Deploy the operator group and subscription configurations for both Suite Licensing Service (SLS) and the truststore manager operator (requirement for SLS)
 
 ```bash
 oc apply -f src/sls/sls-operator.yaml
 ```
 
-This will take a while, as usual, check its progress with `oc get csv -n ibm-sls`. Once done, deploy the sls-service. For this we need to make sure the correct details for Mongo are provided. The default is likely correct, but you should review the `sls-service.yaml` file and make sure the section for mongo is up-to-date:
+This will take a while, as usual, check its progress with `oc get csv -n ibm-sls`.
+
+Once done, deploy the sls-service. For this we need to make sure the correct details for Mongo are provided. Grab the secrets and provide them to SLS. We do this by creating a secret for it. In case you forgot the MongoDB password, retrieve it:
+
+```bash
+oc extract secret/mas-mongo-ce-admin-password --to=- -n mongo
+
+# Then create the secret:
+
+oc create secret generic sls-mongo-credentials --from-literal=username=admin --from-literal=password=<MONGO_PASSWORD> -n ibm-sls
+```
+
+Review the provided `sls-service.yaml` to make sure the servers used in there are correct for your use case:
 
 ```yml
   mongo:
@@ -517,21 +495,24 @@ oc exec -it mas-mongo-ce-0 --container mongod -n mongo -- bash -c "echo | openss
 
 echo "Mongo password:" $(oc extract secret/mas-mongo-ce-admin-password --to=- -n mongo)
 
+# Cosmongo
+
+echo | openssl s_client -servername maximo.mongo.cosmos.azure.com -connect maximo.mongo.cosmos.azure.com:10255 -showcerts 2>/dev/null | sed -n -e '/BEGIN\ CERTIFICATE/,/END\ CERTIFICATE/ p'
+
 # BAS Details
 echo "Bas endpoint:" https://$(oc get routes bas-endpoint -n ibm-bas |awk 'NR==2 {print $2}')
 echo "Bas API key:" $(oc get secret bas-api-key -n ibm-bas --output="jsonpath={.data.apikey}" | base64 -d)
-
-# Grab the TLS certificates, you'll need both
-
+echo "Bas, you need both certs:"
 echo | openssl s_client -servername bas-endpoint-ibm-bas.apps.newcluster.maximoonazure.com -connect bas-endpoint-ibm-bas.apps.newcluster.maximoonazure.com:443 -showcerts 2>/dev/null | sed -n -e '/BEGIN\ CERTIFICATE/,/END\ CERTIFICATE/ p'
 
-# SLS Details
+# SLS: Grab the ca.crt
+#echo "SLS, you need both certs:"
+#oc exec -it sls-rlks-0 -n ibm-sls -- bash -c "echo | openssl s_client -servername sls.ibm-sls.svc -connect sls.ibm-sls.svc:443 -showcerts 2>/dev/null | sed -n -e '/BEGIN\ CERTIFICATE/,/END\ CERTIFICATE/ p'"
 
-# Grab the ca.crt
-oc extract secrets/sls-cert-ca -n ibm-sls --to=- | openssl x509
 
-# And the API key
-oc describe LicenseService sls -n ibm-sls | grep "Registration Key"
+
+# SLS: And the API key and URL
+oc describe LicenseService sls -n ibm-sls | grep -A 1 "Registration Key"
 ```
 
 ##### Step 3b.a: Set up MongoDB
@@ -550,7 +531,7 @@ For BAS you need an API key and the BAS endpoint (public endpoint). Grab both wi
 
 ##### Step 3b.c: Set up SLS
 
-For SLS you'll need to do two steps, first set up the below with the details gathered from above. 
+For SLS you'll need to do two steps, first set up the below with the details gathered from above.
 
 ![SLS configuration](docs/images/maximo-setup-slscfg.png)
 
