@@ -33,25 +33,11 @@ With the file ready, it is time to push it to OpenShift and add create permissio
 ```bash
 
 ## Creating the storage class
-oc create -f azure-files.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/StorageClasses/azure-files.yaml
 
 # The azure files provisioner will create a storage account and grab its access key. However, it 
 # can't store it inside OpenShift as a secret because it has no permission. The below fixes that.
 
-cat <<EOF | kubectl apply -f -
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: system:controller:persistent-volume-binder
-  namespace: default
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: system:controller:persistent-volume-binder
-subjects:
-- kind: ServiceAccount
-  name: persistent-volume-binder
-EOF
 oc policy add-role-to-user admin system:serviceaccount:kube-system:persistent-volume-binder -n default
 
 You should now see the StorageClass in the OpenShift admin interface or by executing `oc get sc`. Output should look like this:
