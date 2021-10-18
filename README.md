@@ -12,14 +12,15 @@ This repository provides deployment guidance, scripts and best practices for run
    * [Step 2: Deploy and preparing OpenShift](#step-2-deploy-and-preparing-openshift)
       * [Azure Files CSI drivers](#azure-files-csi-drivers)
       * [Enabling OIDC authentication against Azure AD](#enabling-oidc-authentication-against-azure-ad)
+      * [Logging In](#logging-in)
       * [Updating pull secrets](#updating-pull-secrets)
-      * [Finishing up](#finishing-up)
+      * [Installing OpenShift Container Storage](#installing-openshift-container-storage)
+      * [Installing IBM Catalog Operator](#installing-ibm-operator-catalog)
    * [Step 3: Installing Maximo Core](#step-3-installing-maximo-core)
       * [Step 3a: Dependencies for Maximo](#step-3a-dependencies-for-maximo)
          * [Installing cert-manager](#installing-cert-manager)
          * [Installing MongoDB](#installing-mongodb)
          * [Installing Service Binding Operator](#installing-service-binding-operator)
-         * [Installing IBM Catalog Operator](#installing-ibm-operator-catalog)
          * [Installing IBM Behavior Analytics Services Operator (BAS)](#installing-ibm-behavior-analytics-services-operator-bas)
          * [Installing IBM Suite License Service (SLS)](#installing-ibm-suite-license-service-sls)
       * [Step 3b: Installing Maximo](#step-3b-installing-maximo)
@@ -33,7 +34,6 @@ This repository provides deployment guidance, scripts and best practices for run
    * [Step 4: Installing Cloud Pak for Data](#step-4-installing-cloud-pak-for-data)
       * [Installing CP4D 3.5](#installing-cp4d-35)
       * [Installing CP4D 4.0](#installing-cp4d-40)
-         * [Installing OpenShift Container Storage](#installing-openshift-container-storage)
          * [Installing CP4D Operators](#installing-cp4d-operators)
    * [Step 5: Maximo solution dependencies](#step-5-maximo-solution-dependencies)
       * [Installing Db2 Warehouse](#installing-db2-warehouse)
@@ -106,13 +106,23 @@ If you are planning on using the Azure Files CSI driver instead of the Azure Dis
 
 TODO
 
+### Logging In
+
+Once you have to OpenShift installed, visit the admin URL and try to log in to validate everything is up and running. The URL will look something like `console-openshift-console.apps.{clustername}.{domain}.{extension}`. The username is kubeadmin and the password was provided to you by the installer.
+
+You will need to login to the `oc` CLI. You can get an easy way to do this by navigating the the `Copy login` page. You can find this on the top right of the screen:
+
+![Copy login panel](docs/images/ocp-copy-login.png)
+
+Login by clicking on display token and use the oc login command to authenticate your `oc` client to your OpenShift deployment.
+
 ### Updating pull secrets
 
 You will need to update the pull secrets to make sure that all containers on OpenShift can pull from the IBM repositories. This means using your entitlement key to be able to pull the containers. This is needed specifically for the install of Db2wh, as there is no other way to slip your entitlement key in. Detailed steps can be found in the [IBM Documentation for CP4D](https://www.ibm.com/docs/en/cpfs?topic=312-installing-foundational-services-by-using-console).
 
 ```bash
 oc extract secret/pull-secret -n openshift-config --keys=.dockerconfigjson --to=. --confirm
-echo "cp:<your_entitlement_key>" | base64 - w0
+echo "cp:<your_entitlement_key>" | base64 -w0
 ```
 
 Next, edit .dockerconfigjson using your favorite text editor and update the JSON so that your `cp.icr.io` block is added to the `auths` block:
@@ -134,19 +144,48 @@ After that push your updated .dockerconfigjson:
 oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson
 ```
 
-### Finishing up
+#### Installing OpenShift Container Storage
 
-Once you have to OpenShift installed, visit the admin URL and try to log in to validate everything is up and running. The URL will look something like `console-openshift-console.apps.{clustername}.{domain}.{extension}`. The username is kubeadmin and the password was provided to you by the installer.
+OpenShift Container Storage provides ceph to our cluster. Ceph is used by a variety of Maximo services to store its data. Before we can deploy OCS, we need to make a new machineset for it as it is quite needy: a minimum of 30 vCPUs and 72GB of RAM is required. In our sizing we use 4x B8ms for this machineset, the bare minimum and put them on their own nodes so there's no resource contention. After the machineset we need the OCS operator. Alternatively, you can install it from the OperatorHub.
 
-You will need to login to the `oc` CLI. You can get an easy way to do this by navigating the the `Copy login` page. You can find this on the top right of the screen:
+```bash
+oc apply -f src/machinesets/ocs-z1.yaml
 
-![Copy login panel](docs/images/ocp-copy-login.png)
+# Create the namespace
+oc create ns openshift-storage
 
-Login if needed, click on display token and use the oc login command to authenticate your `oc` client to your OpenShift deployment.
+# Install the operator
+oc apply -f src/ocs/ocs-operator.yaml
+```
 
-Once you have confirmed everything looks good, you can proceed with the requirements for Maximo.
+After provisioning the cluster, go to the OpenShift Container Storage operator in the `openshift-storage` namespace and create a `StorageCluster`. Following settings (which are the default):
+* managed-premium as StorageClass
+* Requested capacity, 2TB or 0.5TB
+* Selected nodes: you will see that the operator already pre-selects the nodes we just created. If not, pick the ocs-* nodes
+
+Press next. On the next blade, security and network: leave as is, Default (SDN) and no encryption. Press next. In the last blade, confirm it all and deploy. This takes a while, so check back a while later. You can see if OCS is up and running by going to Storage -> Overview in the OpenShift Admin UI.
+
+Once you have completed these steps, you can proceed with the requirements for Maximo.
 
 <!-- this can be split off later to the apps section -->
+#### Installing IBM Operator Catalog
+
+The [IBM Operator Catalog](https://www.ibm.com/docs/en/app-connect/containers_cd?topic=access-enabling-operator-catalog) is an index of operators available to automate deployment and maintenance of IBM Software products into Red Hat OpenShift clusters. Operators within this catalog have been built following Kubernetes best practices and IBM standards to provide a consistent integrated set of capabilities.
+
+To install, run the following commands:
+
+```bash
+oc apply -f src/operatorcatalogs/catalog-source.yaml -n openshift-marketplace
+```
+
+To validate everything is up and running, check `oc get catalogsource/ibm-operator-catalog -n openshift-marketplace`.
+
+```bash
+oc get catalogsource/ibm-operator-catalog -n openshift-marketplace
+
+NAME                   DISPLAY                TYPE   PUBLISHER   AGE
+ibm-operator-catalog   IBM Operator Catalog   grpc   IBM         5d21h
+```
 
 ## Step 3: Installing Maximo Core
 
@@ -164,7 +203,6 @@ Maximo has a few requirements that have to be available before it can be install
 1. JetStack cert-manager
 1. MongoDB CE
 1. Service Binding Operator
-1. IBM Catalog Operator
 1. IBM Behavioral Analytics Systems (BAS)
 1. IBM Suite Licensing Services (SLS)
  
@@ -283,25 +321,6 @@ oc get csv service-binding-operator.v0.8.0
 
 NAME                              DISPLAY                    VERSION   REPLACES                          PHASE
 service-binding-operator.v0.8.0   Service Binding Operator   0.8.0     service-binding-operator.v0.7.1   Succeeded
-```
-
-#### Installing IBM Operator Catalog
-
-The [IBM Operator Catalog](https://www.ibm.com/docs/en/app-connect/containers_cd?topic=access-enabling-operator-catalog) is an index of operators available to automate deployment and maintenance of IBM Software products into Red Hat OpenShift clusters. Operators within this catalog have been built following Kubernetes best practices and IBM standards to provide a consistent integrated set of capabilities.
-
-To install, run the following commands:
-
-```bash
-oc apply -f src/operatorcatalogs/catalog-source.yaml -n openshift-marketplace
-```
-
-To validate everything is up and running, check `oc get catalogsource/ibm-operator-catalog -n openshift-marketplace`.
-
-```bash
-oc get catalogsource/ibm-operator-catalog -n openshift-marketplace
-
-NAME                   DISPLAY                TYPE   PUBLISHER   AGE
-ibm-operator-catalog   IBM Operator Catalog   grpc   IBM         5d21h
 ```
 
 #### Installing IBM Behavior Analytics Services Operator (BAS)
@@ -432,7 +451,7 @@ oc apply -f src/mas/mas-operator.yaml
 Check progress of the operator installation:
 
 ```bash
-oc get csv -n mas-test-core
+oc get csv -n mas-nonprod-core
 ```
 
 Once it says succeeded for MAS, the Truststore and the Common Service Operator (ignore the Service Binding Operator) it is time to install Maximo.
@@ -446,8 +465,8 @@ oc apply -f src/mas/mas-service.yaml
 Check the progress with:
 
 ```bash
-oc describe Suite test -n mas-test-core
-oc get all -n mas-test-core
+oc describe Suite test -n mas-nonprod-core
+oc get all -n mas-nonprod-core
 ```
 
 Once the route is up for the admin dashboard, we can proceed with the initial set up. Grab the username and password by extracting the secret:
@@ -594,27 +613,6 @@ CP4D 4.0 has a requirements:
 1. OpenShift Container Storage (OCS) deployed and configured
 
 During the install, the operators install many other operators, such as the IBM Namedscope Operator, the IBM Zen Operator and IBM Cert Manager.
-
-#### Installing OpenShift Container Storage
-
-OpenShift Container Storage provides ceph to our cluster. Ceph is used by a variety of Maximo services to store its data. Before we can deploy OCS, we need to make a new machineset for it as it is quite needy: a minimum of 30 vCPUs and 72GB of RAM is required. In our sizing we use 4x B8ms for this machineset, the bare minimum and put them on their own nodes so there's no resource contention. After the machineset we need the OCS operator. Alternatively, you can install it from the OperatorHub.
-
-```bash
-oc apply -f src/machinesets/ocs-z1.yaml
-
-# Create the namespace
-oc apply ns openshift-storage
-
-# Install the operator
-oc apply -f src/ocs/ocs-operator.yaml
-```
-
-After provisioning the cluster, go to the OpenShift Container Storage operator in the `openshift-storage` namespace and create a `StorageCluster`. Following settings (which are the default):
-* managed-premium as StorageClass
-* Requested capacity, 2TB or 0.5TB
-* Selected nodes: you will see that the operator already pre-selects the nodes we just created. If not, pick the ocs-* nodes
-
-Press next. On the next blade, security and network: leave as is, Default (SDN) and no encryption. Press next. In the last blade, confirm it all and deploy. This takes a while, so check back a while later. You can see if OCS is up and running by going to Storage -> Overview in the OpenShift Admin UI.
 
 #### Installing CP4D Operators
 

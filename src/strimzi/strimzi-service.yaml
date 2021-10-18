@@ -5,7 +5,6 @@ metadata:
   namespace: strimzi-kafka
 spec:
   kafka:
-    version: 2.7.0
     resources:
       requests:
         memory: 4Gi
@@ -18,18 +17,12 @@ spec:
       -Xmx: 6156m
     replicas: 3
     listeners:
-      - name: plain
-        port: 9092
-        type: internal
-        tls: false
       - name: tls
         port: 9093
         type: internal
         tls: true
         authentication:
           type: scram-sha-512
-          # networkPolicyPeers:
-          #   - namespaceSelector: {}
     authorization:
       type: simple
       superUsers:
