@@ -5,7 +5,7 @@ metadata:
     machine.openshift.io/cluster-api-cluster: $clusterName
     machine.openshift.io/cluster-api-machine-role: worker
     machine.openshift.io/cluster-api-machine-type: worker
-  name: ocs-z1
+  name: ocs-z$zone
   namespace: openshift-machine-api
 spec:
   replicas: 3
@@ -66,74 +66,4 @@ spec:
             name: worker-user-data
           vmSize: Standard_B8ms
           vnet: $clusterName-vnet
-          zone: "1"
----
-apiVersion: machine.openshift.io/v1beta1
-kind: MachineSet
-metadata:
-  labels:
-    machine.openshift.io/cluster-api-cluster: $clusterName
-    machine.openshift.io/cluster-api-machine-role: worker
-    machine.openshift.io/cluster-api-machine-type: worker
-  name: ocs-z2
-  namespace: openshift-machine-api
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      machine.openshift.io/cluster-api-cluster: $clusterName
-      machine.openshift.io/cluster-api-machineset: $clusterName-infra-ocs-z2
-  template:
-    metadata:
-      creationTimestamp: null
-      labels:
-        machine.openshift.io/cluster-api-cluster: $clusterName
-        machine.openshift.io/cluster-api-machine-role: worker
-        machine.openshift.io/cluster-api-machine-type: worker
-        machine.openshift.io/cluster-api-machineset: $clusterName-infra-ocs-z2
-    spec:
-      taints:
-        - effect: NoSchedule
-          key: node.ocs.openshift.io/storage
-          value: "true"
-      metadata:
-        creationTimestamp: null
-        labels:
-          node-role.kubernetes.io/infra: ""
-          cluster.ocs.openshift.io/openshift-storage: ""
-      providerSpec:
-        value:
-          apiVersion: azureproviderconfig.openshift.io/v1beta1
-          credentialsSecret:
-            name: azure-cloud-credentials
-            namespace: openshift-machine-api
-          image:
-            offer: ""
-            publisher: ""
-            resourceID: /resourceGroups/$clusterName-rg/providers/Microsoft.Compute/images/$clusterName
-            sku: ""
-            version: ""
-          internalLoadBalancer: ""
-          kind: AzureMachineProviderSpec
-          location: eastus
-          managedIdentity: $clusterName-identity
-          metadata:
-            creationTimestamp: null
-          natRule: null
-          networkResourceGroup: $clusterName-rg
-          osDisk:
-            diskSizeGB: 128
-            managedDisk:
-              storageAccountType: Premium_LRS
-            osType: Linux
-          publicIP: false
-          publicLoadBalancer: $clusterName
-          resourceGroup: $clusterName-rg
-          sshPrivateKey: ""
-          sshPublicKey: ""
-          subnet: $clusterName-worker-subnet
-          userDataSecret:
-            name: worker-user-data
-          vmSize: Standard_B8ms
-          vnet: $clusterName-vnet
-          zone: "2"
+          zone: "$zone"

@@ -5,7 +5,7 @@ metadata:
     machine.openshift.io/cluster-api-cluster: $clusterName #$clusterName
     machine.openshift.io/cluster-api-machine-role: worker
     machine.openshift.io/cluster-api-machine-type: worker
-  name: mas-manage-db2-z1
+  name: mas-manage-db2-z$zone
   namespace: openshift-machine-api
 spec:
   replicas: 1
@@ -69,77 +69,4 @@ spec:
             name: worker-user-data
           vmSize: Standard_B12ms
           vnet: $clusterName-vnet
-          zone: "1"
----
-apiVersion: machine.openshift.io/v1beta1
-kind: MachineSet
-metadata:
-  labels:
-    machine.openshift.io/cluster-api-cluster: $clusterName
-    machine.openshift.io/cluster-api-machine-role: worker
-    machine.openshift.io/cluster-api-machine-type: worker
-  name: mas-manage-db2-z2
-  namespace: openshift-machine-api
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      components: mas-manage-db2
-      machine.openshift.io/cluster-api-cluster: $clusterName
-      machine.openshift.io/cluster-api-machineset: $clusterName-worker-mas-manage-db2-z2
-  template:
-    metadata:
-      creationTimestamp: null
-      labels:
-        components: mas-manage-db2
-        machine.openshift.io/cluster-api-cluster: $clusterName
-        machine.openshift.io/cluster-api-machine-role: worker
-        machine.openshift.io/cluster-api-machine-type: worker
-        machine.openshift.io/cluster-api-machineset: $clusterName-worker-mas-manage-db2-z2
-    spec:
-      metadata:
-        creationTimestamp: null
-        labels:
-          components: mas-manage-db2
-          node-role.kubernetes.io/worker: ""
-          icp4data: mas-manage-db2wh
-      taints:
-      - effect: NoSchedule
-        key: icp4data
-        value: mas-manage-db2wh
-      providerSpec:
-        value:
-          apiVersion: azureproviderconfig.openshift.io/v1beta1
-          credentialsSecret:
-            name: azure-cloud-credentials
-            namespace: openshift-machine-api
-          image:
-            offer: ""
-            publisher: ""
-            resourceID: /resourceGroups/$clusterName-rg/providers/Microsoft.Compute/images/$clusterName
-            sku: ""
-            version: ""
-          internalLoadBalancer: ""
-          kind: AzureMachineProviderSpec
-          location: eastus
-          managedIdentity: $clusterName-identity
-          metadata:
-            creationTimestamp: null
-          natRule: null
-          networkResourceGroup: $clusterName-rg
-          osDisk:
-            diskSizeGB: 128
-            managedDisk:
-              storageAccountType: Premium_LRS
-            osType: Linux
-          publicIP: false
-          publicLoadBalancer: $clusterName
-          resourceGroup: $clusterName-rg
-          sshPrivateKey: ""
-          sshPublicKey: ""
-          subnet: $clusterName-worker-subnet
-          userDataSecret:
-            name: worker-user-data
-          vmSize: Standard_B12ms
-          vnet: $clusterName-vnet
-          zone: "2"
+          zone: "$zone"
