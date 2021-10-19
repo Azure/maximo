@@ -132,8 +132,9 @@ done
 
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/bas/bas-service.yaml
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/sls/sls-service.yaml
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mas-service.yaml
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mas-service.yaml
+wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mas-service.yaml -O mas-service.yaml
+envsubst < mas-service.yaml > mas-service_nonprod.yaml
+oc apply -f mas-service_nonprod.yaml
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/strimzi/strimzi-service.yaml
 
 #check SLS
@@ -160,10 +161,10 @@ do
      fi
 done
 
-#check MAS
+#check Kafka
 while [ true ]
 do
-    status=$(oc get Suite mas-nonprod-core -n mas-nonprod-core --output='json' | jq -r .status.phase)
+    status=$(oc get Kafka maskafka -n strimzi-kafka --output='json' | jq -r .status.phase)
     if [ ! "$status" == "Ready" ]
     then
         sleep 2
@@ -172,10 +173,10 @@ do
      fi
 done
 
-#check Kafka
+#check MAS
 while [ true ]
 do
-    status=$(oc get Kafka maskafka -n strimzi-kafka --output='json' | jq -r .status.phase)
+    status=$(oc get Suite mas-nonprod-core -n mas-nonprod-core --output='json' | jq -r .status.phase)
     if [ ! "$status" == "Ready" ]
     then
         sleep 2
