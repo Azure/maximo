@@ -133,6 +133,8 @@ done
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/bas/bas-service.yaml
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/sls/sls-service.yaml
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mas-service.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mas-service.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/strimzi/strimzi-service.yaml
 
 #check SLS
 while [ true ]
