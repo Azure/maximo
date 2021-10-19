@@ -8,7 +8,7 @@ metadata:
   name: mas-manage-db2-z$zone
   namespace: openshift-machine-api
 spec:
-  replicas: 1
+  replicas: $numReplicas
   selector:
     matchLabels:
       components: mas-manage-db2

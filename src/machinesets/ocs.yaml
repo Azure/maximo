@@ -8,7 +8,7 @@ metadata:
   name: ocs-z$zone
   namespace: openshift-machine-api
 spec:
-  replicas: 3
+  replicas: $numReplicas
   selector:
     matchLabels:
       machine.openshift.io/cluster-api-cluster: $clusterName
