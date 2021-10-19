@@ -45,7 +45,7 @@ spec:
             version: ""
           internalLoadBalancer: ""
           kind: AzureMachineProviderSpec
-          location: eastus
+          location: $deployRegion
           managedIdentity: $clusterName-identity
           metadata:
             creationTimestamp: null

@@ -43,7 +43,7 @@ spec:
           publicIP: false
           resourceGroup: $clusterName-rg
           kind: AzureMachineProviderSpec
-          location: eastus
+          location: $deployRegion
           vmSize: Standard_D8s_v3
           image:
             offer: ''
