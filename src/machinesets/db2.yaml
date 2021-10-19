@@ -2,7 +2,7 @@ apiVersion: machine.openshift.io/v1beta1
 kind: MachineSet
 metadata:
   labels:
-    machine.openshift.io/cluster-api-cluster: newcluster-nmpqp
+    machine.openshift.io/cluster-api-cluster: $clusterName #$clusterName
     machine.openshift.io/cluster-api-machine-role: worker
     machine.openshift.io/cluster-api-machine-type: worker
   name: mas-manage-db2-z1
@@ -12,17 +12,17 @@ spec:
   selector:
     matchLabels:
       components: mas-manage-db2
-      machine.openshift.io/cluster-api-cluster: newcluster-nmpqp
-      machine.openshift.io/cluster-api-machineset: newcluster-nmpqp-worker-mas-manage-db2-z1
+      machine.openshift.io/cluster-api-cluster: $clusterName
+      machine.openshift.io/cluster-api-machineset: $clusterName-worker-mas-manage-db2-z1
   template:
     metadata:
       creationTimestamp: null
       labels:
         components: mas-manage-db2
-        machine.openshift.io/cluster-api-cluster: newcluster-nmpqp
+        machine.openshift.io/cluster-api-cluster: $clusterName
         machine.openshift.io/cluster-api-machine-role: worker
         machine.openshift.io/cluster-api-machine-type: worker
-        machine.openshift.io/cluster-api-machineset: newcluster-nmpqp-worker-mas-manage-db2-z1
+        machine.openshift.io/cluster-api-machineset: $clusterName-worker-mas-manage-db2-z1
     spec:
       metadata:
         creationTimestamp: null
@@ -43,39 +43,39 @@ spec:
           image:
             offer: ""
             publisher: ""
-            resourceID: /resourceGroups/newcluster-nmpqp-rg/providers/Microsoft.Compute/images/newcluster-nmpqp
+            resourceID: /resourceGroups/$clusterName-rg/providers/Microsoft.Compute/images/$clusterName
             sku: ""
             version: ""
           internalLoadBalancer: ""
           kind: AzureMachineProviderSpec
           location: eastus
-          managedIdentity: newcluster-nmpqp-identity
+          managedIdentity: $clusterName-identity
           metadata:
             creationTimestamp: null
           natRule: null
-          networkResourceGroup: newcluster-nmpqp-rg
+          networkResourceGroup: $clusterName-rg
           osDisk:
             diskSizeGB: 128
             managedDisk:
               storageAccountType: Premium_LRS
             osType: Linux
           publicIP: false
-          publicLoadBalancer: newcluster-nmpqp
-          resourceGroup: newcluster-nmpqp-rg
+          publicLoadBalancer: $clusterName
+          resourceGroup: $clusterName-rg
           sshPrivateKey: ""
           sshPublicKey: ""
-          subnet: newcluster-nmpqp-worker-subnet
+          subnet: $clusterName-worker-subnet
           userDataSecret:
             name: worker-user-data
           vmSize: Standard_B12ms
-          vnet: newcluster-nmpqp-vnet
+          vnet: $clusterName-vnet
           zone: "1"
 ---
 apiVersion: machine.openshift.io/v1beta1
 kind: MachineSet
 metadata:
   labels:
-    machine.openshift.io/cluster-api-cluster: newcluster-nmpqp
+    machine.openshift.io/cluster-api-cluster: $clusterName
     machine.openshift.io/cluster-api-machine-role: worker
     machine.openshift.io/cluster-api-machine-type: worker
   name: mas-manage-db2-z2
@@ -85,17 +85,17 @@ spec:
   selector:
     matchLabels:
       components: mas-manage-db2
-      machine.openshift.io/cluster-api-cluster: newcluster-nmpqp
-      machine.openshift.io/cluster-api-machineset: newcluster-nmpqp-worker-mas-manage-db2-z2
+      machine.openshift.io/cluster-api-cluster: $clusterName
+      machine.openshift.io/cluster-api-machineset: $clusterName-worker-mas-manage-db2-z2
   template:
     metadata:
       creationTimestamp: null
       labels:
         components: mas-manage-db2
-        machine.openshift.io/cluster-api-cluster: newcluster-nmpqp
+        machine.openshift.io/cluster-api-cluster: $clusterName
         machine.openshift.io/cluster-api-machine-role: worker
         machine.openshift.io/cluster-api-machine-type: worker
-        machine.openshift.io/cluster-api-machineset: newcluster-nmpqp-worker-mas-manage-db2-z2
+        machine.openshift.io/cluster-api-machineset: $clusterName-worker-mas-manage-db2-z2
     spec:
       metadata:
         creationTimestamp: null
@@ -116,30 +116,30 @@ spec:
           image:
             offer: ""
             publisher: ""
-            resourceID: /resourceGroups/newcluster-nmpqp-rg/providers/Microsoft.Compute/images/newcluster-nmpqp
+            resourceID: /resourceGroups/$clusterName-rg/providers/Microsoft.Compute/images/$clusterName
             sku: ""
             version: ""
           internalLoadBalancer: ""
           kind: AzureMachineProviderSpec
           location: eastus
-          managedIdentity: newcluster-nmpqp-identity
+          managedIdentity: $clusterName-identity
           metadata:
             creationTimestamp: null
           natRule: null
-          networkResourceGroup: newcluster-nmpqp-rg
+          networkResourceGroup: $clusterName-rg
           osDisk:
             diskSizeGB: 128
             managedDisk:
               storageAccountType: Premium_LRS
             osType: Linux
           publicIP: false
-          publicLoadBalancer: newcluster-nmpqp
-          resourceGroup: newcluster-nmpqp-rg
+          publicLoadBalancer: $clusterName
+          resourceGroup: $clusterName-rg
           sshPrivateKey: ""
           sshPublicKey: ""
-          subnet: newcluster-nmpqp-worker-subnet
+          subnet: $clusterName-worker-subnet
           userDataSecret:
             name: worker-user-data
           vmSize: Standard_B12ms
-          vnet: newcluster-nmpqp-vnet
+          vnet: $clusterName-vnet
           zone: "2"

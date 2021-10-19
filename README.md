@@ -465,7 +465,7 @@ oc apply -f src/mas/mas-service.yaml
 Check the progress with:
 
 ```bash
-oc describe Suite test -n mas-nonprod-core
+oc describe Suite nonprod -n mas-nonprod-core
 oc get all -n mas-nonprod-core
 ```
 
