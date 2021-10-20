@@ -36,12 +36,15 @@ oc patch installplan ${installplan} -n openshift-operators --type merge --patch 
 
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/ocs/ocs-operator.yaml
 
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/sls/sls-operator.yaml
 oc create secret docker-registry ibm-entitlement --docker-server=cp.icr.io --docker-username=cp --docker-password=$ENTITLEMENT_KEY -n ibm-sls
 
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/sls/sls-operator.yaml
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/bas/bas-operator.yaml
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mas-operator.yaml
+oc create secret docker-registry ibm-entitlement --docker-server=cp.icr.io --docker-username=cp --docker-password=$ENTITLEMENT_KEY -n mas-nonprod-core
+
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/bas/bas-operator.yaml
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/strimzi/strimzi-operator.yaml
+
 
 oc create secret generic database-credentials --from-literal=db_username=${USERNAME} --from-literal=db_password=${PASSWORD} -n ibm-bas
 oc create secret generic grafana-credentials --from-literal=grafana_username=${USERNAME} --from-literal=grafana_password=${PASSWORD} -n ibm-bas
@@ -140,7 +143,7 @@ oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/strimzi/stri
 #check SLS
 while [ true ]
 do
-    status=$(oc get LicenseService sls -n ibm-sls --output='json' | jq -r .status.phase)
+    status=$(oc get LicenseService sls -n ibm-sls --output='json' | jq -r .status.conditions[3].type)
     if [ ! "$status" == "Ready" ]
     then
         sleep 2
@@ -148,6 +151,8 @@ do
         break
      fi
 done
+
+echo "SLS Service Up"
 
 #check BAS
 while [ true ]
@@ -161,10 +166,12 @@ do
      fi
 done
 
+echo "BAS Service Up"
+
 #check Kafka
 while [ true ]
 do
-    status=$(oc get Kafka maskafka -n strimzi-kafka --output='json' | jq -r .status.phase)
+    status=$(oc get Kafka maskafka -n strimzi-kafka --output='json' | jq -r .status.conditions[0].type)
     if [ ! "$status" == "Ready" ]
     then
         sleep 2
@@ -173,10 +180,12 @@ do
      fi
 done
 
+echo "Kafka Service Up"
+
 #check MAS
 while [ true ]
 do
-    status=$(oc get Suite mas-nonprod-core -n mas-nonprod-core --output='json' | jq -r .status.phase)
+    status=$(oc get Suite nonprod -n mas-nonprod-core --output='json' | jq -r .status.conditions[1].type)
     if [ ! "$status" == "Ready" ]
     then
         sleep 2
@@ -184,6 +193,8 @@ do
         break
      fi
 done
+
+echo "MAS Service Up"
 
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/bas/bas-api-key.yaml
 
