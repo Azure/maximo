@@ -11,7 +11,10 @@ metadata:
   namespace: mas-nonprod-core
 spec:
   certificates:
-    - alias: cert1
+    - alias: server
+      crt: |
+        null
+    - alias: ca
       crt: |
         null
   config:

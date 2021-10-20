@@ -51,6 +51,7 @@ oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/strimzi/strim
 ##### IF exists; Delete and recreate
 oc delete secret database-credentials -n ibm-bas
 oc delete secret grafana-credentials -n ibm-bas
+sleep 1
 oc create secret generic database-credentials --from-literal=db_username=${USERNAME} --from-literal=db_password=${PASSWORD} -n ibm-bas
 oc create secret generic grafana-credentials --from-literal=grafana_username=${USERNAME} --from-literal=grafana_password=${PASSWORD} -n ibm-bas
 
@@ -67,6 +68,7 @@ cd ..
 cd ../../
 
 oc delete secret sls-mongo-credentials -n ibm-sls
+sleep 1
 oc create secret generic sls-mongo-credentials --from-literal=username=admin --from-literal=password=$(oc extract secret/mas-mongo-ce-admin-password --to=- -n mongo) -n ibm-sls
 
 echo "Waiting for MongoDB to come online"
@@ -191,19 +193,26 @@ done
 
 echo "Kafka Service Up"
 
+#deploy mas
+wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mas-service.yaml -O mas-service.yaml
+envsubst < mas-service.yaml > mas-service-nonprod.yaml
+oc apply -f mas-service-nonprod.yaml
+
 #slsCfg
 oc delete secret nonprod-usersupplied-sls-creds-system -n mas-nonprod-core
+sleep 1
 oc create secret generic nonprod-usersupplied-sls-creds-system --from-literal=registrationKey=$(oc get LicenseService sls -n ibm-sls --output json | jq -r .status.registrationKey) -n mas-nonprod-core
 export slsCert1=$(oc extract secret/sls-cert-api --keys=ca.crt --to=- -n ibm-sls)
-export slsCert2=$(oc extract secret/sls-cert-api --keys=tls.crt --to=- -n ibm-sls)
+#export slsCert2=$(oc extract secret/sls-cert-api --keys=tls.crt --to=- -n ibm-sls)
 wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/slsCfg.yaml -O slsCfg.yaml
 envsubst < slsCfg.yaml > slsCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$slsCert1\"" -i slsCfg-nonprod.yaml
-yq eval ".spec.certificates[1].crt = \"$slsCert2\"" -i slsCfg-nonprod.yaml
+#yq eval ".spec.certificates[1].crt = \"$slsCert2\"" -i slsCfg-nonprod.yaml
 oc apply -f slsCfg-nonprod.yaml
 
 #basCfg
 oc delete secret nonprod-usersupplied-bas-creds-system -n mas-nonprod-core
+sleep 1
 oc create secret generic nonprod-usersupplied-bas-creds-system --from-literal=api_key=$(oc get secret bas-api-key -n ibm-bas --output="jsonpath={.data.apikey}" | base64 -d) -n mas-nonprod-core
 basURL=$(oc get route bas-endpoint -n ibm-bas -o json | jq -r .status.ingress[0].host)
 export basCert1=$(openssl s_client -showcerts -servername $basURL -connect $basURL:443 </dev/null 2>/dev/null | openssl x509 -outform PEM)
@@ -214,7 +223,9 @@ oc apply -f basCfg-nonprod.yaml
 
 #mongoCfg
 #mas-mongo-ce-cert-secret tls.crt
+
 oc delete secret nonprod-usersupplied-mongo-creds-system -n mas-nonprod-core
+sleep 1
 oc create secret generic nonprod-usersupplied-mongo-creds-system --from-literal=username=admin --from-literal=password=$(oc extract secret/mas-mongo-ce-admin-password --to=- -n mongo) -n mas-nonprod-core
 oc port-forward service/mas-mongo-ce-svc 7000:27017 -n mongo &> /dev/null &
 PID=$!
@@ -225,11 +236,6 @@ wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mongoCfg.yaml -O
 envsubst < mongoCfg.yaml > mongoCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$mongoCert1\"" -i mongoCfg-nonprod.yaml
 oc apply -f mongoCfg-nonprod.yaml
-
-#deploy mas
-wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mas-service.yaml -O mas-service.yaml
-envsubst < mas-service.yaml > mas-service-nonprod.yaml
-oc apply -f mas-service-nonprod.yaml
 
 #check MAS
 while [ true ]
