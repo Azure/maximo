@@ -1,15 +1,21 @@
 apiVersion: config.mas.ibm.com/v1
 kind: SlsCfg
 metadata:
-  name: nonprod-sls-system
+  name: ibm-mas-inst1-sls-system
+  labels:
+    app.kubernetes.io/instance: ibm-mas
+    app.kubernetes.io/managed-by: olm
+    app.kubernetes.io/name: ibm-mas
+    mas.ibm.com/configScope: system
+    mas.ibm.com/instanceId: inst1
   namespace: mas-nonprod-core
 spec:
   certificates:
     - alias: cert1
-      crt: |-
+      crt: |
         $slsCert1
     - alias: cert2
-      crt: |-
+      crt: |
         $slsCert2
   config:
     credentials:

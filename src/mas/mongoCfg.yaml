@@ -1,16 +1,19 @@
 apiVersion: config.mas.ibm.com/v1
 kind: MongoCfg
 metadata:
+  labels:
+    app.kubernetes.io/instance: ibm-mas
+    app.kubernetes.io/managed-by: olm
+    app.kubernetes.io/name: ibm-mas
+    mas.ibm.com/configScope: system
+    mas.ibm.com/instanceId: inst1
   name: nonprod-mongo-system
   namespace: mas-nonprod-core
 spec:
   certificates:
     - alias: cert1
-      crt: |-
-        $mongoCert1
-    - alias: cert2
-      crt: |-
-        $mongoCert2
+      crt: |
+        $monogCert1
   config:
     authMechanism: DEFAULT
     configDb: admin
@@ -24,4 +27,3 @@ spec:
       - host: mas-mongo-ce-2.mas-mongo-ce-svc.mongo.svc.cluster.local
         port: 27017
   displayName: mas-mongo-ce-0.mas-mongo-ce-svc.mongo.svc.cluster.local
-  type: external

@@ -195,7 +195,7 @@ oc create secret generic nonprod-usersupplied-sls-creds-system --from-literal=re
 export slsCert1=$(oc extract secret/sls-cert-api --keys=ca.crt --to=- -n ibm-sls)
 export slsCert2=$(oc extract secret/sls-cert-api --keys=tls.crt --to=- -n ibm-sls)
 wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/slsCfg.yaml -O slsCfg-nonprod.yaml
-#envsubst < slsCfg.yaml > slsCfg-nonprod.yaml
+envsubst < slsCfg-nonprod.yaml > slsCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$slsCert1\"" -i slsCfg-nonprod.yaml
 yq eval ".spec.certificates[1].crt = \"$slsCert2\"" -i slsCfg-nonprod.yaml
 oc apply -f slsCfg-nonprod.yaml
@@ -206,7 +206,7 @@ basURL=$(oc get route bas-endpoint -n ibm-bas -o json | jq -r .status.ingress[0]
 export basCert1=$(openssl s_client -showcerts -servername $basURL -connect $basURL:443 </dev/null 2>/dev/null | openssl x509 -outform PEM)
 wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/basCfg.yaml -O basCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$basCert1\"" -i basCfg-nonprod.yaml
-#envsubst < basCfg.yaml > basCfg-nonprod.yaml
+envsubst < basCfg-nonprod.yaml > basCfg-nonprod.yaml
 oc apply -f basCfg-nonprod.yaml
 
 #mongoCfg
@@ -218,7 +218,7 @@ sleep 1
 mongoCert1=$(openssl s_client -showcerts -servername localhost -connect localhost:7000 </dev/null 2>/dev/null | openssl x509 -outform PEM)
 kill $PID
 wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mongoCfg.yaml -O mongoCfg-nonprod.yaml
-#envsubst < mongoCfg.yaml > mongoCfg-nonprod.yaml
+envsubst < mongoCfg-nonprod.yaml > mongoCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$mongoCert1\"" -i mongoCfg-nonprod.yaml
 oc apply -f mongoCfg-nonprod.yaml
 
