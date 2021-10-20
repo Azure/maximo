@@ -161,7 +161,7 @@ oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/sls/sls-servi
 #check SLS
 while [ true ]
 do
-    status=$(oc get LicenseService sls -n ibm-sls --output='json' | jq -r .status.conditions[3].type)
+    status=$(oc get LicenseService sls -n ibm-sls --output='json' | jq -r .status.conditions[2].type)
     if [ ! "$status" == "Ready" ]
     then
         sleep 2
