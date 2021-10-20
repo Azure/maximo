@@ -18,7 +18,7 @@ metadata:
   name: ocs-cp4d-operator
   namespace: openshift-storage
 spec:
-  channel: stable-4.8
+  channel: stable-4.6
   installPlanApproval: Automatic
   name: ocs-operator
   source: redhat-operators
