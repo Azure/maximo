@@ -46,10 +46,11 @@ oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/bas/bas-opera
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/strimzi/strimzi-operator.yaml
 
 
+##### IF exists; Delete and recreate
+oc delete secret database-credentials -n ibm-bas
+oc delete secret grafana-credentials -n ibm-bas
 oc create secret generic database-credentials --from-literal=db_username=${USERNAME} --from-literal=db_password=${PASSWORD} -n ibm-bas
 oc create secret generic grafana-credentials --from-literal=grafana_username=${USERNAME} --from-literal=grafana_password=${PASSWORD} -n ibm-bas
-
-oc create secret generic sls-mongo-credentials --from-literal=username=admin --from-literal=password=${PASSWORD} -n ibm-sls
 
 export MONGODB_STORAGE_CLASS="managed-premium"
 export MONGO_NAMESPACE=mongo
@@ -60,6 +61,10 @@ cd iot-docs/mongodb/certs/
 ./generateSelfSignedCert.sh
 cd ..
 ./install-mongo-ce.sh
+
+cd ../../
+
+oc create secret generic sls-mongo-credentials --from-literal=username=admin --from-literal=password=$(oc extract secret/mas-mongo-ce-admin-password --to=- -n mongo) -n ibm-sls
 
 echo "Waiting for MongoDB to come online"
 while [ true ]
@@ -134,11 +139,24 @@ done
 
 
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/bas/bas-service.yaml
+
+#check BAS
+while [ true ]
+do
+    status=$(oc get AnalyticsProxy analyticsproxy -n ibm-bas --output='json' | jq -r .status.phase)
+    if [ ! "$status" == "Ready" ]
+    then
+        sleep 2
+    else
+        break
+     fi
+done
+
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/bas/bas-api-key.yaml
+
+echo "BAS Service Up"
+
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/sls/sls-service.yaml
-wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mas-service.yaml -O mas-service.yaml
-envsubst < mas-service.yaml > mas-service_nonprod.yaml
-oc apply -f mas-service_nonprod.yaml
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/strimzi/strimzi-service.yaml
 
 #check SLS
 while [ true ]
@@ -154,19 +172,7 @@ done
 
 echo "SLS Service Up"
 
-#check BAS
-while [ true ]
-do
-    status=$(oc get AnalyticsProxy analyticsproxy -n ibm-bas --output='json' | jq -r .status.phase)
-    if [ ! "$status" == "Ready" ]
-    then
-        sleep 2
-    else
-        break
-     fi
-done
-
-echo "BAS Service Up"
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/strimzi/strimzi-service.yaml
 
 #check Kafka
 while [ true ]
@@ -182,6 +188,39 @@ done
 
 echo "Kafka Service Up"
 
+#slsCfg
+oc create secret generic nonprod-usersupplied-sls-creds-system --from-literal=registrationKey=$(oc get LicenseService sls -n ibm-sls --output json | jq -r .status.registrationKey) -n mas-nonprod-core
+export slsCert1=$(oc extract secret/sls-cert-api --keys=ca.crt --to=- -n ibm-sls)
+export slsCert2=$(oc extract secret/sls-cert-api --keys=tls.crt --to=- -n ibm-sls)
+wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/slsCfg.yaml -o slsCfg.yaml
+envsubst < slsCfg.yaml > slsCfg-nonprod.yaml
+oc apply -f slsCfg-nonprod.yaml
+
+#basCfg
+oc create secret generic nonprod-usersupplied-bas-creds-system --from-literal=api_key=$(oc get secret bas-api-key -n ibm-bas --output="jsonpath={.data.apikey}" | base64 -d) -n mas-nonprod-core
+basURL=$(oc get route bas-endpoint -n ibm-bas -o json | jq -r .status.ingress[0].host)
+export basCert1=$(openssl s_client -showcerts -servername $basURL -connect $basURL:443 </dev/null 2>/dev/null | openssl x509 -outform PEM)
+wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/basCfg.yaml -o basCfg.yaml
+envsubst < basCfg.yaml > basCfg-nonprod.yaml
+oc apply -f basCfg-nonprod.yaml
+
+#mongoCfg
+#mas-mongo-ce-cert-secret tls.crt
+oc create secret generic nonprod-usersupplied-mongo-creds-system --from-literal=username=admin --from-literal=password=$(oc extract secret/mas-mongo-ce-admin-password --to=- -n mongo) -n mas-nonprod-core
+oc port-forward service/mas-mongo-ce-svc 7000:27017 -n mongo &> /dev/null &
+PID=$!
+sleep 1
+mongoCert1=$(openssl s_client -showcerts -servername localhost -connect localhost:7000 </dev/null 2>/dev/null | openssl x509 -outform PEM)
+kill $PID
+wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mongoCfg.yaml -o mongoCfg.yaml
+envsubst < mongoCfg.yaml > mongoCfg-nonprod.yaml
+oc apply -f mongoCfg-nonprod.yaml
+
+#deploy mas
+wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mas-service.yaml -O mas-service.yaml
+envsubst < mas-service.yaml > mas-service-nonprod.yaml
+oc apply -f mas-service-nonprod.yaml
+
 #check MAS
 while [ true ]
 do
@@ -196,9 +235,7 @@ done
 
 echo "MAS Service Up"
 
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/bas/bas-api-key.yaml
-
 ### Info dump:
 
-echo "================ BAS ================"
+echo "================ COMPLETE ================"
 #openssl s_client -servername bas-endpoint-ibm-bas.${CLUSTER_URL} -connect bas-endpoint-ibm-bas.${CLUSTER_URL}:443 -showcerts
