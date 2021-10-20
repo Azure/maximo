@@ -192,7 +192,7 @@ echo "Kafka Service Up"
 oc create secret generic nonprod-usersupplied-sls-creds-system --from-literal=registrationKey=$(oc get LicenseService sls -n ibm-sls --output json | jq -r .status.registrationKey) -n mas-nonprod-core
 export slsCert1=$(oc extract secret/sls-cert-api --keys=ca.crt --to=- -n ibm-sls)
 export slsCert2=$(oc extract secret/sls-cert-api --keys=tls.crt --to=- -n ibm-sls)
-wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/slsCfg.yaml -o slsCfg.yaml
+wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/slsCfg.yaml -O slsCfg.yaml
 envsubst < slsCfg.yaml > slsCfg-nonprod.yaml
 oc apply -f slsCfg-nonprod.yaml
 
@@ -200,7 +200,7 @@ oc apply -f slsCfg-nonprod.yaml
 oc create secret generic nonprod-usersupplied-bas-creds-system --from-literal=api_key=$(oc get secret bas-api-key -n ibm-bas --output="jsonpath={.data.apikey}" | base64 -d) -n mas-nonprod-core
 basURL=$(oc get route bas-endpoint -n ibm-bas -o json | jq -r .status.ingress[0].host)
 export basCert1=$(openssl s_client -showcerts -servername $basURL -connect $basURL:443 </dev/null 2>/dev/null | openssl x509 -outform PEM)
-wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/basCfg.yaml -o basCfg.yaml
+wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/basCfg.yaml -O basCfg.yaml
 envsubst < basCfg.yaml > basCfg-nonprod.yaml
 oc apply -f basCfg-nonprod.yaml
 
@@ -212,7 +212,7 @@ PID=$!
 sleep 1
 mongoCert1=$(openssl s_client -showcerts -servername localhost -connect localhost:7000 </dev/null 2>/dev/null | openssl x509 -outform PEM)
 kill $PID
-wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mongoCfg.yaml -o mongoCfg.yaml
+wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mongoCfg.yaml -O mongoCfg.yaml
 envsubst < mongoCfg.yaml > mongoCfg-nonprod.yaml
 oc apply -f mongoCfg-nonprod.yaml
 
