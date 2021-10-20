@@ -66,6 +66,7 @@ cd ..
 
 cd ../../
 
+oc delete secret sls-mongo-credentials -n ibm-sls
 oc create secret generic sls-mongo-credentials --from-literal=username=admin --from-literal=password=$(oc extract secret/mas-mongo-ce-admin-password --to=- -n mongo) -n ibm-sls
 
 echo "Waiting for MongoDB to come online"
@@ -191,6 +192,7 @@ done
 echo "Kafka Service Up"
 
 #slsCfg
+oc delete secret nonprod-usersupplied-sls-creds-system -n mas-nonprod-core
 oc create secret generic nonprod-usersupplied-sls-creds-system --from-literal=registrationKey=$(oc get LicenseService sls -n ibm-sls --output json | jq -r .status.registrationKey) -n mas-nonprod-core
 export slsCert1=$(oc extract secret/sls-cert-api --keys=ca.crt --to=- -n ibm-sls)
 export slsCert2=$(oc extract secret/sls-cert-api --keys=tls.crt --to=- -n ibm-sls)
@@ -201,6 +203,7 @@ yq eval ".spec.certificates[1].crt = \"$slsCert2\"" -i slsCfg-nonprod.yaml
 oc apply -f slsCfg-nonprod.yaml
 
 #basCfg
+oc delete secret nonprod-usersupplied-bas-creds-system -n mas-nonprod-core
 oc create secret generic nonprod-usersupplied-bas-creds-system --from-literal=api_key=$(oc get secret bas-api-key -n ibm-bas --output="jsonpath={.data.apikey}" | base64 -d) -n mas-nonprod-core
 basURL=$(oc get route bas-endpoint -n ibm-bas -o json | jq -r .status.ingress[0].host)
 export basCert1=$(openssl s_client -showcerts -servername $basURL -connect $basURL:443 </dev/null 2>/dev/null | openssl x509 -outform PEM)
@@ -211,6 +214,7 @@ oc apply -f basCfg-nonprod.yaml
 
 #mongoCfg
 #mas-mongo-ce-cert-secret tls.crt
+oc delete secret nonprod-usersupplied-mongo-creds-system -n mas-nonprod-core
 oc create secret generic nonprod-usersupplied-mongo-creds-system --from-literal=username=admin --from-literal=password=$(oc extract secret/mas-mongo-ce-admin-password --to=- -n mongo) -n mas-nonprod-core
 oc port-forward service/mas-mongo-ce-svc 7000:27017 -n mongo &> /dev/null &
 PID=$!
