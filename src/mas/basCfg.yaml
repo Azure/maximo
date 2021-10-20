@@ -13,7 +13,7 @@ spec:
   certificates:
     - alias: crt1
       crt: |
-        $basCert1
+        null
   config:
     contact:
       email: DBAUMGARTEN@microsoft.com

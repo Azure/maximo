@@ -13,10 +13,10 @@ spec:
   certificates:
     - alias: cert1
       crt: |
-        $slsCert1
+        null
     - alias: cert2
       crt: |
-        $slsCert2
+        null
   config:
     credentials:
       secretName: nonprod-usersupplied-sls-creds-system

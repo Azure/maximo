@@ -13,7 +13,7 @@ spec:
   certificates:
     - alias: cert1
       crt: |
-        $monogCert1
+        null
   config:
     authMechanism: DEFAULT
     configDb: admin
