@@ -230,8 +230,8 @@ oc apply -f mas-service-nonprod.yaml
 #check MAS
 while [ true ]
 do
-    status=$(oc get Suite nonprod -n mas-nonprod-core --output='json' | jq -r .status.conditions[1].type)
-    if [ ! "$status" == "Ready" ]
+    status=$(oc get Suite nonprod -n mas-nonprod-core --output='json' | jq -r .status.conditions[4].type)
+    if [ ! "$status" == "Running" ]
     then
         sleep 2
     else

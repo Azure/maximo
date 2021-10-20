@@ -1,12 +1,6 @@
 apiVersion: config.mas.ibm.com/v1
 kind: MongoCfg
 metadata:
-  labels:
-    app.kubernetes.io/instance: ibm-mas
-    app.kubernetes.io/managed-by: olm
-    app.kubernetes.io/name: ibm-mas
-    mas.ibm.com/configScope: system
-    mas.ibm.com/instanceId: inst1
   name: nonprod-mongo-system
   namespace: mas-nonprod-core
 spec:
