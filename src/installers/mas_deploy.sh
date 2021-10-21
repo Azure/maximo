@@ -112,7 +112,7 @@ do
      fi
 done
 
-echo "MAS Operator Up"
+echo "BAS Operator Up"
 
 #check MAS
 while [ true ]
@@ -126,7 +126,7 @@ do
      fi
 done
 
-echo "Strimzi Operator Up"
+echo "MAS Operator Up"
 
 #check Kafka
 while [ true ]
@@ -139,6 +139,8 @@ do
         break
      fi
 done
+
+echo "Strimzi Operator Up"
 
 # Deploying
 
@@ -198,6 +200,22 @@ wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mas-service.yaml
 envsubst < mas-service.yaml > mas-service-nonprod.yaml
 oc apply -f mas-service-nonprod.yaml
 
+#check MAS
+while [ true ]
+do
+    status=$(oc get route nonprod-auth-login -n mas-nonprod-core -o json | jq -r .kind)
+    if [ ! "$status" == "Route" ]
+    then
+        sleep 2m
+        for p in $(oc get pods -n mas-nonprod-core | grep Error | awk '{print $1}'); do oc delete pod -n mas-nonprod-core $p --grace-period=0;done
+    else
+        break
+     fi
+done
+
+echo "MAS Service Up"
+echo "Configuring MAS..."
+
 #slsCfg
 oc delete secret nonprod-usersupplied-sls-creds-system -n mas-nonprod-core
 sleep 1
@@ -236,20 +254,6 @@ wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mongoCfg.yaml -O
 envsubst < mongoCfg.yaml > mongoCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$mongoCert1\"" -i mongoCfg-nonprod.yaml
 oc apply -f mongoCfg-nonprod.yaml
-
-#check MAS
-while [ true ]
-do
-    status=$(oc get Suite nonprod -n mas-nonprod-core --output='json' | jq -r .status.conditions[4].type)
-    if [ ! "$status" == "Running" ]
-    then
-        sleep 2
-    else
-        break
-     fi
-done
-
-echo "MAS Service Up"
 
 ### Info dump:
 
