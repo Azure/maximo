@@ -1,25 +1,25 @@
 apiVersion: machine.openshift.io/v1beta1
 kind: MachineSet
 metadata:
-  name: $clusterName-worker-eastus$zone
+  name: $clusterInstanceName-worker-eastus$zone
   namespace: openshift-machine-api
   labels:
-    machine.openshift.io/cluster-api-cluster: $clusterName
+    machine.openshift.io/cluster-api-cluster: $clusterInstanceName
     machine.openshift.io/cluster-api-machine-role: worker
     machine.openshift.io/cluster-api-machine-type: worker
 spec:
   replicas: $numReplicas
   selector:
     matchLabels:
-      machine.openshift.io/cluster-api-cluster: $clusterName
-      machine.openshift.io/cluster-api-machineset: $clusterName-worker-eastus$zone
+      machine.openshift.io/cluster-api-cluster: $clusterInstanceName
+      machine.openshift.io/cluster-api-machineset: $clusterInstanceName-worker-eastus$zone
   template:
     metadata:
       labels:
-        machine.openshift.io/cluster-api-cluster: $clusterName
+        machine.openshift.io/cluster-api-cluster: $clusterInstanceName
         machine.openshift.io/cluster-api-machine-role: worker
         machine.openshift.io/cluster-api-machine-type: worker
-        machine.openshift.io/cluster-api-machineset: $clusterName-worker-eastus$zone
+        machine.openshift.io/cluster-api-machineset: $clusterInstanceName-worker-eastus$zone
     spec:
       metadata: {}
       providerSpec:
@@ -29,11 +29,11 @@ spec:
             managedDisk:
               storageAccountType: Premium_LRS
             osType: Linux
-          networkResourceGroup: $clusterName-rg
-          publicLoadBalancer: $clusterName
+          networkResourceGroup: $clusterInstanceName-rg
+          publicLoadBalancer: $clusterInstanceName
           userDataSecret:
             name: worker-user-data
-          vnet: $clusterName-vnet
+          vnet: $clusterInstanceName-vnet
           credentialsSecret:
             name: azure-cloud-credentials
             namespace: openshift-machine-api
@@ -41,7 +41,7 @@ spec:
           metadata:
             creationTimestamp: null
           publicIP: false
-          resourceGroup: $clusterName-rg
+          resourceGroup: $clusterInstanceName-rg
           kind: AzureMachineProviderSpec
           location: $deployRegion
           vmSize: Standard_D8s_v3
@@ -49,9 +49,9 @@ spec:
             offer: ''
             publisher: ''
             resourceID: >-
-              /resourceGroups/$clusterName-rg/providers/Microsoft.Compute/images/$clusterName
+              /resourceGroups/$clusterInstanceName-rg/providers/Microsoft.Compute/images/$clusterInstanceName
             sku: ''
             version: ''
-          managedIdentity: $clusterName-identity
-          subnet: $clusterName-worker-subnet
+          managedIdentity: $clusterInstanceName-identity
+          subnet: $clusterInstanceName-worker-subnet
           apiVersion: azureproviderconfig.openshift.io/v1beta1

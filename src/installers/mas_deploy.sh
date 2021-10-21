@@ -23,12 +23,15 @@ oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/operatorcatal
 # Set up all the operators
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/servicebinding/service-binding-operator.yaml
 # Wait
+
+echo "Fetching install plan..."
+
 while [ true ]
 do
     installplan=$(oc get installplan -n openshift-operators | grep -i service-binding-operator.v0.8.0 | awk '{print $1}')    
     if [ -z "$installplan" ]
     then
-        sleep 2
+        sleep 10
     else
         break
      fi
