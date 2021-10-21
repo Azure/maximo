@@ -230,8 +230,8 @@ PID=$!
 sleep 1
 rm -f outfile*
 openssl s_client -connect localhost:7000 -servername localhost -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
-export slsCert1=$(echo outfile00)
-export slsCert2=$(echo outfile01)
+export slsCert1=$(cat outfile00)
+export slsCert2=$(cat outfile01)
 wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/slsCfg.yaml -O slsCfg.yaml
 envsubst < slsCfg.yaml > slsCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$slsCert1\"" -i slsCfg-nonprod.yaml
@@ -245,8 +245,8 @@ oc create secret generic nonprod-usersupplied-bas-creds-system --from-literal=ap
 basURL=$(oc get route bas-endpoint -n ibm-bas -o json | jq -r .status.ingress[0].host)
 rm -f outfile*
 openssl s_client -connect $basURL:443 -servername $basURL -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
-export basCert1=$(echo outfile00)
-export basCert2=$(echo outfile01)
+export basCert1=$(cat outfile00)
+export basCert2=$(cat outfile01)
 wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/basCfg.yaml -O basCfg.yaml
 envsubst < basCfg.yaml > basCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$basCert1\"" -i basCfg-nonprod.yaml
@@ -262,8 +262,8 @@ PID=$!
 sleep 1
 rm -f outfile*
 openssl s_client -connect localhost:7000 -servername localhost -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
-export mongoCert1=$(echo outfile00)
-export mongoCert2=$(echo outfile01)
+export mongoCert1=$(cat outfile00)
+export mongoCert2=$(cat outfile01)
 #mongoCert1=$(openssl s_client -showcerts -servername localhost -connect localhost:7000 </dev/null 2>/dev/null | openssl x509 -outform PEM)
 kill $PID
 wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mongoCfg.yaml -O mongoCfg.yaml
