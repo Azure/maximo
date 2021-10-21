@@ -14,6 +14,9 @@ spec:
     - alias: crt1
       crt: |
         null
+    - alias: crt2
+      crt: |
+        null        
   config:
     contact:
       email: DBAUMGARTEN@microsoft.com

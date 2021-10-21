@@ -223,12 +223,19 @@ echo "Configuring MAS..."
 oc delete secret nonprod-usersupplied-sls-creds-system -n mas-nonprod-core
 sleep 1
 oc create secret generic nonprod-usersupplied-sls-creds-system --from-literal=registrationKey=$(oc get LicenseService sls -n ibm-sls --output json | jq -r .status.registrationKey) -n mas-nonprod-core
-export slsCert1=$(oc extract secret/sls-cert-api --keys=ca.crt --to=- -n ibm-sls)
-#export slsCert2=$(oc extract secret/sls-cert-api --keys=tls.crt --to=- -n ibm-sls)
+#oc exec -it sls-rlks-0 -n ibm-sls -- bash -c "echo | openssl s_client -servername sls.ibm-sls.svc -connect sls.ibm-sls.svc:443 -showcerts 2>/dev/null | sed -n -e '/BEGIN\ CERTIFICATE/,/END\ CERTIFICATE/ p'"
+
+oc port-forward service/sls 7000:443 -n ibm-sls &> /dev/null &
+PID=$!
+sleep 1
+rm -f outfile*
+openssl s_client -connect localhost:7000 -servername localhost -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
+export slsCert1=$(echo outfile00)
+export slsCert2=$(echo outfile01)
 wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/slsCfg.yaml -O slsCfg.yaml
 envsubst < slsCfg.yaml > slsCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$slsCert1\"" -i slsCfg-nonprod.yaml
-#yq eval ".spec.certificates[1].crt = \"$slsCert2\"" -i slsCfg-nonprod.yaml
+yq eval ".spec.certificates[1].crt = \"$slsCert2\"" -i slsCfg-nonprod.yaml
 oc apply -f slsCfg-nonprod.yaml
 
 #basCfg
@@ -236,26 +243,33 @@ oc delete secret nonprod-usersupplied-bas-creds-system -n mas-nonprod-core
 sleep 1
 oc create secret generic nonprod-usersupplied-bas-creds-system --from-literal=api_key=$(oc get secret bas-api-key -n ibm-bas --output="jsonpath={.data.apikey}" | base64 -d) -n mas-nonprod-core
 basURL=$(oc get route bas-endpoint -n ibm-bas -o json | jq -r .status.ingress[0].host)
-export basCert1=$(openssl s_client -showcerts -servername $basURL -connect $basURL:443 </dev/null 2>/dev/null | openssl x509 -outform PEM)
+rm -f outfile*
+openssl s_client -connect $basURL:443 -servername $basURL -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
+export basCert1=$(echo outfile00)
+export basCert2=$(echo outfile01)
 wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/basCfg.yaml -O basCfg.yaml
 envsubst < basCfg.yaml > basCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$basCert1\"" -i basCfg-nonprod.yaml
+yq eval ".spec.certificates[1].crt = \"$basCert2\"" -i basCfg-nonprod.yaml
 oc apply -f basCfg-nonprod.yaml
 
 #mongoCfg
-#mas-mongo-ce-cert-secret tls.crt
-
 oc delete secret nonprod-usersupplied-mongo-creds-system -n mas-nonprod-core
 sleep 1
 oc create secret generic nonprod-usersupplied-mongo-creds-system --from-literal=username=admin --from-literal=password=$(oc extract secret/mas-mongo-ce-admin-password --to=- -n mongo) -n mas-nonprod-core
 oc port-forward service/mas-mongo-ce-svc 7000:27017 -n mongo &> /dev/null &
 PID=$!
 sleep 1
-mongoCert1=$(openssl s_client -showcerts -servername localhost -connect localhost:7000 </dev/null 2>/dev/null | openssl x509 -outform PEM)
+rm -f outfile*
+openssl s_client -connect localhost:7000 -servername localhost -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
+export mongoCert1=$(echo outfile00)
+export mongoCert2=$(echo outfile01)
+#mongoCert1=$(openssl s_client -showcerts -servername localhost -connect localhost:7000 </dev/null 2>/dev/null | openssl x509 -outform PEM)
 kill $PID
 wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mongoCfg.yaml -O mongoCfg.yaml
 envsubst < mongoCfg.yaml > mongoCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$mongoCert1\"" -i mongoCfg-nonprod.yaml
+yq eval ".spec.certificates[1].crt = \"$mongoCert2\"" -i mongoCfg-nonprod.yaml
 oc apply -f mongoCfg-nonprod.yaml
 
 ### Info dump:

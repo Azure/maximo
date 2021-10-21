@@ -11,9 +11,12 @@ metadata:
   namespace: mas-nonprod-core
 spec:
   certificates:
-    - alias: ca
+    - alias: server
       crt: |
         null
+    - alias: ibm
+      crt: |
+        null        
   config:
     credentials:
       secretName: nonprod-usersupplied-sls-creds-system
