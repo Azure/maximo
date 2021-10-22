@@ -5,10 +5,10 @@ PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 20 | head -n 1)
 ENTITLEMENT_KEY="$ENTITLEMENT_KEY"
 #CLUSTER_URL="apps.newcluster.maximoonazure.com"
 
-wget https://github.com/mikefarah/yq/releases/download/v4.13.4/yq_linux_amd64.tar.gz -O - | tar xz && mv -f yq_linux_amd64 /usr/bin/yq
+wget -nv https://github.com/mikefarah/yq/releases/download/v4.13.4/yq_linux_amd64.tar.gz -O - | tar xz && mv -f yq_linux_amd64 /usr/bin/yq
 
-yum install -y git
-git clone https://github.com/ibm-watson-iot/iot-docs.git
+yum install -y -q git
+git clone --quiet https://github.com/ibm-watson-iot/iot-docs.git
 
 \cp /tmp/OCPInstall/oc /usr/bin #overwrite existing version
 
@@ -28,7 +28,7 @@ echo "Fetching install plan..."
 
 while [ true ]
 do
-    installplan=$(oc get installplan -n openshift-operators | grep -i service-binding-operator.v0.8.0 | awk '{print $1}')    
+    installplan=$(oc get installplan -n openshift-operators 2>/dev/null | grep -i service-binding-operator.v0.8.0 | awk '{print $1}')    
     if [ -z "$installplan" ]
     then
         sleep 10
@@ -52,8 +52,8 @@ oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/strimzi/strim
 
 
 ##### IF exists; Delete and recreate
-oc delete secret database-credentials -n ibm-bas
-oc delete secret grafana-credentials -n ibm-bas
+oc delete secret database-credentials -n ibm-bas 2>/dev/null
+oc delete secret grafana-credentials -n ibm-bas 2>/dev/null
 sleep 1
 oc create secret generic database-credentials --from-literal=db_username=${USERNAME} --from-literal=db_password=${PASSWORD} -n ibm-bas
 oc create secret generic grafana-credentials --from-literal=grafana_username=${USERNAME} --from-literal=grafana_password=${PASSWORD} -n ibm-bas
@@ -70,7 +70,7 @@ cd ..
 
 cd ../../
 
-oc delete secret sls-mongo-credentials -n ibm-sls
+oc delete secret sls-mongo-credentials -n ibm-sls 2>/dev/null
 sleep 1
 oc create secret generic sls-mongo-credentials --from-literal=username=admin --from-literal=password=$(oc extract secret/mas-mongo-ce-admin-password --to=- -n mongo) -n ibm-sls
 
@@ -199,14 +199,14 @@ done
 echo "Kafka Service Up"
 
 #deploy mas
-wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mas-service.yaml -O mas-service.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mas-service.yaml -O mas-service.yaml
 envsubst < mas-service.yaml > mas-service-nonprod.yaml
 oc apply -f mas-service-nonprod.yaml
 
 #check MAS
 while [ true ]
 do
-    status=$(oc get route nonprod-auth-login -n mas-nonprod-core -o json | jq -r .kind)
+    status=$(oc get route nonprod-auth-login -n mas-nonprod-core -o json 2>/dev/null | jq -r .kind)
     if [ ! "$status" == "Route" ]
     then
         sleep 2m
@@ -220,7 +220,7 @@ echo "MAS Service Up"
 echo "Configuring MAS..."
 
 #slsCfg
-oc delete secret nonprod-usersupplied-sls-creds-system -n mas-nonprod-core
+oc delete secret nonprod-usersupplied-sls-creds-system -n mas-nonprod-core 2>/dev/null
 sleep 1
 oc create secret generic nonprod-usersupplied-sls-creds-system --from-literal=registrationKey=$(oc get LicenseService sls -n ibm-sls --output json | jq -r .status.registrationKey) -n mas-nonprod-core
 #oc exec -it sls-rlks-0 -n ibm-sls -- bash -c "echo | openssl s_client -servername sls.ibm-sls.svc -connect sls.ibm-sls.svc:443 -showcerts 2>/dev/null | sed -n -e '/BEGIN\ CERTIFICATE/,/END\ CERTIFICATE/ p'"
@@ -232,14 +232,14 @@ rm -f outfile*
 openssl s_client -connect localhost:7000 -servername localhost -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
 export slsCert1=$(cat outfile00)
 export slsCert2=$(cat outfile01)
-wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/slsCfg.yaml -O slsCfg.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/slsCfg.yaml -O slsCfg.yaml
 envsubst < slsCfg.yaml > slsCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$slsCert1\"" -i slsCfg-nonprod.yaml
 yq eval ".spec.certificates[1].crt = \"$slsCert2\"" -i slsCfg-nonprod.yaml
 oc apply -f slsCfg-nonprod.yaml
 
 #basCfg
-oc delete secret nonprod-usersupplied-bas-creds-system -n mas-nonprod-core
+oc delete secret nonprod-usersupplied-bas-creds-system -n mas-nonprod-core 2>/dev/null
 sleep 1
 oc create secret generic nonprod-usersupplied-bas-creds-system --from-literal=api_key=$(oc get secret bas-api-key -n ibm-bas --output="jsonpath={.data.apikey}" | base64 -d) -n mas-nonprod-core
 basURL=$(oc get route bas-endpoint -n ibm-bas -o json | jq -r .status.ingress[0].host)
@@ -247,14 +247,14 @@ rm -f outfile*
 openssl s_client -connect $basURL:443 -servername $basURL -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
 export basCert1=$(cat outfile00)
 export basCert2=$(cat outfile01)
-wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/basCfg.yaml -O basCfg.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/basCfg.yaml -O basCfg.yaml
 envsubst < basCfg.yaml > basCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$basCert1\"" -i basCfg-nonprod.yaml
 yq eval ".spec.certificates[1].crt = \"$basCert2\"" -i basCfg-nonprod.yaml
 oc apply -f basCfg-nonprod.yaml
 
 #mongoCfg
-oc delete secret nonprod-usersupplied-mongo-creds-system -n mas-nonprod-core
+oc delete secret nonprod-usersupplied-mongo-creds-system -n mas-nonprod-core 2>/dev/null
 sleep 1
 oc create secret generic nonprod-usersupplied-mongo-creds-system --from-literal=username=admin --from-literal=password=$(oc extract secret/mas-mongo-ce-admin-password --to=- -n mongo) -n mas-nonprod-core
 oc port-forward service/mas-mongo-ce-svc 7000:27017 -n mongo &> /dev/null &
@@ -266,7 +266,7 @@ export mongoCert1=$(cat outfile00)
 export mongoCert2=$(cat outfile01)
 #mongoCert1=$(openssl s_client -showcerts -servername localhost -connect localhost:7000 </dev/null 2>/dev/null | openssl x509 -outform PEM)
 kill $PID
-wget https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mongoCfg.yaml -O mongoCfg.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mongoCfg.yaml -O mongoCfg.yaml
 envsubst < mongoCfg.yaml > mongoCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$mongoCert1\"" -i mongoCfg-nonprod.yaml
 yq eval ".spec.certificates[1].crt = \"$mongoCert2\"" -i mongoCfg-nonprod.yaml
