@@ -103,8 +103,8 @@ Please follow [this guide](docs/openshift/ocp/README.md) to configure OpenShift 
 Run the following commands to configure Azure Files within your cluster:
 
 ```bash
-sudo -E /tmp/OCPInstall/oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/storageclasses/azurefiles.yaml
-sudo -E /tmp/OCPInstall/oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/storageclasses/persistent-volume-binder.yaml
+sudo -E oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/storageclasses/azurefiles.yaml
+sudo -E oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/storageclasses/persistent-volume-binder.yaml
 ```
 
 ### Enabling OIDC authentication against Azure AD
@@ -154,16 +154,16 @@ oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson
 OpenShift Container Storage provides ceph to our cluster. Ceph is used by a variety of Maximo services to store its data. Before we can deploy OCS, we need to make a new machineset for it as it is quite needy: a minimum of 30 vCPUs and 72GB of RAM is required. In our sizing we use 4x B8ms for this machineset, the bare minimum and put them on their own nodes so there's no resource contention. After the machineset we need the OCS operator. Alternatively, you can install it from the OperatorHub.
 
 ```bash
-wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/machinesets/ocs.yaml -O /tmp/OCPInstall/ocs.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/machinesets/ocs.yaml -O ocs.yaml
 export zone=1
 export numReplicas=2
-envsubst < /tmp/OCPInstall/ocs.yaml > /tmp/OCPInstall/QuickCluster/ocs.yaml
-sudo -E /tmp/OCPInstall/oc apply -f /tmp/OCPInstall/QuickCluster/ocs.yaml
+envsubst < ocs.yaml > /tmp/OCPInstall/QuickCluster/ocs.yaml
+sudo -E oc apply -f /tmp/OCPInstall/QuickCluster/ocs.yaml
 
 export zone=2
 export numReplicas=1
-envsubst < /tmp/OCPInstall/ocs.yaml > /tmp/OCPInstall/QuickCluster/ocs.yaml
-sudo -E /tmp/OCPInstall/oc apply -f /tmp/OCPInstall/QuickCluster/ocs.yaml
+envsubst < ocs.yaml > /tmp/OCPInstall/QuickCluster/ocs.yaml
+sudo -E oc apply -f /tmp/OCPInstall/QuickCluster/ocs.yaml
 
 # Create the namespace
 oc create ns openshift-storage
