@@ -9,7 +9,7 @@ spec:
     frequency: "@monthly"
     retention_age: 6
     persistent_storage:
-      storage_class: azurefiles
+      storage_class: azurefiles-standard
       storage_size: 10G
   airgapped:
     enabled: false
@@ -22,8 +22,8 @@ spec:
     storage_class: managed-premium
     storage_size: 10G
   kafka:
-    storage_class: azurefiles
+    storage_class: azurefiles-standard
     storage_size: 5G
-    zookeeper_storage_class: azurefiles
+    zookeeper_storage_class: azurefiles-standard
     zookeeper_storage_size: 5G
   env_type: lite

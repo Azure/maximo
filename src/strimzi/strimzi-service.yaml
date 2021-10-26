@@ -44,7 +44,7 @@ spec:
       volumes:
         - id: 0
           type: persistent-claim
-          class: azurefiles
+          class: azurefiles-premium
           size: 100Gi
           deleteClaim: true
   zookeeper:
@@ -61,8 +61,8 @@ spec:
       -Xmx: 1024m
     storage:
       type: persistent-claim
-      class: azurefiles
-      size: 10Gi
+      class: azurefiles-premium
+      size: 100Gi
       deleteClaim: true
   entityOperator:
     userOperator: {}
