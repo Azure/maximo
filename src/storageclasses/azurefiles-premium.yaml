@@ -1,7 +1,7 @@
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: azurefiles
+  name: azurefiles-private
 provisioner: kubernetes.io/azure-file
 reclaimPolicy: Retain
 mountOptions:
@@ -14,4 +14,4 @@ mountOptions:
   - cache=strict
   - actimeo=30
 parameters:
-  skuName: Standard_LRS
+  skuName: Premium_ZRS
