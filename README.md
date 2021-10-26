@@ -103,8 +103,8 @@ Please follow [this guide](docs/openshift/ocp/README.md) to configure OpenShift 
 Run the following commands to configure Azure Files within your cluster:
 
 ```bash
-sudo -E oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/storageclasses/azurefiles.yaml
-sudo -E oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/storageclasses/persistent-volume-binder.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/storageclasses/azurefiles.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/storageclasses/persistent-volume-binder.yaml
 ```
 
 ### Enabling OIDC authentication against Azure AD
@@ -130,7 +130,7 @@ oc extract secret/pull-secret -n openshift-config --keys=.dockerconfigjson --to=
 echo "cp:<your_entitlement_key>" | base64 -w0
 ```
 
-Next, edit .dockerconfigjson using your favorite text editor and update the JSON so that your `cp.icr.io` block is added to the `auths` block:
+Next, edit .dockerconfigjson using your favorite text editor and update the JSON so that your `cp.iccr.io` block is added to the `auths` block:
 
 ```json
 {
@@ -148,6 +148,33 @@ After that push your updated .dockerconfigjson:
 ```bash
 oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson
 ```
+#### k
+
+```bash
+wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/machinesets/worker.yaml -O /tmp/OCPInstall/worker.yaml
+
+export zone=1
+export numReplicas=3
+envsubst < /tmp/OCPInstall/worker.yaml > /tmp/OCPInstall/QuickCluster/worker.yaml
+oc apply -f /tmp/OCPInstall/QuickCluster/worker.yaml
+oc scale --replicas=0 machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster/worker.yaml | head -n1 | awk '{ print $2}') -n openshift-machine-api
+oc scale --replicas=3 machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster/worker.yaml | head -n1 | awk '{ print $2}') -n openshift-machine-api
+
+export zone=2
+export numReplicas=3
+envsubst < /tmp/OCPInstall/worker.yaml > /tmp/OCPInstall/QuickCluster/worker.yaml
+oc apply -f /tmp/OCPInstall/QuickCluster/worker.yaml
+oc scale --replicas=0 machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster/worker.yaml | head -n1 | awk '{ print $2}') -n openshift-machine-api
+oc scale --replicas=3 machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster/worker.yaml | head -n1 | awk '{ print $2}') -n openshift-machine-api
+
+export zone=3
+export numReplicas=3
+envsubst < /tmp/OCPInstall/worker.yaml > /tmp/OCPInstall/QuickCluster/worker.yaml
+oc apply -f /tmp/OCPInstall/QuickCluster/worker.yaml
+oc scale --replicas=0 machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster/worker.yaml | head -n1 | awk '{ print $2}') -n openshift-machine-api
+oc scale --replicas=3 machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster/worker.yaml | head -n1 | awk '{ print $2}') -n openshift-machine-api
+
+```
 
 #### Installing OpenShift Container Storage
 
@@ -158,12 +185,12 @@ wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/machinesets/ocs.
 export zone=1
 export numReplicas=2
 envsubst < ocs.yaml > /tmp/OCPInstall/QuickCluster/ocs.yaml
-sudo -E oc apply -f /tmp/OCPInstall/QuickCluster/ocs.yaml
+oc apply -f /tmp/OCPInstall/QuickCluster/ocs.yaml
 
 export zone=2
 export numReplicas=1
 envsubst < ocs.yaml > /tmp/OCPInstall/QuickCluster/ocs.yaml
-sudo -E oc apply -f /tmp/OCPInstall/QuickCluster/ocs.yaml
+oc apply -f /tmp/OCPInstall/QuickCluster/ocs.yaml
 
 # Create the namespace
 oc create ns openshift-storage
