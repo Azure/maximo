@@ -1,0 +1,31 @@
+#cloud-config
+
+runcmd:
+ - mkdir /tmp/OCPInstall
+ - mkdir ~/.azure/
+ - echo '{"subscriptionId":"${subscriptionId}","clientId":"${applicationId}","clientSecret":"${applicationSecret}","tenantId":"${tenantId}"}' > ~/.azure/osServicePrincipal.json
+ - [ wget, -nv, "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.6.48/openshift-install-linux.tar.gz", -O, /tmp/OCPInstall/openshift-install-linux.tar.gz ]
+ - echo "ssh-rsa ${sshPubKey}" > /tmp/id_rsa
+ - mkdir /tmp/OCPInstall/QuickCluster
+ - tar xvf /tmp/OCPInstall/openshift-install-linux.tar.gz -C /tmp/OCPInstall
+ - [ wget, -nv, "https://raw.githubusercontent.com/Azure/maximo/4.6/src/ocp/install-config.yaml", -O, /tmp/OCPInstall/install-config.yaml ]
+ - |
+    export baseDomain="${baseDomain}"
+    export clusterName="${clusterName}"
+    export deployRegion="${location}"
+    export baseDomainResourceGroup="${baseDomainResourceGroup}"
+    export pullSecret='${pullSecret}'
+    export sshPubKey="${sshPubKey}"
+    export ENTITLEMENT_KEY="${entitlementKey}"
+ - envsubst < /tmp/OCPInstall/install-config.yaml > /tmp/OCPInstall/QuickCluster/install-config.yaml
+ - sudo /tmp/OCPInstall/openshift-install create cluster --dir=/tmp/OCPInstall/QuickCluster --log-level=info
+ - export clusterInstanceName=$(cat /tmp/OCPInstall/QuickCluster/metadata.json | jq -r .infraID)
+ - [ wget, -nv, "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.6.48/openshift-client-linux.tar.gz", -O, /tmp/OCPInstall/openshift-client-linux.tar.gz ]
+ - tar xvf /tmp/OCPInstall/openshift-client-linux.tar.gz -C /tmp/OCPInstall
+ - export KUBECONFIG=/tmp/OCPInstall/QuickCluster/auth/kubeconfig
+ - [ wget, -nv, "https://raw.githubusercontent.com/Azure/maximo/4.6/src/installers/ocp_setup.sh", -O, ocp_setup.sh ]
+ - chmod +x ocp_setup.sh
+ - sudo -E ./ocp_setup.sh
+ - [ wget, -nv, "https://raw.githubusercontent.com/Azure/maximo/4.6/src/installers/mas_deploy.sh", -O, mas_deploy.sh ]
+ - chmod +x mas_deploy.sh
+ - sudo -E ./mas_deploy.sh
