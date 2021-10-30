@@ -50,6 +50,8 @@ resource vnet 'Microsoft.Network/virtualNetworks@2021-03-01' = {
       {
         name: subnetEndpointsName
         properties: {
+          privateEndpointNetworkPolicies: 'Disabled'
+          privateLinkServiceNetworkPolicies: 'Enabled'
           addressPrefix: subnetEndpointsPrefix
         }
       }
