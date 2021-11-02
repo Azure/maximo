@@ -229,9 +229,10 @@ oc port-forward service/sls 7000:443 -n ibm-sls &> /dev/null &
 PID=$!
 sleep 1
 rm -f outfile*
-openssl s_client -connect localhost:7000 -servername localhost -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
+echo QUIT | openssl s_client -connect localhost:7000 -servername localhost -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
 export slsCert1=$(cat outfile00)
 export slsCert2=$(cat outfile01)
+kill $PID
 wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/slsCfg.yaml -O slsCfg.yaml
 envsubst < slsCfg.yaml > slsCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$slsCert1\"" -i slsCfg-nonprod.yaml
@@ -244,7 +245,7 @@ sleep 1
 oc create secret generic nonprod-usersupplied-bas-creds-system --from-literal=api_key=$(oc get secret bas-api-key -n ibm-bas --output="jsonpath={.data.apikey}" | base64 -d) -n mas-nonprod-core
 basURL=$(oc get route bas-endpoint -n ibm-bas -o json | jq -r .status.ingress[0].host)
 rm -f outfile*
-openssl s_client -connect $basURL:443 -servername $basURL -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
+echo QUIT | openssl s_client -connect $basURL:443 -servername $basURL -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
 export basCert1=$(cat outfile00)
 export basCert2=$(cat outfile01)
 wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/basCfg.yaml -O basCfg.yaml
@@ -261,7 +262,7 @@ oc port-forward service/mas-mongo-ce-svc 7000:27017 -n mongo &> /dev/null &
 PID=$!
 sleep 1
 rm -f outfile*
-openssl s_client -connect localhost:7000 -servername localhost -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
+echo QUIT | openssl s_client -connect localhost:7000 -servername localhost -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
 export mongoCert1=$(cat outfile00)
 export mongoCert2=$(cat outfile01)
 #mongoCert1=$(openssl s_client -showcerts -servername localhost -connect localhost:7000 </dev/null 2>/dev/null | openssl x509 -outform PEM)
