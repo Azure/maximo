@@ -105,6 +105,9 @@ module sidecarVM 'sidecar.bicep' = {
     baseDomain: domainName
     clusterName: clusterName
     baseDomainResourceGroup: baseDomainResourceGroup
+    vnetName: vnetName
+    subnetControlNodeName: subnetControlNodeName
+    subnetWorkerNodeName: subnetWorkerNodeName
   }
   dependsOn: [
     network

@@ -17,6 +17,10 @@ runcmd:
     export pullSecret='${pullSecret}'
     export sshPubKey="${sshPubKey}"
     export ENTITLEMENT_KEY="${entitlementKey}"
+    export vnetName="${vnetName}"
+    export resourceGroupName="${resourceGroupName}"
+    export subnetControlNodeName="${subnetControlNodeName}"
+    export subnetWorkerNodeName="${subnetWorkerNodeName}"
  - envsubst < /tmp/OCPInstall/install-config.yaml > /tmp/OCPInstall/QuickCluster/install-config.yaml
  - sudo /tmp/OCPInstall/openshift-install create cluster --dir=/tmp/OCPInstall/QuickCluster --log-level=info
  - export clusterInstanceName=$(cat /tmp/OCPInstall/QuickCluster/metadata.json | jq -r .infraID)
