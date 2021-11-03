@@ -2,7 +2,7 @@
 param storageNamePrefix string = 'maximofiles'
 
 @description('Location for all resources.')
-param location string = resourceGroup().location
+param location string
 
 // Details for private endpoints
 

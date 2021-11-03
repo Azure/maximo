@@ -1,29 +1,29 @@
-@description('Name of the VNet you are deployinh')
-param vnetName string = 'maximo-vnet'
+@description('Name of the VNet you are deploying')
+param vnetName string
 
 @description('Total address prefix')
-param vnetAddressPrefix string = '10.0.0.0/16'
+param vnetAddressPrefix string
 
 @description('Control plane node prefix')
-param subnetControlNodePrefix string = '10.0.0.0/24'
+param subnetControlNodePrefix string
 
 @description('Control plane subnet name')
-param subnetControlNodeName string = 'control'
+param subnetControlNodeName string
 
 @description('Worker node prefix')
-param subnetWorkerNodePrefix string = '10.0.2.0/23'
+param subnetWorkerNodePrefix string
 
 @description('Worker node subnet name')
-param subnetWorkerNodeName string = 'workers'
+param subnetWorkerNodeName string
 
 @description('Azure Private Endpoints subnet prefix')
-param subnetEndpointsPrefix string = '10.0.1.0/24'
+param subnetEndpointsPrefix string
 
 @description('Azure Private Endpoints subnet name')
-param subnetEndpointsName string = 'endpoints'
+param subnetEndpointsName string
 
 @description('Location for all resources.')
-param location string = resourceGroup().location
+param location string
 
 resource vnet 'Microsoft.Network/virtualNetworks@2021-03-01' = {
   name: vnetName

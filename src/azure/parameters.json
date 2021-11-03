@@ -31,27 +31,6 @@
                 }
             ]
         },
-        "subnetName": {
-            "value": "default"
-        },
-        "virtualNetworkName": {
-            "value": "bootstrap-vnet"
-        },
-        "addressPrefixes": {
-            "value": [
-                "10.1.0.0/16"
-            ]
-        },
-        "subnets": {
-            "value": [
-                {
-                    "name": "default",
-                    "properties": {
-                        "addressPrefix": "10.1.0.0/24"
-                    }
-                }
-            ]
-        },
         "publicIpAddressName": {
             "value": "bootstrapVM-ip"
         },
@@ -78,6 +57,33 @@
         },
         "zone": {
             "value": "1"
+        },
+        "vnetName": {
+            "value": "maximo-vnet"
+        },
+        "vnetAddressPrefix": {
+            "value": "10.0.0.0/16"
+        },
+        "subnetControlNodePrefix": {
+            "value": "10.0.0.0/24"
+        },
+        "subnetControlNodeName": {
+            "value": "control"
+        },
+        "subnetWorkerNodePrefix": {
+            "value": "10.0.2.0/23"
+        },
+        "subnetWorkerNodeName": {
+            "value": "workers"
+        },
+        "subnetEndpointsPrefix": {
+            "value": "10.0.1.0/24"
+        },
+        "subnetEndpointsName": {
+            "value": "endpoints"
+        },
+        "storageNamePrefix": {
+            "value": "maximofiles"
         }
     }
 }

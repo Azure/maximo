@@ -4,8 +4,8 @@ param networkSecurityGroupName string
 param networkSecurityGroupRules array
 param subnetName string
 param virtualNetworkName string
-param addressPrefixes array
-param subnets array
+//param addressPrefixes array
+//param subnets array
 param publicIpAddressName string
 param publicIpAddressType string
 param publicIpAddressSku string
@@ -60,7 +60,6 @@ resource networkInterfaceName_resource 'Microsoft.Network/networkInterfaces@2018
   }
   dependsOn: [
     networkSecurityGroupName_resource
-    virtualNetworkName_resource
     publicIpAddressName_resource
   ]
 }
@@ -73,16 +72,16 @@ resource networkSecurityGroupName_resource 'Microsoft.Network/networkSecurityGro
   }
 }
 
-resource virtualNetworkName_resource 'Microsoft.Network/virtualNetworks@2020-11-01' = {
-  name: virtualNetworkName
-  location: location
-  properties: {
-    addressSpace: {
-      addressPrefixes: addressPrefixes
-    }
-    subnets: subnets
-  }
-}
+// resource virtualNetworkName_resource 'Microsoft.Network/virtualNetworks@2020-11-01' = {
+//   name: virtualNetworkName
+//   location: location
+//   properties: {
+//     addressSpace: {
+//       addressPrefixes: addressPrefixes
+//     }
+//     subnets: subnets
+//   }
+// }
 
 resource publicIpAddressName_resource 'Microsoft.Network/publicIpAddresses@2019-02-01' = {
   name: publicIpAddressName
