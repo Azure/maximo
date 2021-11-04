@@ -18,7 +18,7 @@ compute:
       - "1"
       - "2"
       - "3"
-  replicas: 6
+  replicas: 9
 metadata:
   name: $clusterName
 networking:
