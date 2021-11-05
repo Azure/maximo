@@ -29,11 +29,11 @@ spec:
             managedDisk:
               storageAccountType: Premium_LRS
             osType: Linux
-          networkResourceGroup: $clusterInstanceName-rg
+          networkResourceGroup: $resourceGroupName
           publicLoadBalancer: $clusterInstanceName
           userDataSecret:
             name: worker-user-data
-          vnet: $clusterInstanceName-vnet
+          vnet: $vnetName
           credentialsSecret:
             name: azure-cloud-credentials
             namespace: openshift-machine-api
@@ -53,5 +53,5 @@ spec:
             sku: ''
             version: ''
           managedIdentity: $clusterInstanceName-identity
-          subnet: $clusterInstanceName-worker-subnet
+          subnet: $subnetWorkerNodeName
           apiVersion: azureproviderconfig.openshift.io/v1beta1

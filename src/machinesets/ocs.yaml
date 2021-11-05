@@ -50,7 +50,7 @@ spec:
           metadata:
             creationTimestamp: null
           natRule: null
-          networkResourceGroup: $clusterInstanceName-rg
+          networkResourceGroup: $resourceGroupName
           osDisk:
             diskSizeGB: 128
             managedDisk:
@@ -61,9 +61,9 @@ spec:
           resourceGroup: $clusterInstanceName-rg
           sshPrivateKey: ""
           sshPublicKey: ""
-          subnet: $clusterInstanceName-worker-subnet
+          subnet: $subnetWorkerNodeName
           userDataSecret:
             name: worker-user-data
           vmSize: Standard_B8ms
-          vnet: $clusterInstanceName-vnet
+          vnet: $vnetName
           zone: "$zone"

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "================ OCP DEPLOY START ================"
+
  wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/machinesets/db2.yaml -O /tmp/OCPInstall/db2.yaml
  wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/machinesets/ocs.yaml -O /tmp/OCPInstall/ocs.yaml
 
@@ -40,5 +42,14 @@
  sudo -E /tmp/OCPInstall/oc apply -f /tmp/OCPInstall/QuickCluster/azurefiles-premium.yaml
 
  sudo -E /tmp/OCPInstall/oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/storageclasses/persistent-volume-binder.yaml
+
+ #Set Global Registry Config
+ sudo -E /tmp/OCPInstall/oc extract secret/pull-secret -n openshift-config --keys=.dockerconfigjson --to=. --confirm
+ export encodedEntitlementKey=$(echo cp:$ENTITLEMENT_KEY | base64 -w0)
+ export emailAddress=$(cat .dockerconfigjson | jq -r '.auths["cloud.openshift.com"].email')
+ jq '.auths |= . + {"cp.icr.io": { "auth" : "$encodedEntitlementKey", "email" : "$emailAddress"}}' .dockerconfigjson > /tmp/OCPInstall/QuickCluster/dockerconfig.json
+ envsubst < /tmp/OCPInstall/QuickCluster/dockerconfig.json > /tmp/OCPInstall/QuickCluster/.dockerconfigjson
+ oc set data secret/pull-secret -n openshift-config --from-file=/tmp/OCPInstall/QuickCluster/.dockerconfigjson
+
 
  echo "================ OCP DEPLOY COMPLETE ================"

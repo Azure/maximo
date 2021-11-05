@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "================ MAS DEPLOY START ================"
+
 USERNAME="admin"
 PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 20 | head -n 1)
 ENTITLEMENT_KEY="$ENTITLEMENT_KEY"
