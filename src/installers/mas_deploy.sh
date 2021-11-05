@@ -182,7 +182,7 @@ done
 
 echo "SLS Service Up"
 
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/strimzi/strimzi-service.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/strimzi/strimzi-service.yaml
 
 #check Kafka
 while [ true ]
