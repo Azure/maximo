@@ -49,7 +49,7 @@ echo "================ OCP DEPLOY START ================"
  export emailAddress=$(cat .dockerconfigjson | jq -r '.auths["cloud.openshift.com"].email')
  jq '.auths |= . + {"cp.icr.io": { "auth" : "$encodedEntitlementKey", "email" : "$emailAddress"}}' .dockerconfigjson > /tmp/OCPInstall/QuickCluster/dockerconfig.json
  envsubst < /tmp/OCPInstall/QuickCluster/dockerconfig.json > /tmp/OCPInstall/QuickCluster/.dockerconfigjson
- oc set data secret/pull-secret -n openshift-config --from-file=/tmp/OCPInstall/QuickCluster/.dockerconfigjson
+ sudo -E /tmp/OCPInstall/oc set data secret/pull-secret -n openshift-config --from-file=/tmp/OCPInstall/QuickCluster/.dockerconfigjson
 
 
  echo "================ OCP DEPLOY COMPLETE ================"

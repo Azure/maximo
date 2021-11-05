@@ -41,8 +41,6 @@ done
 
 oc patch installplan ${installplan} -n openshift-operators --type merge --patch '{"spec":{"approved":true}}'
 
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/ocs/ocs-operator.yaml
-
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/sls/sls-operator.yaml
 oc create secret docker-registry ibm-entitlement --docker-server=cp.icr.io --docker-username=cp --docker-password=$ENTITLEMENT_KEY -n ibm-sls
 
