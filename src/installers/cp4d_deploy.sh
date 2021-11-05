@@ -18,3 +18,5 @@ echo "Install db2wh"
 #Install db2wh
 ./cpd-cli adm --accept-all-licenses --repo ./repo.yaml --assembly db2wh --namespace cp4d --latest-dependency --apply
 ./cpd-cli install --accept-all-licenses --repo ./repo.yaml --assembly db2wh --namespace cp4d --storageclass ocs-storagecluster-cephfs --latest-dependency
+
+echo "================ CP4D DEPLOY COMPLETE ================"
