@@ -275,5 +275,5 @@ oc apply -f mongoCfg-nonprod.yaml
 
 ### Info dump:
 
-echo "================ COMPLETE ================"
+echo "================ MAS DEPLOY COMPLETE ================"
 #openssl s_client -servername bas-endpoint-ibm-bas.${CLUSTER_URL} -connect bas-endpoint-ibm-bas.${CLUSTER_URL}:443 -showcerts
