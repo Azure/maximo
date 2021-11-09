@@ -6,7 +6,7 @@ metadata:
   labels:
     mas.ibm.com/instanceId: nonprod
 spec:
-  domain: nonprod.apps.newcluster.maximoonazure.com
+  domain: nonprod.apps.$clusterName.$baseDomain
   license:
     accept: true
   settings:

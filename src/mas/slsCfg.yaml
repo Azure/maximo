@@ -1,0 +1,24 @@
+apiVersion: config.mas.ibm.com/v1
+kind: SlsCfg
+metadata:
+  name: nonprod-sls-system
+  labels:
+    app.kubernetes.io/instance: ibm-mas
+    app.kubernetes.io/managed-by: olm
+    app.kubernetes.io/name: ibm-mas
+    mas.ibm.com/configScope: system
+    mas.ibm.com/instanceId: nonprod
+  namespace: mas-nonprod-core
+spec:
+  certificates:
+    - alias: server
+      crt: |
+        null
+    - alias: ibm
+      crt: |
+        null        
+  config:
+    credentials:
+      secretName: nonprod-usersupplied-sls-creds-system
+    url: 'https://sls.ibm-sls.svc'
+  displayName: System SLS Configuration

@@ -1,27 +1,25 @@
 apiVersion: v1
 baseDomain: $baseDomain
-compute:
-- architecture: amd64
-  hyperthreading: Enabled
-  name: worker
-  platform:
-  azure:
-    type: Standard_B8ms
-    osDisk:
-      diskSizeGB: 512 
-    zones: 
-    - "1"
-    - "2"
-    - "3"
-  replicas: 6
 controlPlane:
   architecture: amd64
   hyperthreading: Enabled
   name: master
   platform: {}
   replicas: 3
+compute:
+- hyperthreading: Enabled
+  name: worker
+  platform:
+    azure:
+      type: Standard_B8ms
+      osDisk:
+        diskSizeGB: 512 
+      zones: 
+      - "1"
+      - "2"
+      - "3"
+  replicas: 9
 metadata:
-  creationTimestamp: null
   name: $clusterName
 networking:
   clusterNetwork:
@@ -35,6 +33,10 @@ networking:
 platform:
   azure:
     baseDomainResourceGroupName: $baseDomainResourceGroup
+    virtualNetwork: $vnetName
+    networkResourceGroupName: $resourceGroupName
+    controlPlaneSubnet: $subnetControlNodeName
+    computeSubnet: $subnetWorkerNodeName
     cloudName: AzurePublicCloud
     outboundType: Loadbalancer
     region: $deployRegion

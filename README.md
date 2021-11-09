@@ -1,6 +1,6 @@
 # Maximo on Azure
 
-This repository provides deployment guidance, scripts and best practices for running IBM Maximo Application Suite (Maximo or MAS) on OpenShift using the Azure Cloud. The instruction below have been tested with Maximo 8.5.0 on OpenShift 4.8.
+This repository provides deployment guidance, scripts and best practices for running IBM Maximo Application Suite (Maximo or MAS) on OpenShift using the Azure Cloud. The instruction below have been tested with Maximo 8.5.0 on OpenShift 4.6.
 
 ## Table of Contents
 
@@ -67,8 +67,6 @@ These are normally provided by your organization. You will only need the IBM Lic
 * An Application Registration (SPN) with Contributor and User Access Administrator access on the Subscription you are intending to deploy into.
 * OpenShift Container Platform up and running on a cluster with at least 24 vCPUs active for the worker nodes. You can deploy Azure Red Hat OpenShift or [OpenShift Container Platform](docs/openshift/ocp/README.md).
 
-An Azure Files storage account is optional if you are intending to [use  Azure Files](docs/azure/using-azure-files.md) in your deployment.
-
 > 💡 **TIP**: It is recommended to use a Linux, Windows Subsystem for Linux or macOS system to complete the installation. You will need some command line binaries that are not as readily available on Windows.
 
 For the installation you will need a few programs, these are: `oc` the OpenShift CLI, `openssl` and `kubectl`. You will also need Java installed to accept the license terms for Maximo. You can [grab the OpenShift clients from Red Hat at their mirror](https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/). This will provide the `oc` CLI and also includes `kubectl`. You can install `openssl` by installing the OpenSSL package on most modern Linux distributions using your package manager. Knowledge of Kubernetes is not required but recommended as a lot of Kubernetes concepts will come by.
@@ -100,7 +98,14 @@ Please follow [this guide](docs/openshift/ocp/README.md) to configure OpenShift 
 
 ### Azure Files CSI drivers
 
-If you are planning on using the Azure Files CSI driver instead of the Azure Disk CSI drivers, you will need to install the driver. It is not provided by OpenShift right out of the box. Please follow [these instructions](docs/azure/using-azure-files.md) to set up Azure Files with OpenShift. The Azurefiles storageclass is used throughout this guide.
+<!-- If you are planning on using the Azure Files CSI driver instead of the Azure Disk CSI drivers, you will need to install the driver. It is not provided by OpenShift right out of the box. Please follow [these instructions](docs/azure/using-azure-files.md) to set up Azure Files with OpenShift. The Azurefiles storageclass is used throughout this guide. -->
+
+Run the following commands to configure Azure Files within your cluster:
+
+```bash
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/storageclasses/azurefiles.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/storageclasses/persistent-volume-binder.yaml
+```
 
 ### Enabling OIDC authentication against Azure AD
 
@@ -125,7 +130,7 @@ oc extract secret/pull-secret -n openshift-config --keys=.dockerconfigjson --to=
 echo "cp:<your_entitlement_key>" | base64 -w0
 ```
 
-Next, edit .dockerconfigjson using your favorite text editor and update the JSON so that your `cp.icr.io` block is added to the `auths` block:
+Next, edit .dockerconfigjson using your favorite text editor and update the JSON so that your `cp.iccr.io` block is added to the `auths` block:
 
 ```json
 {
@@ -143,27 +148,61 @@ After that push your updated .dockerconfigjson:
 ```bash
 oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson
 ```
+#### k
+
+```bash
+wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/machinesets/worker.yaml -O /tmp/OCPInstall/worker.yaml
+
+export zone=1
+export numReplicas=3
+envsubst < /tmp/OCPInstall/worker.yaml > /tmp/OCPInstall/QuickCluster/worker.yaml
+oc apply -f /tmp/OCPInstall/QuickCluster/worker.yaml
+oc scale --replicas=0 machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster/worker.yaml | head -n1 | awk '{ print $2}') -n openshift-machine-api
+oc scale --replicas=3 machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster/worker.yaml | head -n1 | awk '{ print $2}') -n openshift-machine-api
+
+export zone=2
+export numReplicas=3
+envsubst < /tmp/OCPInstall/worker.yaml > /tmp/OCPInstall/QuickCluster/worker.yaml
+oc apply -f /tmp/OCPInstall/QuickCluster/worker.yaml
+oc scale --replicas=0 machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster/worker.yaml | head -n1 | awk '{ print $2}') -n openshift-machine-api
+oc scale --replicas=3 machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster/worker.yaml | head -n1 | awk '{ print $2}') -n openshift-machine-api
+
+export zone=3
+export numReplicas=3
+envsubst < /tmp/OCPInstall/worker.yaml > /tmp/OCPInstall/QuickCluster/worker.yaml
+oc apply -f /tmp/OCPInstall/QuickCluster/worker.yaml
+oc scale --replicas=0 machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster/worker.yaml | head -n1 | awk '{ print $2}') -n openshift-machine-api
+oc scale --replicas=3 machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster/worker.yaml | head -n1 | awk '{ print $2}') -n openshift-machine-api
+
+```
 
 #### Installing OpenShift Container Storage
 
 OpenShift Container Storage provides ceph to our cluster. Ceph is used by a variety of Maximo services to store its data. Before we can deploy OCS, we need to make a new machineset for it as it is quite needy: a minimum of 30 vCPUs and 72GB of RAM is required. In our sizing we use 4x B8ms for this machineset, the bare minimum and put them on their own nodes so there's no resource contention. After the machineset we need the OCS operator. Alternatively, you can install it from the OperatorHub.
 
 ```bash
-oc apply -f src/machinesets/ocs-z1.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/machinesets/ocs.yaml -O ocs.yaml
+export zone=1
+export numReplicas=2
+envsubst < ocs.yaml > /tmp/OCPInstall/QuickCluster/ocs.yaml
+oc apply -f /tmp/OCPInstall/QuickCluster/ocs.yaml
+
+export zone=2
+export numReplicas=1
+envsubst < ocs.yaml > /tmp/OCPInstall/QuickCluster/ocs.yaml
+oc apply -f /tmp/OCPInstall/QuickCluster/ocs.yaml
 
 # Create the namespace
 oc create ns openshift-storage
 
 # Install the operator
-oc apply -f src/ocs/ocs-operator.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/ocs/ocs-operator.yaml
 ```
 
 After provisioning the cluster, go to the OpenShift Container Storage operator in the `openshift-storage` namespace and create a `StorageCluster`. Following settings (which are the default):
 * managed-premium as StorageClass
 * Requested capacity, 2TB or 0.5TB
 * Selected nodes: you will see that the operator already pre-selects the nodes we just created. If not, pick the ocs-* nodes
-
-Press next. On the next blade, security and network: leave as is, Default (SDN) and no encryption. Press next. In the last blade, confirm it all and deploy. This takes a while, so check back a while later. You can see if OCS is up and running by going to Storage -> Overview in the OpenShift Admin UI.
 
 Once you have completed these steps, you can proceed with the requirements for Maximo.
 
@@ -175,7 +214,7 @@ The [IBM Operator Catalog](https://www.ibm.com/docs/en/app-connect/containers_cd
 To install, run the following commands:
 
 ```bash
-oc apply -f src/operatorcatalogs/catalog-source.yaml -n openshift-marketplace
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/operatorcatalogs/catalog-source.yaml
 ```
 
 To validate everything is up and running, check `oc get catalogsource/ibm-operator-catalog -n openshift-marketplace`.
@@ -213,7 +252,7 @@ Installation of cert-manager is relatively straight forward. Create a namespace 
 
 ```bash
 oc create namespace cert-manager
-oc apply -f https://github.com/jetstack/cert-manager/releases/download/v1.5.4/cert-manager.yaml
+oc apply -f https://github.com/jetstack/cert-manager/releases/download/v1.1.0/cert-manager.yaml
 ```
 
 To validate everything is up and running, check `oc get po -n cert-manager`. If you have the [kubectl cert-manager extension](https://cert-manager.io/docs/usage/kubectl-plugin/#installation) installed, you can also verify the install with `kubectl cert-manager check api`.
@@ -230,8 +269,6 @@ cert-manager-5597cff495-dh278             1/1     Running   0          2d1h
 cert-manager-cainjector-bd5f9c764-2j29c   1/1     Running   0          2d1h
 cert-manager-webhook-c4b5687dc-thh2b      1/1     Running   0          2d1h
 </pre>
-
-> ❗ **IMPORTANT** This collides with IBM Cert Manager because they are fighting to sign the CertificateRequests. Funny enough, Maximo does *not* like IBM Cert Manager. The solution is to not use IBM Cert Manager. If you do have a need for it, the fix is to delete all duplicate CertificateRequests created by IBM Cert Manager. Easiest way to grab them is `oc get CertificateRequest -A`
 
 #### Installing MongoDB
 
@@ -282,7 +319,7 @@ oc get MongoDBCommunity -n mongo -o yaml | grep mongoUri
 mongoUri: mongodb://mas-mongo-ce-0.mas-mongo-ce-svc.mongo.svc.cluster.local:27017,mas-mongo-ce-1.mas-mongo-ce-svc.mongo.svc.cluster.local:27017,mas-mongo-ce-2.mas-mongo-ce-svc.mongo.svc.cluster.local:27017
 ```
 
-Finally, retrieve the certificates from one of the running containers:
+<!-- Finally, retrieve the certificates from one of the running containers:
 
 ```bash
 oc exec -it mas-mongo-ce-0 --container mongod -n mongo -- openssl s_client -servername mas-mongo-ce-0.mas-mongo-ce-svc.mongo.svc.cluster.local -connect mas-mongo-ce-0.mas-mongo-ce-svc.mongo.svc.cluster.local:27017 -showcerts
@@ -298,7 +335,7 @@ END CERTIFICATE
 BEGIN CERTIFICATE
 ...
 END CERTIFICATE
-```
+``` -->
 
 #### Installing Service Binding Operator
 
@@ -307,7 +344,8 @@ END CERTIFICATE
 We have to put this operator on manual approval and you can NOT and should NOT upgrade the operator to a newer version. Maximo requires 0.8.0 specifically. To install, run the following commands:
 
 ```bash
-oc apply -f src/servicebinding/service-binding-operator.yaml -n openshift-operators
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/servicebinding/service-binding-operator.yaml
+
 installplan=$(oc get installplan -n openshift-operators | grep -i service-binding | awk '{print $1}'); echo "installplan: $installplan"
 oc patch installplan ${installplan} -n openshift-operators --type merge --patch '{"spec":{"approved":true}}'
 ```
@@ -330,7 +368,7 @@ service-binding-operator.v0.8.0   Service Binding Operator   0.8.0     service-b
 To install, run the following commands:
 
 ```bash
-oc apply -f src/bas/bas-operator.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/bas/bas-operator.yaml
 ```
 
 Next, you will need to create 2 secrets. Be sure to update the username and password in the example below:
@@ -345,11 +383,8 @@ Finally, deploy the Analytics Proxy. This will take up to 30 minutes to complete
 > 🚧 **WARNING** The below configuration is using the `azurefiles` storage class created in a previous step. If you did not configure this, you will need to update the class with another option.
 
 ```bash
-# Grant Azure files permissions to this namespace
-oc policy add-role-to-user admin system:serviceaccount:kube-system:persistent-volume-binder -n ibm-bas
-
 # Deploy
-oc apply -f src/bas/bas-service.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/bas/bas-service.yaml
 
 # You can monitor the progress, keep an eye on the status section:
 oc describe AnalyticsProxy analyticsproxy -n ibm-bas
@@ -362,7 +397,7 @@ Once this is complete, retrieve the bas endpoint and the API Key for use when do
 
 ```bash
 oc get routes bas-endpoint -n ibm-bas
-oc apply -f src/bas/bas-api-key.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/bas/bas-api-key.yaml
 ```
 
 To get the credentials and details from BAS, please see [Setting up Maximo](#setting-up-maximo).
@@ -390,7 +425,7 @@ oc create secret docker-registry ibm-entitlement --docker-server=cp.icr.io --doc
 Deploy the operator group and subscription configurations for both Suite Licensing Service (SLS) and the truststore manager operator (requirement for SLS)
 
 ```bash
-oc apply -f src/sls/sls-operator.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/sls/sls-operator.yaml
 ```
 
 This will take a while, as usual, check its progress with `oc get csv -n ibm-sls`.
@@ -424,12 +459,20 @@ Review the provided `sls-service.yaml` to make sure the servers used in there ar
 
 Deploy the service configuration:
 
-```bash
-# Grant Azure files permissions to this namespace
-oc policy add-role-to-user admin system:serviceaccount:kube-system:persistent-volume-binder -n ibm-sls
+If you are happy with the default configuration then proceed with the following command:
 
+```bash
 # Deploy
-oc apply -f src/sls/sls-service.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/sls/sls-service.yaml
+```
+
+If you prefer to modify the setup, pull down the config and edit it:
+```bash
+wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/sls/sls-service.yaml -O sls-service.yaml
+```
+After editing:
+```bash
+oc apply -f sls-service.yaml
 ```
 
 Wait for IBM SLS to come up, you can check its progress and also grab the connection details:
@@ -440,12 +483,18 @@ oc get LicenseService sls -n ibm-sls -o yaml
 
 ### Step 3b: Installing Maximo
 
-#### Deploying using the Operator (recommended)
+#### Deploying using the Operator
 
 Maximo install is the same as the other services: install an operator and then create a Suite service. First we need to deploy the operator:
 
 ```bash
-oc apply -f src/mas/mas-operator.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mas-operator.yaml
+```
+
+Add the entitlement key secret to the mas project:
+```bash
+export ENTITLEMENT_KEY=<Entitlement Key>
+oc create secret docker-registry ibm-entitlement --docker-server=cp.icr.io --docker-username=cp --docker-password=$ENTITLEMENT_KEY -n mas-nonprod-core
 ```
 
 Check progress of the operator installation:
@@ -456,10 +505,14 @@ oc get csv -n mas-nonprod-core
 
 Once it says succeeded for MAS, the Truststore and the Common Service Operator (ignore the Service Binding Operator) it is time to install Maximo.
 
-Open the YAML file and **modify the `domain` field and update it to your specific domain and configuration**. Once you have done that:
+Pull down the maximo service YAML file and export variables that will be updated within the file:
  
 ```bash
-oc apply -f src/mas/mas-service.yaml
+export clusterName=myclustername
+export baseDomain=mydomain.com
+wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mas-service.yaml -O mas-service.yaml
+envsubst < mas-service.yaml > mas-service-nonprod.yaml
+oc apply -f mas-service-nonprod.yaml
 ```
 
 Check the progress with:
@@ -477,32 +530,14 @@ oc extract secret/nonprod-credentials-superuser -n mas-nonprod-core --to=-
 
 Skip the step below and proceed with the Maximo set up.
 
-#### Deploying with install-mas.sh (not recommended)
-
-Not recommended, use the YAML way instead.
-
-If you have an IBM Passport Advantage account, you may download the latest version of Maximo from the service portal. If not, you can install directly using the IBM Maximo Operator inside of OpenShift. In this example, we will install using the operator.
-
-Before you can proceed with installing you need to make sure you have a working version of Java in your path. This is needed to accept the license terms for Maximo. The installer for Maximo can be downloaded from [IBM Passport Advantage](https://www.ibm.com/support/fixcentral/swg/downloadFixes?parent=ibm%7ETivoli&product=ibm/Tivoli/IBM+Maximo+Application+Suite&release=8.4.0&platform=All&function=fixId&fixids=8.4.2-IBM-MAS-FP0001&includeRequisites=1&includeSupersedes=0&downloadMethod=http). You will need subscriber access to that. Talk to your IBM representative to get that.
-
-Install Maximo by exporting your ENTITLEMENT_KEY and then running the install-mas.sh script.
-
-```bash
-export ENTITLEMENT_KEY=eyJ0eXAiOiJKV<snip>
-chmod +x install-mas.sh
-./install-mas.sh -i dev -d nonprod.apps.newcluster.maximoonazure.com --accept-license
-```
-
-This will take a while to deploy the MAS operator and instantiate it.
-
 #### Setting up Maximo
 
 You can get to Maximo on the domain you specified, in our guide this is admin.<cluster_url> (which is in our set up <deployment_name>.apps.cluster.domain). Note that you should always use https to approach. With regular http, you'll get a route not found error. When using self signed certificates (like we do), you will need to visit the api.<cluster_url> page. Navigate there and accept any certificates that pop up.
 
 Navigate to the /initialsetup page on your Maximo instance and accept the SSL certs. You'll be welcomed with a wizard and then a screen like this:
 
-![Maximo initial setup overview](docs/images/maximo-setup-initial.png)
-
+ ![Maximo initial setup overview](docs/images/maximo-setup-initial.png)
+<!--
 We need to configure each of these dependencies. To gather the information, please execute the following steps:
 
 ```bash
@@ -532,33 +567,77 @@ echo | openssl s_client -servername bas-endpoint-ibm-bas.apps.newcluster.maximoo
 
 # SLS: And the API key and URL
 oc describe LicenseService sls -n ibm-sls | grep -A 1 "Registration Key"
-```
+``` -->
 
 ##### Step 3b.a: Set up MongoDB
 
-Grab the details for MongoDB with the script above and enter it below. The authdb = admin, authentication = default. Hit confirm on the certificate and save the settings.
+You can configure the MongoDB Settings using the following commands:
 
-![MongoDB configuration](docs/images/maximo-setup-mongocfg.png)
+```bash
+oc delete secret nonprod-usersupplied-mongo-creds-system -n mas-nonprod-core 2>/dev/null
+sleep 1
+oc create secret generic nonprod-usersupplied-mongo-creds-system --from-literal=username=admin --from-literal=password=$(oc extract secret/mas-mongo-ce-admin-password --to=- -n mongo) -n mas-nonprod-core
+oc port-forward service/mas-mongo-ce-svc 7000:27017 -n mongo &> /dev/null &
+PID=$!
+sleep 1
+rm -f outfile*
+openssl s_client -connect localhost:7000 -servername localhost -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
+export mongoCert1=$(cat outfile00)
+export mongoCert2=$(cat outfile01)
+#mongoCert1=$(openssl s_client -showcerts -servername localhost -connect localhost:7000 </dev/null 2>/dev/null | openssl x509 -outform PEM)
+kill $PID
+wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mongoCfg.yaml -O mongoCfg.yaml
+envsubst < mongoCfg.yaml > mongoCfg-nonprod.yaml
+yq eval ".spec.certificates[0].crt = \"$mongoCert1\"" -i mongoCfg-nonprod.yaml
+yq eval ".spec.certificates[1].crt = \"$mongoCert2\"" -i mongoCfg-nonprod.yaml
+oc apply -f mongoCfg-nonprod.yaml
+```
 
 ##### Step 3b.b: Set up BAS
 
-For BAS you need an API key and the BAS endpoint (public endpoint). Grab both with the scripts above and enter below. Hit confirm on the certificate and then save.
+You can configure the BAS Settings using the following commands:
 
-> ❗ **IMPORTANT** BAS requires both certificates loaded to proceed. Make sure you add both the wildcard and the TLS cert for the ingress-operator
-
-![BAS configuration](docs/images/maximo-setup-bascfg.png)
+```bash
+oc delete secret nonprod-usersupplied-bas-creds-system -n mas-nonprod-core 2>/dev/null
+sleep 1
+oc create secret generic nonprod-usersupplied-bas-creds-system --from-literal=api_key=$(oc get secret bas-api-key -n ibm-bas --output="jsonpath={.data.apikey}" | base64 -d) -n mas-nonprod-core
+basURL=$(oc get route bas-endpoint -n ibm-bas -o json | jq -r .status.ingress[0].host)
+rm -f outfile*
+openssl s_client -connect $basURL:443 -servername $basURL -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
+export basCert1=$(cat outfile00)
+export basCert2=$(cat outfile01)
+wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/basCfg.yaml -O basCfg.yaml
+envsubst < basCfg.yaml > basCfg-nonprod.yaml
+yq eval ".spec.certificates[0].crt = \"$basCert1\"" -i basCfg-nonprod.yaml
+yq eval ".spec.certificates[1].crt = \"$basCert2\"" -i basCfg-nonprod.yaml
+oc apply -f basCfg-nonprod.yaml
+```
 
 ##### Step 3b.c: Set up SLS
 
-For SLS you'll need to do two steps, first set up the below with the details gathered from above.
+You can configure the SLS Settings using the following commands:
 
-![SLS configuration](docs/images/maximo-setup-slscfg.png)
+```bash
+oc delete secret nonprod-usersupplied-sls-creds-system -n mas-nonprod-core 2>/dev/null
+sleep 1
+oc create secret generic nonprod-usersupplied-sls-creds-system --from-literal=registrationKey=$(oc get LicenseService sls -n ibm-sls --output json | jq -r .status.registrationKey) -n mas-nonprod-core
+#oc exec -it sls-rlks-0 -n ibm-sls -- bash -c "echo | openssl s_client -servername sls.ibm-sls.svc -connect sls.ibm-sls.svc:443 -showcerts 2>/dev/null | sed -n -e '/BEGIN\ CERTIFICATE/,/END\ CERTIFICATE/ p'"
 
-After that you'll be greeted with a wizard that calibrates SLS for licensing:
+oc port-forward service/sls 7000:443 -n ibm-sls &> /dev/null &
+PID=$!
+sleep 1
+rm -f outfile*
+openssl s_client -connect localhost:7000 -servername localhost -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
+export slsCert1=$(cat outfile00)
+export slsCert2=$(cat outfile01)
+wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/slsCfg.yaml -O slsCfg.yaml
+envsubst < slsCfg.yaml > slsCfg-nonprod.yaml
+yq eval ".spec.certificates[0].crt = \"$slsCert1\"" -i slsCfg-nonprod.yaml
+yq eval ".spec.certificates[1].crt = \"$slsCert2\"" -i slsCfg-nonprod.yaml
+oc apply -f slsCfg-nonprod.yaml
+```
 
-![SLS configuration](docs/images/maximo-setup-slscfg-validation.png)
-
-Once it completes it'll generate some details you need to generate the license.dat file.
+The validation for SLS can take up to 10-15 minutes before it shows a green checkmark. Once it completes it will generate some details you need to generate the license.dat file.
 
 ##### Step 3b.d: Generate a license.dat file and finalize workspace
 
@@ -576,147 +655,25 @@ Be cautious handling Cloud Pak for Data (CP4D) as it is quite a delicate web of 
 
 ### Installing CP4D 3.5
 
-Cloud Pak for Data 3.5 can only be installed in the namespace where the operator has been installed.
+Cloud Pak for Data 3.5 will be installed using the cpd cli found here: 
 
+Create the namespace for the CLI to run against:
 ```bash
-# Create namespace
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cpd-meta-ops-namespace.yaml
-
-# Create a pull secret, needed for the meta-api
-
-export ENTITLEMENT_KEY=<keyhere>
-oc -n cpd-meta-ops create secret docker-registry ibm-entitlement-key --docker-server=cp.icr.io --docker-username=cp --docker-password=$ENTITLEMENT_KEY 
-
-# Create operator group and operators
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cp4d35-operator-group.yaml -n cpd-meta-ops
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/scheduling-service-operator.yaml -n cpd-meta-ops
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cloud-pak-for-data-operator.yaml -n cpd-meta-ops
-
-oc get -n cpd-meta-ops csv
-
-# Proceed when both operators are marked as succeeded. This install cp4d 3.5
-
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/cloud-pak-cpdservice.yaml -n cpd-meta-ops
+oc new-project cp4d
+export ENTITLEMENT_KEY=<Entitlement Key>
+oc -n cp4d create secret docker-registry ibm-registry --docker-server=cp.icr.io --docker-username=cp  --docker-password=$ENTITLEMENT_KEY
 ```
-
-You can retrieve the password for CP4D by extracting the `admin-user-details` secret:
-
-```
-oc extract secret/admin-user-details --keys=initial_admin_password --to=- -n cpd-meta-ops
-```
-
-### Installing CP4D 4.0
-
-CP4D 4.0 has a requirements:
-
-1. IBM Catalog Source set up
-1. OpenShift Container Storage (OCS) deployed and configured
-
-During the install, the operators install many other operators, such as the IBM Namedscope Operator, the IBM Zen Operator and IBM Cert Manager.
-
-#### Installing CP4D Operators
-
-CP4D will install its operators in a namespace called ibm-common-services and the actual deployment will be in another namespace (e.g. cp4d). In this guide we combine the CP4D foundational services together with CP4D operator itself, which is an easier approach. 
-
+Run the following cpdcli commands:
 ```bash
-oc apply -f src/CloudPakForData/4.0/cloud-pak-install-operators.yaml
+
+./cpd-cli adm --repo ./repo.yaml --assembly lite --namespace cp4d --latest-dependency --apply
+
+./cpd-cli install --repo ./repo.yaml --assembly lite --namespace cp4d --storageclass ocs-storagecluster-cephfs --override-config ocs --latest-dependency
+
+./cpd-cli adm --repo ./repo.yaml --assembly db2wh --namespace cp4d --latest-dependency --apply
+
+./cpd-cli install --repo ./repo.yaml --assembly db2wh --namespace cp4d --storageclass ocs-storagecluster-cephfs --latest-dependency
 ```
-
-This needs a little bit, so have some patience for things to install. You can check the status with:
-
-```bash
-oc get -n ibm-common-services csv
-```
-
-Output should look like below:
-
-<pre>
-roeland@metanoia:~/maximo$ oc get -n ibm-common-services csv
-NAME                                           DISPLAY                                VERSION   REPLACES                                      PHASE
-cpd-platform-operator.v2.0.4                   Cloud Pak for Data Platform Operator   2.0.4                                                   Succeeded
-ibm-cert-manager-operator.v3.14.0              IBM Cert Manager                       3.14.0    ibm-cert-manager-operator.v3.13.0             Succeeded
-ibm-common-service-operator.v3.12.0            IBM Cloud Pak foundational services    3.12.0    ibm-common-service-operator.v3.11.0           Succeeded
-ibm-cpd-scheduling-operator.v1.2.3             IBM CPD Scheduling                     1.2.3     ibm-cpd-scheduling-operator.v1.2.2            Succeeded
-ibm-namespace-scope-operator.v1.6.0            IBM NamespaceScope Operator            1.6.0     ibm-namespace-scope-operator.v1.5.0           Succeeded
-ibm-zen-operator.v1.4.0                        IBM Zen Service                        1.4.0     ibm-zen-operator.v1.3.0                       Succeeded
-operand-deployment-lifecycle-manager.v1.10.0   Operand Deployment Lifecycle Manager   1.10.0    operand-deployment-lifecycle-manager.v1.9.0   Succeeded
-</pre>
-
-One the operator is done, you can proceed and deploy the actual CP4D instance. The api service is called Ibmcpd and is easiest created with YAML. Besides the Ibmcpd you also need an empty OperandRequest to allow the Namespacescope operator to reach from ibm-common-services into your target namespace (in our deployment this is cp4d).
-
-```bash
-oc apply -f src/CloudPakForData/4.0/cloud-pak-install-instance.yaml
-```
-
-This will take about 30 minutes. You can check the status by checking the ZenService lite-cr and Ibmcpd ibmcpd-cr for their status.
-
-```bash
-oc get ZenService lite-cr -n cp4d -o yaml
-oc get Ibmcpd ibmcpd-cr -n cp4d -o yaml
-```
-
-Once installed, a route will appear and a password is created. Grab the details:
-
-```bash
-oc get routes -n cp4d
-oc extract secret/admin-user-details --keys=initial_admin_password --to=- -n cp4d
-```
-
-Visit the URL (https). The username is admin, the password is in the secret.
-
-<!-- ## Installing Cloud Pak for Data 4.0
-
-Maximo Application Suite (MAS or Maximo) can be installed on OpenShift. IBM provides documentation for Maximo on its [documentation site](https://www.ibm.com/docs/en/mas85/8.5.0). Make sure to refer to the documentation for [Maximo 8.5.0](https://www.ibm.com/docs/en/mas85/8.5.0), as that is the version we are describing throughout this document.
-
-All of the steps below assume you are logged on to your OpenShift cluster and you have the `oc` CLI available.
-
-### Installing Cloud Pak Foundational Services
-
-Prerequisites for Cloud Pak for Data (CP4D):
-
-1. OpenShift Container Storage
-
-
-
-https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/cpd/install/preinstall-operator-subscriptions.html
-
-https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/cpd/install/preinstall-foundational-svcs.html
-
-
-```bash
-1. oc new-project ibm-common-services
-1. cloud-pak-operator-group.yaml
-1. scheduling-service-operator.yaml
-1. cloud-pak-foundational-subscription.yaml
-```
-
-Check status:
-```bash
-oc --namespace ibm-common-services get csv
-
-oc get crd | grep operandrequest
-
-oc api-resources --api-group operator.ibm.com
-```
-
-### Installing Cloud Pak for Data
-
-https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/cpd/install/preinstall-operator-subscriptions.html#preinstall-operator-subscriptions__install-plan#preinstall-operator-subscriptions__install-plan
-
-
-https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/cpd/install/install-overview.html
-
-1. cloud-pak-for-data-operator.yaml
-1. oc new-project cp4d
-1. cloud-pak-enable-operators.yaml
-1. cloud-pak-install.yaml
-
-Approve Install Plan:
-installplan=$(oc get installplan -n cp4d | grep -i ibm-cert-manager-operator | awk '{print $1}'); echo "installplan: $installplan"
-oc patch installplan ${installplan} -n cp4d --type merge --patch '{"spec":{"approved":true}}'
-
-installplan=$(oc get installplan -n cp4d | grep -i ibm-zen-operator | awk '{print $1}'); echo "installplan: $installplan"
-oc patch installplan ${installplan} -n cp4d --type merge --patch '{"spec":{"approved":true}}' -->
 
 ## Step 5: Maximo solution dependencies
 

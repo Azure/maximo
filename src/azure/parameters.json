@@ -1,0 +1,89 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "value": "eastus"
+        },
+        "baseDomainResourceGroup": {
+            "value": "Domain"
+        },
+        "networkInterfaceName": {
+            "value": "bootstrapVM595"
+        },
+        "networkSecurityGroupName": {
+            "value": "bootstrapVM-nsg"
+        },
+        "networkSecurityGroupRules": {
+            "value": [
+                {
+                    "name": "SSH",
+                    "properties": {
+                        "priority": 300,
+                        "protocol": "TCP",
+                        "access": "Allow",
+                        "direction": "Inbound",
+                        "sourceAddressPrefix": "*",
+                        "sourcePortRange": "*",
+                        "destinationAddressPrefix": "*",
+                        "destinationPortRange": "22"
+                    }
+                }
+            ]
+        },
+        "publicIpAddressName": {
+            "value": "bootstrapVM-ip"
+        },
+        "publicIpAddressType": {
+            "value": "Static"
+        },
+        "publicIpAddressSku": {
+            "value": "Standard"
+        },
+        "virtualMachineName": {
+            "value": "bootstrapVM"
+        },
+        "virtualMachineComputerName": {
+            "value": "bootstrapVM"
+        },
+        "osDiskType": {
+            "value": "Premium_LRS"
+        },
+        "virtualMachineSize": {
+            "value": "Standard_B2ms"
+        },
+        "adminUsername": {
+            "value": "azureuser"
+        },
+        "zone": {
+            "value": "1"
+        },
+        "vnetName": {
+            "value": "maximo-vnet"
+        },
+        "vnetAddressPrefix": {
+            "value": "10.0.0.0/16"
+        },
+        "subnetControlNodePrefix": {
+            "value": "10.0.0.0/24"
+        },
+        "subnetControlNodeName": {
+            "value": "control"
+        },
+        "subnetWorkerNodePrefix": {
+            "value": "10.0.2.0/23"
+        },
+        "subnetWorkerNodeName": {
+            "value": "workers"
+        },
+        "subnetEndpointsPrefix": {
+            "value": "10.0.1.0/24"
+        },
+        "subnetEndpointsName": {
+            "value": "endpoints"
+        },
+        "storageNamePrefix": {
+            "value": "maximofiles"
+        }
+    }
+}

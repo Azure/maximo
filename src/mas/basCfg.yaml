@@ -1,0 +1,28 @@
+apiVersion: config.mas.ibm.com/v1
+kind: BasCfg
+metadata:
+  name: nonprod-bas-system
+  labels:
+    app.kubernetes.io/instance: ibm-mas
+    app.kubernetes.io/managed-by: olm
+    app.kubernetes.io/name: ibm-mas
+    mas.ibm.com/configScope: system
+    mas.ibm.com/instanceId: nonprod
+  namespace: mas-nonprod-core
+spec:
+  certificates:
+    - alias: crt1
+      crt: |
+        null
+    - alias: crt2
+      crt: |
+        null        
+  config:
+    contact:
+      email: DBAUMGARTEN@microsoft.com
+      firstName: David
+      lastName: Baumgarten
+    credentials:
+      secretName: nonprod-usersupplied-bas-creds-system
+    url: 'https://bas-endpoint-ibm-bas.apps.$clusterName.$baseDomain'
+  displayName: 'https://bas-endpoint-ibm-bas.apps.$clusterName.$baseDomain'

@@ -20,7 +20,7 @@ Once you have an Azure Files share, open up your favorite text editor and create
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: azurefiles
+  name: azurefiles-standard
 provisioner: kubernetes.io/azure-file
 parameters:
   skuName: Standard_LRS
@@ -45,7 +45,7 @@ You should now see the StorageClass in the OpenShift admin interface or by execu
 ```bash
 roeland@metanoia:~$ oc get sc
 NAME                        PROVISIONER                RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
-azurefiles                  kubernetes.io/azure-file   Delete          Immediate              false                  2d6h
+azurefiles-standard         kubernetes.io/azure-file   Delete          Immediate              false                  2d6h
 managed-premium (default)   kubernetes.io/azure-disk   Delete          WaitForFirstConsumer   true                   2d7h
 ```
 
@@ -53,9 +53,9 @@ That was it. You can now use Azure Files in your YAML files by referring to the 
 
 ```yaml
 kafka:
-  storage_class: azurefiles
+  storage_class: azurefiles-standard
   storage_size: 5G
-  zookeeper_storage_class: azurefiles
+  zookeeper_storage_class: azurefiles-standard
   zookeeper_storage_size: 5G
 ```
 

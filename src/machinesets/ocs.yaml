@@ -2,7 +2,7 @@ apiVersion: machine.openshift.io/v1beta1
 kind: MachineSet
 metadata:
   labels:
-    machine.openshift.io/cluster-api-cluster: $clusterName
+    machine.openshift.io/cluster-api-cluster: $clusterInstanceName
     machine.openshift.io/cluster-api-machine-role: worker
     machine.openshift.io/cluster-api-machine-type: worker
   name: ocs-z$zone
@@ -11,16 +11,16 @@ spec:
   replicas: $numReplicas
   selector:
     matchLabels:
-      machine.openshift.io/cluster-api-cluster: $clusterName
-      machine.openshift.io/cluster-api-machineset: $clusterName-infra-ocs-z1
+      machine.openshift.io/cluster-api-cluster: $clusterInstanceName
+      machine.openshift.io/cluster-api-machineset: $clusterInstanceName-infra-ocs-z1
   template:
     metadata:
       creationTimestamp: null
       labels:
-        machine.openshift.io/cluster-api-cluster: $clusterName
+        machine.openshift.io/cluster-api-cluster: $clusterInstanceName
         machine.openshift.io/cluster-api-machine-role: worker
         machine.openshift.io/cluster-api-machine-type: worker
-        machine.openshift.io/cluster-api-machineset: $clusterName-infra-ocs-z1
+        machine.openshift.io/cluster-api-machineset: $clusterInstanceName-infra-ocs-z1
     spec:
       taints:
         - effect: NoSchedule
@@ -40,30 +40,30 @@ spec:
           image:
             offer: ""
             publisher: ""
-            resourceID: /resourceGroups/$clusterName-rg/providers/Microsoft.Compute/images/$clusterName
+            resourceID: /resourceGroups/$clusterInstanceName-rg/providers/Microsoft.Compute/images/$clusterInstanceName
             sku: ""
             version: ""
           internalLoadBalancer: ""
           kind: AzureMachineProviderSpec
           location: $deployRegion
-          managedIdentity: $clusterName-identity
+          managedIdentity: $clusterInstanceName-identity
           metadata:
             creationTimestamp: null
           natRule: null
-          networkResourceGroup: $clusterName-rg
+          networkResourceGroup: $resourceGroupName
           osDisk:
             diskSizeGB: 128
             managedDisk:
               storageAccountType: Premium_LRS
             osType: Linux
           publicIP: false
-          publicLoadBalancer: $clusterName
-          resourceGroup: $clusterName-rg
+          publicLoadBalancer: $clusterInstanceName
+          resourceGroup: $clusterInstanceName-rg
           sshPrivateKey: ""
           sshPublicKey: ""
-          subnet: $clusterName-worker-subnet
+          subnet: $subnetWorkerNodeName
           userDataSecret:
             name: worker-user-data
           vmSize: Standard_B8ms
-          vnet: $clusterName-vnet
+          vnet: $vnetName
           zone: "$zone"
