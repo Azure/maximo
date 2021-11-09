@@ -837,6 +837,25 @@ TODO: Instruct on how to recover from a botched Maximo deploy/cert wise? e.g. go
 
 For Maximo: `oc extract secret/nonprod-credentials-superuser -n mas-nonprod-core --to=-`
 
+## Operationalization of your cluster
+
+<!-- TODO: Split this off? -->
+There are a few things to be aware off when running Maximo. Many of these are our learnings while trying to build this out.
+
+### Snoozing / shutting down your cluster
+
+One of the benefits of cloud is the ability to deallocate your instances and stopping to pay for them. OpenShift supports this and it is possible with Maximo. Snoozing is possible for up to a year or whenever your OpenShift certificates expire. Check the OpenShift documentation for specifics on the support for [graceful shutdowns](https://docs.openshift.com/container-platform/4.6/backup_and_restore/graceful-cluster-shutdown.html).
+
+To shutdown your cluster you have to stop and deallocate your nodes. This can be done in two days, either by asking the nodes to shutdown themselves and deallocate through Azure or to stop and deallocate from Azure directly. Make sure to deallocate, otherwise your virtual machines will be continue to be billed.
+
+To shut down the cluster gracefully from OpenShift:
+
+```bash
+for node in $(oc get nodes -o jsonpath='{.items[*].metadata.name}'); do oc debug node/${node} -- chroot /host shutdown -h 1; done
+```
+
+Next, go to the Azure Portal, select all the VMs that are part of the cluster and stop and deallocate them. When you start the cluster back up, do so by starting the Virtual Machines. It takes about 15 minutes for everything to find its spot again, so have a bit of patience and try to hit the OpenShift UI. Pay special attention on the overview page to any pods that are failing to start (e.g. crashloopbackoff) and delete/restart those pods if needed.
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require ou to agree to a Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us the rights to use your contribution. For details, visit <https://cla.opensource.microsoft.com>.
