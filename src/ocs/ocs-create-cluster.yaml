@@ -36,4 +36,4 @@ spec:
       replica: 3
       portable: true
       preparePlacement: {}
-  version: main.0
+  version: 4.6.0

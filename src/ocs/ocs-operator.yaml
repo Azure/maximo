@@ -18,7 +18,7 @@ metadata:
   name: ocs-operator
   namespace: openshift-storage
 spec:
-  channel: stable-main
+  channel: stable-4.6
   installPlanApproval: Automatic
   name: ocs-operator
   source: redhat-operators
