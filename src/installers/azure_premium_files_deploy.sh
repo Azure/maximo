@@ -10,7 +10,7 @@ export clientSecret=$(cat ~/.azure/osServicePrincipal.json | jq -r .clientSecret
 #Create the azure.json file and upload as secret
 wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/storageclasses/azure.json -O /tmp/OCPInstall/azure.json
 envsubst < /tmp/OCPInstall/azure.json > /tmp/OCPInstall/QuickCluster/azure.json
-sudo -E /tmp/OCPInstall/oc create secret generic azure-cloud-provider --from-literal=cloud-config=$(cat /tmp/OCPInstall/azure.json | base64 | awk '{printf $0}'; echo) -n kube-system
+sudo -E /tmp/OCPInstall/oc create secret generic azure-cloud-provider --from-literal=cloud-config=$(cat /tmp/OCPInstall/QuickCluster/azure.json | base64 | awk '{printf $0}'; echo) -n kube-system
 
 #Grant access
 sudo -E /tmp/OCPInstall/oc adm policy add-scc-to-user privileged system:serviceaccount:kube-system:csi-azurefile-node-sa
