@@ -2,7 +2,7 @@
 
 echo "================ OCS DEPLOY START ================"
 
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/ocs/ocs-operator.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/ocs/ocs-operator.yaml
 
 #check API Kind is avaliable
 while [ true ]
@@ -16,7 +16,7 @@ do
      fi
 done
 
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/ocs/ocs-create-cluster.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/ocs/ocs-create-cluster.yaml
 
 #check Cluster
 while [ true ]

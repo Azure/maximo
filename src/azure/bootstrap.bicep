@@ -108,6 +108,7 @@ module sidecarVM 'sidecar.bicep' = {
     vnetName: vnetName
     subnetControlNodeName: subnetControlNodeName
     subnetWorkerNodeName: subnetWorkerNodeName
+    subnetEndpointsName: subnetEndpointsName
   }
   dependsOn: [
     network

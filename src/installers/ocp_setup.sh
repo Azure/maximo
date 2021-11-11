@@ -2,8 +2,8 @@
 
 echo "================ OCP DEPLOY START ================"
 
- wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/machinesets/db2.yaml -O /tmp/OCPInstall/db2.yaml
- wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/machinesets/ocs.yaml -O /tmp/OCPInstall/ocs.yaml
+ wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/machinesets/db2.yaml -O /tmp/OCPInstall/db2.yaml
+ wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/machinesets/ocs.yaml -O /tmp/OCPInstall/ocs.yaml
 
 
 #Setup Zone 1
@@ -32,16 +32,17 @@ echo "================ OCP DEPLOY START ================"
  envsubst < /tmp/OCPInstall/ocs.yaml > /tmp/OCPInstall/QuickCluster/ocs.yaml
  sudo -E /tmp/OCPInstall/oc apply -f /tmp/OCPInstall/QuickCluster/ocs.yaml
 
- #Configure Azure Files
- wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/storageclasses/azurefiles-standard.yaml -O /tmp/OCPInstall/azurefiles-standard.yaml
+ #Configure Azure Files Standard
+ wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/storageclasses/azurefiles-standard.yaml -O /tmp/OCPInstall/azurefiles-standard.yaml
  envsubst < /tmp/OCPInstall/azurefiles-standard.yaml > /tmp/OCPInstall/QuickCluster/azurefiles-standard.yaml
  sudo -E /tmp/OCPInstall/oc apply -f /tmp/OCPInstall/QuickCluster/azurefiles-standard.yaml
 
- wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/storageclasses/azurefiles-premium.yaml -O /tmp/OCPInstall/azurefiles-premium.yaml
- envsubst < /tmp/OCPInstall/azurefiles-premium.yaml > /tmp/OCPInstall/QuickCluster/azurefiles-premium.yaml
- sudo -E /tmp/OCPInstall/oc apply -f /tmp/OCPInstall/QuickCluster/azurefiles-premium.yaml
+ #Configure Azure Files Premium
+ wget -nv "https://raw.githubusercontent.com/Azure/maximo/main/src/installers/azure_premium_files_deploy.sh" -O azure_premium_files_deploy.sh
+ chmod +x azure_premium_files_deploy.sh
+ sudo -E ./azure_premium_files_deploy.sh
 
- sudo -E /tmp/OCPInstall/oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/storageclasses/persistent-volume-binder.yaml
+ sudo -E /tmp/OCPInstall/oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/storageclasses/persistent-volume-binder.yaml
 
  #Set Global Registry Config
  sudo -E /tmp/OCPInstall/oc extract secret/pull-secret -n openshift-config --keys=.dockerconfigjson --to=. --confirm

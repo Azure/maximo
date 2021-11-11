@@ -1,6 +1,6 @@
 # Maximo on Azure
 
-This repository provides deployment guidance, scripts and best practices for running IBM Maximo Application Suite (Maximo or MAS) on OpenShift using the Azure Cloud. The instruction below have been tested with Maximo 8.5.0 on OpenShift 4.6.
+This repository provides deployment guidance, scripts and best practices for running IBM Maximo Application Suite (Maximo or MAS) on OpenShift using the Azure Cloud. The instruction below have been tested with Maximo 8.5.0 on OpenShift main.
 
 ## Table of Contents
 
@@ -103,8 +103,8 @@ Please follow [this guide](docs/openshift/ocp/README.md) to configure OpenShift 
 Run the following commands to configure Azure Files within your cluster:
 
 ```bash
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/storageclasses/azurefiles.yaml
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/storageclasses/persistent-volume-binder.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/storageclasses/azurefiles.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/storageclasses/persistent-volume-binder.yaml
 ```
 
 ### Enabling OIDC authentication against Azure AD
@@ -151,7 +151,7 @@ oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson
 #### k
 
 ```bash
-wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/machinesets/worker.yaml -O /tmp/OCPInstall/worker.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/machinesets/worker.yaml -O /tmp/OCPInstall/worker.yaml
 
 export zone=1
 export numReplicas=3
@@ -181,7 +181,7 @@ oc scale --replicas=3 machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster
 OpenShift Container Storage provides ceph to our cluster. Ceph is used by a variety of Maximo services to store its data. Before we can deploy OCS, we need to make a new machineset for it as it is quite needy: a minimum of 30 vCPUs and 72GB of RAM is required. In our sizing we use 4x B8ms for this machineset, the bare minimum and put them on their own nodes so there's no resource contention. After the machineset we need the OCS operator. Alternatively, you can install it from the OperatorHub.
 
 ```bash
-wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/machinesets/ocs.yaml -O ocs.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/machinesets/ocs.yaml -O ocs.yaml
 export zone=1
 export numReplicas=2
 envsubst < ocs.yaml > /tmp/OCPInstall/QuickCluster/ocs.yaml
@@ -196,7 +196,7 @@ oc apply -f /tmp/OCPInstall/QuickCluster/ocs.yaml
 oc create ns openshift-storage
 
 # Install the operator
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/ocs/ocs-operator.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/ocs/ocs-operator.yaml
 ```
 
 After provisioning the cluster, go to the OpenShift Container Storage operator in the `openshift-storage` namespace and create a `StorageCluster`. Following settings (which are the default):
@@ -214,7 +214,7 @@ The [IBM Operator Catalog](https://www.ibm.com/docs/en/app-connect/containers_cd
 To install, run the following commands:
 
 ```bash
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/operatorcatalogs/catalog-source.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/operatorcatalogs/catalog-source.yaml
 ```
 
 To validate everything is up and running, check `oc get catalogsource/ibm-operator-catalog -n openshift-marketplace`.
@@ -344,7 +344,7 @@ END CERTIFICATE
 We have to put this operator on manual approval and you can NOT and should NOT upgrade the operator to a newer version. Maximo requires 0.8.0 specifically. To install, run the following commands:
 
 ```bash
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/servicebinding/service-binding-operator.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/servicebinding/service-binding-operator.yaml
 
 installplan=$(oc get installplan -n openshift-operators | grep -i service-binding | awk '{print $1}'); echo "installplan: $installplan"
 oc patch installplan ${installplan} -n openshift-operators --type merge --patch '{"spec":{"approved":true}}'
@@ -368,7 +368,7 @@ service-binding-operator.v0.8.0   Service Binding Operator   0.8.0     service-b
 To install, run the following commands:
 
 ```bash
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/bas/bas-operator.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/bas/bas-operator.yaml
 ```
 
 Next, you will need to create 2 secrets. Be sure to update the username and password in the example below:
@@ -384,7 +384,7 @@ Finally, deploy the Analytics Proxy. This will take up to 30 minutes to complete
 
 ```bash
 # Deploy
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/bas/bas-service.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/bas/bas-service.yaml
 
 # You can monitor the progress, keep an eye on the status section:
 oc describe AnalyticsProxy analyticsproxy -n ibm-bas
@@ -397,7 +397,7 @@ Once this is complete, retrieve the bas endpoint and the API Key for use when do
 
 ```bash
 oc get routes bas-endpoint -n ibm-bas
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/bas/bas-api-key.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/bas/bas-api-key.yaml
 ```
 
 To get the credentials and details from BAS, please see [Setting up Maximo](#setting-up-maximo).
@@ -425,7 +425,7 @@ oc create secret docker-registry ibm-entitlement --docker-server=cp.icr.io --doc
 Deploy the operator group and subscription configurations for both Suite Licensing Service (SLS) and the truststore manager operator (requirement for SLS)
 
 ```bash
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/sls/sls-operator.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/sls/sls-operator.yaml
 ```
 
 This will take a while, as usual, check its progress with `oc get csv -n ibm-sls`.
@@ -463,12 +463,12 @@ If you are happy with the default configuration then proceed with the following 
 
 ```bash
 # Deploy
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/sls/sls-service.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/sls/sls-service.yaml
 ```
 
 If you prefer to modify the setup, pull down the config and edit it:
 ```bash
-wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/sls/sls-service.yaml -O sls-service.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/sls/sls-service.yaml -O sls-service.yaml
 ```
 After editing:
 ```bash
@@ -488,7 +488,7 @@ oc get LicenseService sls -n ibm-sls -o yaml
 Maximo install is the same as the other services: install an operator and then create a Suite service. First we need to deploy the operator:
 
 ```bash
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mas-operator.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/mas/mas-operator.yaml
 ```
 
 Add the entitlement key secret to the mas project:
@@ -510,7 +510,7 @@ Pull down the maximo service YAML file and export variables that will be updated
 ```bash
 export clusterName=myclustername
 export baseDomain=mydomain.com
-wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mas-service.yaml -O mas-service.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/mas/mas-service.yaml -O mas-service.yaml
 envsubst < mas-service.yaml > mas-service-nonprod.yaml
 oc apply -f mas-service-nonprod.yaml
 ```
@@ -586,7 +586,7 @@ export mongoCert1=$(cat outfile00)
 export mongoCert2=$(cat outfile01)
 #mongoCert1=$(openssl s_client -showcerts -servername localhost -connect localhost:7000 </dev/null 2>/dev/null | openssl x509 -outform PEM)
 kill $PID
-wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mongoCfg.yaml -O mongoCfg.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/mas/mongoCfg.yaml -O mongoCfg.yaml
 envsubst < mongoCfg.yaml > mongoCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$mongoCert1\"" -i mongoCfg-nonprod.yaml
 yq eval ".spec.certificates[1].crt = \"$mongoCert2\"" -i mongoCfg-nonprod.yaml
@@ -606,7 +606,7 @@ rm -f outfile*
 openssl s_client -connect $basURL:443 -servername $basURL -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
 export basCert1=$(cat outfile00)
 export basCert2=$(cat outfile01)
-wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/basCfg.yaml -O basCfg.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/mas/basCfg.yaml -O basCfg.yaml
 envsubst < basCfg.yaml > basCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$basCert1\"" -i basCfg-nonprod.yaml
 yq eval ".spec.certificates[1].crt = \"$basCert2\"" -i basCfg-nonprod.yaml
@@ -630,7 +630,7 @@ rm -f outfile*
 openssl s_client -connect localhost:7000 -servername localhost -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
 export slsCert1=$(cat outfile00)
 export slsCert2=$(cat outfile01)
-wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/slsCfg.yaml -O slsCfg.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/mas/slsCfg.yaml -O slsCfg.yaml
 envsubst < slsCfg.yaml > slsCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$slsCert1\"" -i slsCfg-nonprod.yaml
 yq eval ".spec.certificates[1].crt = \"$slsCert2\"" -i slsCfg-nonprod.yaml
@@ -844,7 +844,7 @@ There are a few things to be aware off when running Maximo. Many of these are ou
 
 ### Snoozing / shutting down your cluster
 
-One of the benefits of cloud is the ability to deallocate your instances and stopping to pay for them. OpenShift supports this and it is possible with Maximo. Snoozing is possible for up to a year or whenever your OpenShift certificates expire. Check the OpenShift documentation for specifics on the support for [graceful shutdowns](https://docs.openshift.com/container-platform/4.6/backup_and_restore/graceful-cluster-shutdown.html).
+One of the benefits of cloud is the ability to deallocate your instances and stopping to pay for them. OpenShift supports this and it is possible with Maximo. Snoozing is possible for up to a year or whenever your OpenShift certificates expire. Check the OpenShift documentation for specifics on the support for [graceful shutdowns](https://docs.openshift.com/container-platform/main/backup_and_restore/graceful-cluster-shutdown.html).
 
 To shutdown your cluster you have to stop and deallocate your nodes. This can be done in two days, either by asking the nodes to shutdown themselves and deallocate through Azure or to stop and deallocate from Azure directly. Make sure to deallocate, otherwise your virtual machines will be continue to be billed.
 

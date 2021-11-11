@@ -3,17 +3,12 @@ kind: StorageClass
 metadata:
   name: azurefiles-premium
 provisioner: kubernetes.io/azure-file
-reclaimPolicy: Retain
-mountOptions:
-  - dir_mode=0777
-  - file_mode=0777
-  - noperm
-  - uid=0
-  - gid=0
-  - mfsymlinks
-  - cache=strict
-  - actimeo=30
 parameters:
-  skuName: Premium_ZRS
+  protocol: nfs
+  networkEndpointType: privateEndpoint
   location: $deployRegion
   resourceGroup: $resourceGroupName
+  skuName: Premium_LRS
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+allowVolumeExpansion: true

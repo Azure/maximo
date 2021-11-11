@@ -20,10 +20,10 @@ oc create namespace cert-manager
 oc apply -f https://github.com/jetstack/cert-manager/releases/download/v1.1.0/cert-manager.yaml
 
 # Install catalogs
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/operatorcatalogs/catalog-source.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/operatorcatalogs/catalog-source.yaml
 
 # Set up all the operators
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/servicebinding/service-binding-operator.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/servicebinding/service-binding-operator.yaml
 # Wait
 
 echo "Fetching install plan..."
@@ -41,14 +41,14 @@ done
 
 oc patch installplan ${installplan} -n openshift-operators --type merge --patch '{"spec":{"approved":true}}'
 
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/sls/sls-operator.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/sls/sls-operator.yaml
 oc create secret docker-registry ibm-entitlement --docker-server=cp.icr.io --docker-username=cp --docker-password=$ENTITLEMENT_KEY -n ibm-sls
 
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mas-operator.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/mas/mas-operator.yaml
 oc create secret docker-registry ibm-entitlement --docker-server=cp.icr.io --docker-username=cp --docker-password=$ENTITLEMENT_KEY -n mas-nonprod-core
 
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/bas/bas-operator.yaml
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/strimzi/strimzi-operator.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/bas/bas-operator.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/strimzi/strimzi-operator.yaml
 
 
 ##### IF exists; Delete and recreate
@@ -148,7 +148,7 @@ echo "Strimzi Operator Up"
 # Deploying
 
 
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/bas/bas-service.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/bas/bas-service.yaml
 
 #check BAS
 while [ true ]
@@ -162,11 +162,11 @@ do
      fi
 done
 
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/bas/bas-api-key.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/bas/bas-api-key.yaml
 
 echo "BAS Service Up"
 
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/sls/sls-service.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/sls/sls-service.yaml
 
 #check SLS
 while [ true ]
@@ -182,7 +182,7 @@ done
 
 echo "SLS Service Up"
 
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/4.6/src/strimzi/strimzi-service.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/strimzi/strimzi-service.yaml
 
 #check Kafka
 while [ true ]
@@ -199,7 +199,7 @@ done
 echo "Kafka Service Up"
 
 #deploy mas
-wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mas-service.yaml -O mas-service.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/mas/mas-service.yaml -O mas-service.yaml
 envsubst < mas-service.yaml > mas-service-nonprod.yaml
 oc apply -f mas-service-nonprod.yaml
 
@@ -233,7 +233,7 @@ echo QUIT | openssl s_client -connect localhost:7000 -servername localhost -show
 export slsCert1=$(cat outfile00)
 export slsCert2=$(cat outfile01)
 kill $PID
-wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/slsCfg.yaml -O slsCfg.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/mas/slsCfg.yaml -O slsCfg.yaml
 envsubst < slsCfg.yaml > slsCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$slsCert1\"" -i slsCfg-nonprod.yaml
 yq eval ".spec.certificates[1].crt = \"$slsCert2\"" -i slsCfg-nonprod.yaml
@@ -248,7 +248,7 @@ rm -f outfile*
 echo QUIT | openssl s_client -connect $basURL:443 -servername $basURL -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
 export basCert1=$(cat outfile00)
 export basCert2=$(cat outfile01)
-wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/basCfg.yaml -O basCfg.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/mas/basCfg.yaml -O basCfg.yaml
 envsubst < basCfg.yaml > basCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$basCert1\"" -i basCfg-nonprod.yaml
 yq eval ".spec.certificates[1].crt = \"$basCert2\"" -i basCfg-nonprod.yaml
@@ -267,7 +267,7 @@ export mongoCert1=$(cat outfile00)
 export mongoCert2=$(cat outfile01)
 #mongoCert1=$(openssl s_client -showcerts -servername localhost -connect localhost:7000 </dev/null 2>/dev/null | openssl x509 -outform PEM)
 kill $PID
-wget -nv https://raw.githubusercontent.com/Azure/maximo/4.6/src/mas/mongoCfg.yaml -O mongoCfg.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/mas/mongoCfg.yaml -O mongoCfg.yaml
 envsubst < mongoCfg.yaml > mongoCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$mongoCert1\"" -i mongoCfg-nonprod.yaml
 yq eval ".spec.certificates[1].crt = \"$mongoCert2\"" -i mongoCfg-nonprod.yaml
