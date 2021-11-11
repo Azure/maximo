@@ -23,7 +23,7 @@ resource storage_premium 'Microsoft.Storage/storageAccounts@2021-06-01' = {
   location: location
   kind: 'FileStorage'
   sku: {
-    name: 'Premium_ZRS'
+    name: 'Premium_LRS'
   }
   properties: {
     allowSharedKeyAccess: true
