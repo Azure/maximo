@@ -16,7 +16,7 @@ sudo -E /tmp/OCPInstall/oc create secret generic azure-cloud-provider --from-lit
 sudo -E /tmp/OCPInstall/oc adm policy add-scc-to-user privileged system:serviceaccount:kube-system:csi-azurefile-node-sa
 
 #Install CSI Driver
-oc create configmap azure-cred-file --from-literal=path="/etc/kubernetes/cloud.conf" -n kube-system
+sudo -E /tmp/OCPInstall/oc create configmap azure-cred-file --from-literal=path="/etc/kubernetes/cloud.conf" -n kube-system
 
 driver_version=master
 echo "Driver version " $driver_version
