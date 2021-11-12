@@ -29,7 +29,7 @@ resource storage_premium 'Microsoft.Storage/storageAccounts@2021-06-01' = {
     allowSharedKeyAccess: true
     minimumTlsVersion: 'TLS1_2'
     allowBlobPublicAccess: false
-    supportsHttpsTrafficOnly: true
+    supportsHttpsTrafficOnly: false
     networkAcls: {
       bypass: 'AzureServices'
       virtualNetworkRules: []
