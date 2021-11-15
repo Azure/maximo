@@ -4,7 +4,15 @@ controlPlane:
   architecture: amd64
   hyperthreading: Enabled
   name: master
-  platform: {}
+  platform:
+    azure:
+      type: Standard_B4ms
+      osDisk:
+        diskSizeGB: 512
+      zones: 
+      - "1"
+      - "2"
+      - "3"
   replicas: 3
 compute:
 - hyperthreading: Enabled
