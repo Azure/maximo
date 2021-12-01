@@ -1,6 +1,6 @@
 # Maximo on Azure
 
-This repository provides deployment guidance, scripts and best practices for running IBM Maximo Application Suite (Maximo or MAS) on OpenShift using the Azure Cloud. The instruction below have been tested with Maximo 8.5.0 on OpenShift main.
+This repository provides deployment guidance, scripts and best practices for running IBM Maximo Application Suite (Maximo or MAS) on OpenShift using the Azure Cloud. The instruction below have been tested with Maximo 8.5.1 on OpenShift 4.6.
 
 ## Table of Contents
 
@@ -14,7 +14,8 @@ This repository provides deployment guidance, scripts and best practices for run
       * [Enabling OIDC authentication against Azure AD](#enabling-oidc-authentication-against-azure-ad)
       * [Logging In](#logging-in)
       * [Updating pull secrets](#updating-pull-secrets)
-      * [Installing OpenShift Container Storage](#installing-openshift-container-storage)
+      * [Updating Worker Nodes](#updating-worker-nodes)
+      * [Installing OpenShift Container Storage (Optional)](#installing-openshift-container-storage)
       * [Installing IBM Catalog Operator](#installing-ibm-operator-catalog)
    * [Step 3: Installing Maximo Core](#step-3-installing-maximo-core)
       * [Step 3a: Dependencies for Maximo](#step-3a-dependencies-for-maximo)
@@ -69,22 +70,26 @@ These are normally provided by your organization. You will only need the IBM Lic
 
 > 💡 **TIP**: It is recommended to use a Linux, Windows Subsystem for Linux or macOS system to complete the installation. You will need some command line binaries that are not as readily available on Windows.
 
-For the installation you will need a few programs, these are: `oc` the OpenShift CLI, `openssl` and `kubectl`. You will also need Java installed to accept the license terms for Maximo. You can [grab the OpenShift clients from Red Hat at their mirror](https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/). This will provide the `oc` CLI and also includes `kubectl`. You can install `openssl` by installing the OpenSSL package on most modern Linux distributions using your package manager. Knowledge of Kubernetes is not required but recommended as a lot of Kubernetes concepts will come by.
+For the installation you will need a few programs, these are: `oc` the OpenShift CLI, `openssl` and `kubectl` all avaliable in the `/usr/bin` directory. You will also need Java installed to accept the license terms for Maximo. You can [grab the OpenShift clients from Red Hat at their mirror](https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/). This will provide the `oc` CLI and also includes `kubectl`. You can install `openssl` by installing the OpenSSL package on most modern Linux distributions using your package manager. Knowledge of Kubernetes is not required but recommended as a lot of Kubernetes concepts will come by.
 
 After these services have been installed and configured, you can successfully install and configure Maximo Application Suite (MAS) on OpenShift running on Azure.
 
+> 💡 **NOTE**: For the automated installation of OCP and Maximo see this [guide](src/azure/README.md).
+
 ## What needs to be done
 
-The goal of this guide is to get a Maximo product running on top of Maximo Core on top of OpenShift on top of Azure. For example with Maximo Monitor, that would look like this:
+The goal of this guide is to deploy the Maximo Application Suite within OpenShift running on Azure. 
 
-TODO: Diagram
+Diagram:
 
-For us to get there we need to execute the following steps:
+![Openshift Architecture](docs/images/ocp-diagram.png)
+
+To accomplish this, you will need to execute the following steps:
 
 1. [Prepare and configure Azure](#step-1-preparing-azure) resources for OpenShift and Maximo install
 2. [Deploy OpenShift](#step-2-deploy-openshift)
 3. [Install the dependencies of the Maximo](#step-3a-dependencies-for-maximo) and then [Maximo itself](#step-3b-installing-maximo) (Core)
-4. Install Cloud Pak for Data and OCS
+4. Install Cloud Pak for Data and OCS (optional)
 5. Install any dependencies that your Maximo product has
 6. Deploy the Maximo solution.
 
@@ -100,11 +105,55 @@ Please follow [this guide](docs/openshift/ocp/README.md) to configure OpenShift 
 
 <!-- If you are planning on using the Azure Files CSI driver instead of the Azure Disk CSI drivers, you will need to install the driver. It is not provided by OpenShift right out of the box. Please follow [these instructions](docs/azure/using-azure-files.md) to set up Azure Files with OpenShift. The Azurefiles storageclass is used throughout this guide. -->
 
+> 💡 **TIP**:
+> Copy the `oc` and `kubectl` client to your `/usr/bin` directory to access the client from any directory. This will be required for some installing scripts.
+
 Run the following commands to configure Azure Files within your cluster:
 
 ```bash
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/storageclasses/azurefiles.yaml
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/storageclasses/persistent-volume-binder.yaml
+#Create directory for install files
+mkdir /tmp/OCPInstall
+mkdir /tmp/OCPInstall/QuickCluster
+
+#Prepare openshift client for connectivity
+export KUBECONFIG=/tmp/OCPInstall/QuickCluster/auth/kubeconfig
+
+#set variables for deployment
+export deployRegion="eastus"
+export resourceGroupName="myRG"
+export tenantId="tenantId"
+export subscriptionId="subscriptionId"
+export clientId="clientId" #This account will be used by OCP to access azure files to create shares within Azure Storage.
+export clientSecret="clientSecret"
+
+ #Configure Azure Files Standard
+ wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/storageclasses/azurefiles-standard.yaml -O /tmp/OCPInstall/azurefiles-standard.yaml
+ envsubst < /tmp/OCPInstall/azurefiles-standard.yaml > /tmp/OCPInstall/QuickCluster/azurefiles-standard.yaml
+ oc apply -f /tmp/OCPInstall/QuickCluster/azurefiles-standard.yaml
+
+#Configure Azure Files Premium
+
+#Create the azure.json file and upload as secret
+wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/storageclasses/azure.json -O /tmp/OCPInstall/azure.json
+envsubst < /tmp/OCPInstall/azure.json > /tmp/OCPInstall/QuickCluster/azure.json
+oc create secret generic azure-cloud-provider --from-literal=cloud-config=$(cat /tmp/OCPInstall/QuickCluster/azure.json | base64 | awk '{printf $0}'; echo) -n kube-system
+
+#Grant access
+oc adm policy add-scc-to-user privileged system:serviceaccount:kube-system:csi-azurefile-node-sa
+
+#Install CSI Driver
+oc create configmap azure-cred-file --from-literal=path="/etc/kubernetes/cloud.conf" -n kube-system
+
+driver_version=master
+echo "Driver version " $driver_version
+curl -skSL https://raw.githubusercontent.com/kubernetes-sigs/azurefile-csi-driver/$driver_version/deploy/install-driver.sh | bash -s $driver_version --
+
+#Deploy premium Storage Class
+ wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/storageclasses/azurefiles-premium.yaml -O /tmp/OCPInstall/azurefiles-premium.yaml
+ envsubst < /tmp/OCPInstall/azurefiles-premium.yaml > /tmp/OCPInstall/QuickCluster/azurefiles-premium.yaml
+ oc apply -f /tmp/OCPInstall/QuickCluster/azurefiles-premium.yaml
+
+ oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/storageclasses/persistent-volume-binder.yaml
 ```
 
 ### Enabling OIDC authentication against Azure AD
@@ -125,33 +174,31 @@ Login by clicking on display token and use the oc login command to authenticate 
 
 You will need to update the pull secrets to make sure that all containers on OpenShift can pull from the IBM repositories. This means using your entitlement key to be able to pull the containers. This is needed specifically for the install of Db2wh, as there is no other way to slip your entitlement key in. Detailed steps can be found in the [IBM Documentation for CP4D](https://www.ibm.com/docs/en/cpfs?topic=312-installing-foundational-services-by-using-console).
 
-```bash
-oc extract secret/pull-secret -n openshift-config --keys=.dockerconfigjson --to=. --confirm
-echo "cp:<your_entitlement_key>" | base64 -w0
-```
-
-Next, edit .dockerconfigjson using your favorite text editor and update the JSON so that your `cp.iccr.io` block is added to the `auths` block:
-
-```json
-{
-  "auths": {
-     "cp.icr.io" : {
-        "auth": "<the_string_created_by_the_base64_command_above>",
-        "email": "<your_email_address>"
-     }
-  }
-}
-```
-
-After that push your updated .dockerconfigjson:
 
 ```bash
-oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson
+#Set Global Registry Config
+ oc extract secret/pull-secret -n openshift-config --keys=.dockerconfigjson --to=. --confirm
+
+ export encodedEntitlementKey=$(echo cp:$ENTITLEMENT_KEY | base64 -w0)
+ export emailAddress=$(cat .dockerconfigjson | jq -r '.auths["cloud.openshift.com"].email')
+
+ jq '.auths |= . + {"cp.icr.io": { "auth" : "$encodedEntitlementKey", "email" : "$emailAddress"}}' .dockerconfigjson > /tmp/OCPInstall/QuickCluster/dockerconfig.json
+
+ envsubst < /tmp/OCPInstall/QuickCluster/dockerconfig.json > /tmp/OCPInstall/QuickCluster/.dockerconfigjson
+ 
+ oc set data secret/pull-secret -n openshift-config --from-file=/tmp/OCPInstall/QuickCluster/.dockerconfigjson
+
 ```
-#### k
+
+#### Updating Worker Nodes
 
 ```bash
 wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/machinesets/worker.yaml -O /tmp/OCPInstall/worker.yaml
+
+#Set variables to match your environment
+export clusterInstanceName="clusterInstanceName"
+export resourceGroupName="resourceGroupName"
+export subnetWorkerNodeName="subnetWorkerNodeName"
 
 export zone=1
 export numReplicas=3
@@ -176,7 +223,9 @@ oc scale --replicas=3 machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster
 
 ```
 
-#### Installing OpenShift Container Storage
+#### Installing OpenShift Container Storage (Optional)
+
+> 💡 **NOTE**: If you are using Azure Premium Files OCS is not required.
 
 OpenShift Container Storage provides ceph to our cluster. Ceph is used by a variety of Maximo services to store its data. Before we can deploy OCS, we need to make a new machineset for it as it is quite needy: a minimum of 30 vCPUs and 72GB of RAM is required. In our sizing we use 4x B8ms for this machineset, the bare minimum and put them on their own nodes so there's no resource contention. After the machineset we need the OCS operator. Alternatively, you can install it from the OperatorHub.
 
