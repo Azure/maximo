@@ -15,7 +15,7 @@ This repository provides deployment guidance, scripts and best practices for run
       * [Logging In](#logging-in)
       * [Updating pull secrets](#updating-pull-secrets)
       * [Updating Worker Nodes](#updating-worker-nodes)
-      * [Installing OpenShift Container Storage (Optional)](#installing-openshift-container-storage)
+      * [Installing OpenShift Container Storage (Optional)](#installing-openshift-container-storage-optional)
       * [Installing IBM Catalog Operator](#installing-ibm-operator-catalog)
    * [Step 3: Installing Maximo Core](#step-3-installing-maximo-core)
       * [Step 3a: Dependencies for Maximo](#step-3a-dependencies-for-maximo)
@@ -168,7 +168,11 @@ You will need to login to the `oc` CLI. You can get an easy way to do this by na
 
 ![Copy login panel](docs/images/ocp-copy-login.png)
 
-Login by clicking on display token and use the oc login command to authenticate your `oc` client to your OpenShift deployment.
+Login by clicking on display token and use the oc login command to authenticate your `oc` client to your OpenShift deployment OR by exporting the KUKBECONFIG path.
+
+```bash
+export KUBECONFIG=/tmp/OCPInstall/QuickCluster/auth/kubeconfig
+```
 
 ### Updating pull secrets
 
