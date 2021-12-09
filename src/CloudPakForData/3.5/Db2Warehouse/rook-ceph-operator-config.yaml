@@ -1,0 +1,23 @@
+apiVersion: v1
+data:
+  CSI_LOG_LEVEL: "5"
+  CSI_PLUGIN_TOLERATIONS: |2-
+
+    - key: icp4data
+      operator: Equal
+      value: "mas-manage-db2wh"
+      effect: NoSchedule
+    - key: node.ocs.openshift.io/storage
+      operator: Equal
+      value: "true"
+      effect: NoSchedule
+  CSI_PROVISIONER_TOLERATIONS: |2-
+
+    - key: node.ocs.openshift.io/storage
+      operator: Equal
+      value: "true"
+      effect: NoSchedule
+kind: ConfigMap
+metadata:
+  name: rook-ceph-operator-config
+  namespace: openshift-storage

@@ -1,0 +1,57 @@
+apiVersion: machine.openshift.io/v1beta1
+kind: MachineSet
+metadata:
+  name: $clusterInstanceName-worker-eastus$zone
+  namespace: openshift-machine-api
+  labels:
+    machine.openshift.io/cluster-api-cluster: $clusterInstanceName
+    machine.openshift.io/cluster-api-machine-role: worker
+    machine.openshift.io/cluster-api-machine-type: worker
+spec:
+  replicas: $numReplicas
+  selector:
+    matchLabels:
+      machine.openshift.io/cluster-api-cluster: $clusterInstanceName
+      machine.openshift.io/cluster-api-machineset: $clusterInstanceName-worker-eastus$zone
+  template:
+    metadata:
+      labels:
+        machine.openshift.io/cluster-api-cluster: $clusterInstanceName
+        machine.openshift.io/cluster-api-machine-role: worker
+        machine.openshift.io/cluster-api-machine-type: worker
+        machine.openshift.io/cluster-api-machineset: $clusterInstanceName-worker-eastus$zone
+    spec:
+      metadata: {}
+      providerSpec:
+        value:
+          osDisk:
+            diskSizeGB: 128
+            managedDisk:
+              storageAccountType: Premium_LRS
+            osType: Linux
+          networkResourceGroup: $resourceGroupName
+          publicLoadBalancer: $clusterInstanceName
+          userDataSecret:
+            name: worker-user-data
+          vnet: $vnetName
+          credentialsSecret:
+            name: azure-cloud-credentials
+            namespace: openshift-machine-api
+          zone: "$zone"
+          metadata:
+            creationTimestamp: null
+          publicIP: false
+          resourceGroup: $clusterInstanceName-rg
+          kind: AzureMachineProviderSpec
+          location: $deployRegion
+          vmSize: Standard_D8s_v3
+          image:
+            offer: ''
+            publisher: ''
+            resourceID: >-
+              /resourceGroups/$clusterInstanceName-rg/providers/Microsoft.Compute/images/$clusterInstanceName
+            sku: ''
+            version: ''
+          managedIdentity: $clusterInstanceName-identity
+          subnet: $subnetWorkerNodeName
+          apiVersion: azureproviderconfig.openshift.io/v1beta1

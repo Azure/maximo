@@ -1,0 +1,15 @@
+apiVersion: core.mas.ibm.com/v1
+kind: Suite
+metadata:
+  namespace: mas-nonprod-core
+  name: nonprod
+  labels:
+    mas.ibm.com/instanceId: nonprod
+spec:
+  domain: nonprod.apps.$clusterName.$baseDomain
+  license:
+    accept: true
+  settings:
+    locale:
+      country: US
+      language: en

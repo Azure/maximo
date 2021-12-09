@@ -1,8 +1,43 @@
 # Preparing Azure for OpenShift Deployment
 
-## Getting Started
+## Table of Contents
 
-* Set up service principal
+* [Service Principal](#service-principal)
+* [Virtual Network](#virtual-network)
+* [Storage Accounts](#storage-accounts)
+* [Jumpbox VM](#jumpbox-vm)
+* [Bastion Host](#bastion-host)
+
+
+## Service Principal
+
+In order to allow the OCP IPI Installer to deploy within your environment, you will need to [create an Azure Application Registration (SPN)](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal) and grant it `Contributor` and `User Access Administrator` permissions on the subscription you plan to deploy into.
+
+> 💡 **NOTE**: After deployment, you may remove the User Access Administrator access to the subscription. It is used to configured the Managed Identity within the Clusters Resource Group.
+
+After creating the SPN and assigning its access, you will need to create a [secret](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal#option-2-create-a-new-application-secret) that will be used during the OCP install process.
+
+> 💡 **NOTE**: After the deployment, this account will be used by the OCP Cluster to interact with NSGs, Storage Accounts...etc. Keep in mind, when the secret expires the cluster will be unable to update the Azure cluster deployment and will need to be renewed in AAD.
+
+## Virtual Network
+
+It is recommended to create your own VNet and/or add additional subnets to an existing VNet for use during your OCP deployment.
+
+Recommended Subnet configuration:
+
+
+
+## Storage Accounts
+
+
+
+## Jumpbox VM
+
+
+
+## Bastion Host
+
+
 
 ## Contributing
 

@@ -1,0 +1,11 @@
+apiVersion: cpd.ibm.com/v1
+kind: Ibmcpd
+metadata:
+  name: ibmcpd-cr
+  namespace: cp4d
+spec:
+  license:
+    accept: true
+    license: Enterprise
+  storageClass: azurefiles-standard #RWX (ReadWriteMany)
+  zenCoreMetadbStorageClass: managed-premium #RWO (ReadWriteOnce)

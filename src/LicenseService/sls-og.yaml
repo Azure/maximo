@@ -1,8 +1,0 @@
-apiVersion: operators.coreos.com/v1
-kind: OperatorGroup
-metadata:
-  name: sls-operator-group
-  namespace: ibm-sls
-spec: 
-  targetNamespaces:
-  - ibm-sls

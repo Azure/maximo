@@ -1,0 +1,21 @@
+apiVersion: metaoperator.cpd.ibm.com/v1
+kind: CPDService
+metadata:
+  labels:
+    app.kubernetes.io/instance: ibm-cp-data-operator-my-cpdservice
+    app.kubernetes.io/managed-by: ibm-cp-data-operator
+    app.kubernetes.io/name: ibm-cp-data-operator-my-cpdservice
+  name: lite-cpdservice
+  namespace: cpd-meta-ops
+spec:
+  serviceName: lite
+  license:
+    accept: true
+  optionalModules: []
+  flags: ""
+  scale: medium
+  overrideConfig: ocs
+  version: latest
+  autoPatch: false
+  customOverride: ""
+  storageClass: ocs-storagecluster-cephfs

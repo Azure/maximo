@@ -1,0 +1,14 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: azurefiles-premium
+provisioner: file.csi.azure.com
+parameters:
+  protocol: nfs
+  networkEndpointType: privateEndpoint
+  location: $deployRegion
+  resourceGroup: $resourceGroupName
+  skuName: Premium_LRS
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+allowVolumeExpansion: true

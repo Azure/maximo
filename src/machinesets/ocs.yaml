@@ -1,0 +1,69 @@
+apiVersion: machine.openshift.io/v1beta1
+kind: MachineSet
+metadata:
+  labels:
+    machine.openshift.io/cluster-api-cluster: $clusterInstanceName
+    machine.openshift.io/cluster-api-machine-role: worker
+    machine.openshift.io/cluster-api-machine-type: worker
+  name: ocs-z$zone
+  namespace: openshift-machine-api
+spec:
+  replicas: $numReplicas
+  selector:
+    matchLabels:
+      machine.openshift.io/cluster-api-cluster: $clusterInstanceName
+      machine.openshift.io/cluster-api-machineset: $clusterInstanceName-infra-ocs-z1
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        machine.openshift.io/cluster-api-cluster: $clusterInstanceName
+        machine.openshift.io/cluster-api-machine-role: worker
+        machine.openshift.io/cluster-api-machine-type: worker
+        machine.openshift.io/cluster-api-machineset: $clusterInstanceName-infra-ocs-z1
+    spec:
+      taints:
+        - effect: NoSchedule
+          key: node.ocs.openshift.io/storage
+          value: "true"
+      metadata:
+        creationTimestamp: null
+        labels:
+          node-role.kubernetes.io/infra: ""
+          cluster.ocs.openshift.io/openshift-storage: ""
+      providerSpec:
+        value:
+          apiVersion: azureproviderconfig.openshift.io/v1beta1
+          credentialsSecret:
+            name: azure-cloud-credentials
+            namespace: openshift-machine-api
+          image:
+            offer: ""
+            publisher: ""
+            resourceID: /resourceGroups/$clusterInstanceName-rg/providers/Microsoft.Compute/images/$clusterInstanceName
+            sku: ""
+            version: ""
+          internalLoadBalancer: ""
+          kind: AzureMachineProviderSpec
+          location: $deployRegion
+          managedIdentity: $clusterInstanceName-identity
+          metadata:
+            creationTimestamp: null
+          natRule: null
+          networkResourceGroup: $resourceGroupName
+          osDisk:
+            diskSizeGB: 128
+            managedDisk:
+              storageAccountType: Premium_LRS
+            osType: Linux
+          publicIP: false
+          publicLoadBalancer: $clusterInstanceName
+          resourceGroup: $clusterInstanceName-rg
+          sshPrivateKey: ""
+          sshPublicKey: ""
+          subnet: $subnetWorkerNodeName
+          userDataSecret:
+            name: worker-user-data
+          vmSize: Standard_B8ms
+          vnet: $vnetName
+          zone: "$zone"

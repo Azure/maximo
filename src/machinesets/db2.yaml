@@ -1,0 +1,72 @@
+apiVersion: machine.openshift.io/v1beta1
+kind: MachineSet
+metadata:
+  labels:
+    machine.openshift.io/cluster-api-cluster: $clusterInstanceName #$clusterInstanceName
+    machine.openshift.io/cluster-api-machine-role: worker
+    machine.openshift.io/cluster-api-machine-type: worker
+  name: mas-manage-db2-z$zone
+  namespace: openshift-machine-api
+spec:
+  replicas: $numReplicas
+  selector:
+    matchLabels:
+      components: mas-manage-db2
+      machine.openshift.io/cluster-api-cluster: $clusterInstanceName
+      machine.openshift.io/cluster-api-machineset: $clusterInstanceName-worker-mas-manage-db2-z1
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        components: mas-manage-db2
+        machine.openshift.io/cluster-api-cluster: $clusterInstanceName
+        machine.openshift.io/cluster-api-machine-role: worker
+        machine.openshift.io/cluster-api-machine-type: worker
+        machine.openshift.io/cluster-api-machineset: $clusterInstanceName-worker-mas-manage-db2-z1
+    spec:
+      metadata:
+        creationTimestamp: null
+        labels:
+          components: mas-manage-db2
+          node-role.kubernetes.io/worker: ""
+          icp4data: mas-manage-db2wh
+      taints:
+      - effect: NoSchedule
+        key: icp4data
+        value: mas-manage-db2wh
+      providerSpec:
+        value:
+          apiVersion: azureproviderconfig.openshift.io/v1beta1
+          credentialsSecret:
+            name: azure-cloud-credentials
+            namespace: openshift-machine-api
+          image:
+            offer: ""
+            publisher: ""
+            resourceID: /resourceGroups/$clusterInstanceName-rg/providers/Microsoft.Compute/images/$clusterInstanceName
+            sku: ""
+            version: ""
+          internalLoadBalancer: ""
+          kind: AzureMachineProviderSpec
+          location: $deployRegion
+          managedIdentity: $clusterInstanceName-identity
+          metadata:
+            creationTimestamp: null
+          natRule: null
+          networkResourceGroup: $resourceGroupName
+          osDisk:
+            diskSizeGB: 128
+            managedDisk:
+              storageAccountType: Premium_LRS
+            osType: Linux
+          publicIP: false
+          publicLoadBalancer: $clusterInstanceName
+          resourceGroup: $clusterInstanceName-rg
+          sshPrivateKey: ""
+          sshPublicKey: ""
+          subnet: $subnetWorkerNodeName
+          userDataSecret:
+            name: worker-user-data
+          vmSize: Standard_B12ms
+          vnet: $vnetName
+          zone: "$zone"

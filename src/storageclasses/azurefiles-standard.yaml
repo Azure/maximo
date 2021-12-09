@@ -1,0 +1,19 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: azurefiles-standard
+provisioner: kubernetes.io/azure-file
+reclaimPolicy: Retain
+mountOptions:
+  - dir_mode=0777
+  - file_mode=0777
+  - noperm
+  - uid=0
+  - gid=0
+  - mfsymlinks
+  - cache=strict
+  - actimeo=30
+parameters:
+  skuName: Standard_ZRS
+  location: $deployRegion
+  resourceGroup: $resourceGroupName

@@ -1,0 +1,106 @@
+apiVersion: kafka.strimzi.io/v1beta1
+kind: Kafka
+metadata:
+  name: maskafka
+  namespace: strimzi-kafka
+spec:
+  kafka:
+    resources:
+      requests:
+        memory: 4Gi
+        cpu: "1"
+      limits:
+        memory: 8Gi
+        cpu: "2"
+    jvmOptions:
+      -Xms: 6156m
+      -Xmx: 6156m
+    replicas: 3
+    listeners:
+      - name: tls
+        port: 9093
+        type: internal
+        tls: true
+        authentication:
+          type: scram-sha-512
+    authorization:
+      type: simple
+      superUsers:
+        - CN=masuser
+    config:
+      offsets.topic.replication.factor: 3
+      transaction.state.log.replication.factor: 3
+      transaction.state.log.min.isr: 2
+      log.message.format.version: "2.7"
+      inter.broker.protocol.version: "2.7"
+      log.retention.hours: 24
+      log.retention.bytes: 1073741824
+      log.segment.bytes: 268435456
+      log.cleaner.enable: true
+      log.cleanup.policy: delete
+      auto.create.topics.enable: false
+    storage:
+      type: jbod
+      volumes:
+        - id: 0
+          type: persistent-claim
+          class: azurefiles-premium
+          size: 100Gi
+          deleteClaim: true
+  zookeeper:
+    replicas: 3
+    resources:
+      requests:
+        memory: 2Gi
+        cpu: "1"
+      limits:
+        memory: 2Gi
+        cpu: "1"
+    jvmOptions:
+      -Xms: 1024m
+      -Xmx: 1024m
+    storage:
+      type: persistent-claim
+      class: azurefiles-premium
+      size: 100Gi
+      deleteClaim: true
+  entityOperator:
+    userOperator: {}
+---
+apiVersion: kafka.strimzi.io/v1beta1
+kind: KafkaUser
+metadata:
+  labels:
+    strimzi.io/cluster: maskafka
+  name: masuser
+  namespace: strimzi-kafka
+spec:
+  authentication:
+    type: scram-sha-512
+  authorization:
+    acls:
+      - host: "*"
+        operation: All
+        resource:
+          name: "*"
+          patternType: prefix
+          type: topic
+      - host: "*"
+        operation: All
+        resource:
+          name: "*"
+          patternType: prefix
+          type: group
+      - host: "*"
+        operation: All
+        resource:
+          name: "*"
+          patternType: literal
+          type: topic
+      - host: "*"
+        operation: All
+        resource:
+          name: "*"
+          patternType: literal
+          type: group
+    type: simple
