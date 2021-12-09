@@ -23,21 +23,38 @@ After creating the SPN and assigning its access, you will need to create a [secr
 
 It is recommended to create your own VNet and/or add additional subnets to an existing VNet for use during your OCP deployment.
 
-Recommended Subnet configuration:
+### Recommended Subnet configuration
 
+![VNet Subnets](../images/subnets.png)
 
 
 ## Storage Accounts
 
+2 Storage Accounts should be created:
 
+1. **Standard V2**
+    1. **SKU:** Standard_ZRS
+1. **Premium File Storage (NFS)**
+    1. **SKU:** Premium_LRS (Upgrade to ZRS when available)
+    1. **HTTPS Traffic Support:** False
+
+It is strongly recommended to create storage accounts using [private endpoints](https://docs.microsoft.com/en-us/azure/storage/common/storage-private-endpoints) connected to the endpoints subnet mentioned in the [Virtual Network](#virtual-network) section.
+
+Storage classes for these accounts will be created during the [installation process](../../README.md#azure-files-csi-drivers).
 
 ## Jumpbox VM
 
+This machine may be used as a jump box using Azure Bastion to connect to the OpenShift cluster. This is an optional VM as you may have existing network connectivity that already has this capability.
 
+If this machine is desired, we recommending installing the following tools on the VM:
 
-## Bastion Host
+* [OC Client](https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.6.49/openshift-install-linux.tar.gz) (Openshift Client)
+* [Kubectl Client](https://kubernetes.io/docs/tasks/tools/) (included with oc client)
+* [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
 
+## Azure Bastion
 
+Please follow the official [Azure Bastion documentation](https://docs.microsoft.com/en-us/azure/bastion/tutorial-create-host-portal) for instructions on configuring this service.
 
 ## Contributing
 
