@@ -20,6 +20,7 @@ param zone string
 param baseDomainResourceGroup string //used for ocp yaml config
 param domainName string
 param clusterName string
+param customInstallConfigURL string
 param applicationId string
 @secure()
 param applicationSecret string
@@ -134,6 +135,7 @@ module sidecarVM 'jumpbox.bicep' = {
     workerMachineSize: workerMachineSize
     numControlReplicas: numControlReplicas
     numWorkerReplicas: numWorkerReplicas
+    customInstallConfigURL: customInstallConfigURL
   }
   dependsOn: [
     network

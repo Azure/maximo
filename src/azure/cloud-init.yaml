@@ -17,7 +17,6 @@ runcmd:
  - echo "ssh-rsa ${sshPubKey}" > /tmp/id_rsa
  - mkdir /tmp/OCPInstall/QuickCluster
  - tar xvf /tmp/OCPInstall/openshift-install-linux.tar.gz -C /tmp/OCPInstall
- - [ wget, -nv, "https://raw.githubusercontent.com/Azure/maximo/main/src/ocp/install-config.yaml", -O, /tmp/OCPInstall/install-config.yaml ]
  - |
     export baseDomain="${baseDomain}"
     export clusterName="${clusterName}"
@@ -35,7 +34,10 @@ runcmd:
     export workerMachineSize="${workerMachineSize}"
     export numControlReplicas="${numControlReplicas}"
     export numWorkerReplicas="${numWorkerReplicas}"
- - envsubst < /tmp/OCPInstall/install-config.yaml > /tmp/OCPInstall/QuickCluster/install-config.yaml
+    export customInstallConfigURL="${customInstallConfigURL}"
+ - [ wget, -nv, "https://raw.githubusercontent.com/Azure/maximo/main/src/installers/install_config.sh", -O, install_config.sh ]
+ - chmod +x install_config.sh
+ - sudo -E ./install_config.sh
  - sudo /tmp/OCPInstall/openshift-install create cluster --dir=/tmp/OCPInstall/QuickCluster --log-level=info
  - az login --service-principal -u $(cat ~/.azure/osServicePrincipal.json | jq -r .clientId) -p $(cat ~/.azure/osServicePrincipal.json | jq -r .clientSecret) --tenant $(cat ~/.azure/osServicePrincipal.json | jq -r .tenantId) --output none && az account set -s $(cat ~/.azure/osServicePrincipal.json | jq -r .subscriptionId) --output none
  - az network vnet subnet update -g $(cat /tmp/OCPInstall/QuickCluster/terraform.azure.auto.tfvars.json | jq -r .azure_network_resource_group_name) -n control --vnet-name $(cat /tmp/OCPInstall/QuickCluster/terraform.azure.auto.tfvars.json | jq -r .azure_virtual_network) --network-security-group $(az resource list --name $(cat /tmp/OCPInstall/QuickCluster/metadata.json | jq -r .infraID)-nsg | jq -r .[0].id) --output none
