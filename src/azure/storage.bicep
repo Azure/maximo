@@ -66,8 +66,8 @@ resource storage_standard 'Microsoft.Storage/storageAccounts@2021-06-01' = {
 // Endpoints
 
 resource files_private_zone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
-  name: 'privatelink.file.core.windows.net'
-  location: 'global'
+  name: 'privatelink.file.${environment().suffixes.storage}' //core.windows.net'
+  location: 'global' 
   properties: {}
 }
 

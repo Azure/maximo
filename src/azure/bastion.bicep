@@ -31,29 +31,16 @@ resource publicIp 'Microsoft.Network/publicIpAddresses@2020-05-01' = {
   }
 }
 
-resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2019-02-01' = {
+resource bastionNetworkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2019-02-01' = {
   name: networkSecurityGroupName
   location: location
   properties: {
     securityRules: [
       {
-        name: 'AllowGatewayManager'
-        properties: {
-          priority: 2702
-          protocol: '*'
-          access: 'Allow'
-          direction: 'Inbound'
-          sourceAddressPrefix: 'GatewayManager'
-          sourcePortRange: '*'
-          destinationAddressPrefix: '*'
-          destinationPortRange: '443'
-        }
-      }
-      {
         name: 'AllowHttpsInbound'
         properties: {
-          priority: 2703
-          protocol: '*'
+          priority: 120
+          protocol: 'Tcp'
           access: 'Allow'
           direction: 'Inbound'
           sourceAddressPrefix: 'Internet'
@@ -63,7 +50,49 @@ resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2019-02-0
         }
       }
       {
-        name: 'AllowSshOutbound'
+        name: 'AllowGatewayManagerInbound'
+        properties: {
+          priority: 130
+          protocol: 'Tcp'
+          access: 'Allow'
+          direction: 'Inbound'
+          sourceAddressPrefix: 'GatewayManager'
+          sourcePortRange: '*'
+          destinationAddressPrefix: '*'
+          destinationPortRange: '443'
+        }
+      }
+      {
+        name: 'AllowAzureLoadBalancerInbound'
+        properties: {
+          priority: 140
+          protocol: 'Tcp'
+          access: 'Allow'
+          direction: 'Inbound'
+          sourceAddressPrefix: 'AzureLoadBalancer'
+          sourcePortRange: '*'
+          destinationAddressPrefix: '*'
+          destinationPortRange: '443'
+        }
+      }
+      {
+        name: 'AllowBastionHostCommunication'
+        properties: {
+          priority: 150
+          protocol: '*'
+          access: 'Allow'
+          direction: 'Inbound'
+          sourceAddressPrefix: 'VirtualNetwork'
+          sourcePortRange: '*'
+          destinationAddressPrefix: 'VirtualNetwork'
+          destinationPortRanges: [
+            '8080'
+            '5701'
+          ]
+        }
+      }
+      {
+        name: 'AllowSshRdpOutbound'
         properties: {
           priority: 100
           protocol: '*'
@@ -72,7 +101,10 @@ resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2019-02-0
           sourceAddressPrefix: '*'
           sourcePortRange: '*'
           destinationAddressPrefix: 'VirtualNetwork'
-          destinationPortRange: '22'
+          destinationPortRanges: [
+            '22'
+            '3389'
+          ]
         }
       }
       {
@@ -88,6 +120,35 @@ resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2019-02-0
           destinationPortRange: '443'
         }
       }
+      {
+        name: 'AllowBastionCommunication'
+        properties: {
+          priority: 120
+          protocol: '*'
+          access: 'Allow'
+          direction: 'Outbound'
+          sourceAddressPrefix: 'VirtualNetwork'
+          sourcePortRange: '*'
+          destinationAddressPrefix: 'VirtualNetwork'
+          destinationPortRanges: [
+            '8080'
+            '5701'
+          ]
+        }
+      }
+      {
+        name: 'AllowGetSessionInformation'
+        properties: {
+          priority: 130
+          protocol: '*'
+          access: 'Allow'
+          direction: 'Outbound'
+          sourceAddressPrefix: '*'
+          sourcePortRange: '*'
+          destinationAddressPrefix: 'Internet'
+          destinationPortRange: '80'
+        }
+      }
     ]
   }
 }
@@ -100,11 +161,13 @@ resource subnet 'Microsoft.Network/virtualNetworks/subnets@2020-05-01' = {
   parent: existingVirtualNetwork
   name: subnetBastionName
   dependsOn: [
-    networkSecurityGroup
+    bastionNetworkSecurityGroup
   ]
   properties: {
     addressPrefix: subnetBastionPrefix
-    networkSecurityGroup: networkSecurityGroup
+    networkSecurityGroup: {
+      id: bastionNetworkSecurityGroup.id
+    }
   }
 }
 

@@ -6,11 +6,10 @@ param subnetName string
 param virtualNetworkName string
 //param addressPrefixes array
 //param subnets array
-param publicIpAddressName string
-param publicIpAddressType string
-param publicIpAddressSku string
+// param publicIpAddressName string
+// param publicIpAddressType string
+// param publicIpAddressSku string
 param virtualMachineName string
-param virtualMachineComputerName string
 param osDiskType string
 param virtualMachineSize string
 param adminUsername string
@@ -56,9 +55,9 @@ resource networkInterfaceName_resource 'Microsoft.Network/networkInterfaces@2018
             id: subnetRef
           }
           privateIPAllocationMethod: 'Dynamic'
-          publicIPAddress: {
-            id: resourceId(resourceGroup().name, 'Microsoft.Network/publicIpAddresses', publicIpAddressName)
-          }
+          // publicIPAddress: {
+          //   id: resourceId(resourceGroup().name, 'Microsoft.Network/publicIpAddresses', publicIpAddressName)
+          // }
         }
       }
     ]
@@ -68,7 +67,7 @@ resource networkInterfaceName_resource 'Microsoft.Network/networkInterfaces@2018
   }
   dependsOn: [
     networkSecurityGroupName_resource
-    publicIpAddressName_resource
+    //publicIpAddressName_resource
   ]
 }
 
@@ -91,19 +90,19 @@ resource networkSecurityGroupName_resource 'Microsoft.Network/networkSecurityGro
 //   }
 // }
 
-resource publicIpAddressName_resource 'Microsoft.Network/publicIpAddresses@2019-02-01' = {
-  name: publicIpAddressName
-  location: location
-  properties: {
-    publicIPAllocationMethod: publicIpAddressType
-  }
-  sku: {
-    name: publicIpAddressSku
-  }
-  zones: [
-    zone
-  ]
-}
+// resource publicIpAddressName_resource 'Microsoft.Network/publicIpAddresses@2019-02-01' = {
+//   name: publicIpAddressName
+//   location: location
+//   properties: {
+//     publicIPAllocationMethod: publicIpAddressType
+//   }
+//   sku: {
+//     name: publicIpAddressSku
+//   }
+//   zones: [
+//     zone
+//   ]
+// }
 
 resource virtualMachineName_resource 'Microsoft.Compute/virtualMachines@2021-03-01' = {
   name: virtualMachineName
@@ -134,7 +133,7 @@ resource virtualMachineName_resource 'Microsoft.Compute/virtualMachines@2021-03-
       ]
     }
     osProfile: {
-      computerName: virtualMachineComputerName
+      computerName: virtualMachineName
       adminUsername: adminUsername
       adminPassword: adminPassword
       customData: base64(cloudInitData)

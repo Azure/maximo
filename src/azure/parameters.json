@@ -5,15 +5,6 @@
         "location": {
             "value": "eastus"
         },
-        "baseDomainResourceGroup": {
-            "value": "Domain"
-        },
-        "networkInterfaceName": {
-            "value": "bootstrapVM595"
-        },
-        "networkSecurityGroupName": {
-            "value": "bootstrapVM-nsg"
-        },
         "networkSecurityGroupRules": {
             "value": [
                 {
@@ -31,20 +22,8 @@
                 }
             ]
         },
-        "publicIpAddressName": {
-            "value": "bootstrapVM-ip"
-        },
-        "publicIpAddressType": {
-            "value": "Static"
-        },
-        "publicIpAddressSku": {
-            "value": "Standard"
-        },
         "virtualMachineName": {
-            "value": "bootstrapVM"
-        },
-        "virtualMachineComputerName": {
-            "value": "bootstrapVM"
+            "value": "JumpBoxVM"
         },
         "osDiskType": {
             "value": "Premium_LRS"
