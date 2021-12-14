@@ -34,8 +34,14 @@
         "controlMachineSize": {
             "value": "Standard_D8s_v3"
         },
+        "numControlReplicas": {
+            "value" : "3"
+        },
         "workerMachineSize": {
             "value": "Standard_D8s_v3"
+        },
+        "numWorkerReplicas": {
+            "value" : "9"
         },
         "adminUsername": {
             "value": "azureuser"

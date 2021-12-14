@@ -40,6 +40,8 @@ param subnetBastionName string
 param bastionHostName string
 param controlMachineSize string
 param workerMachineSize string
+param numControlReplicas string
+param numWorkerReplicas string
 
 //create dns zone
 module dnsZone 'dns.bicep' = {
@@ -130,6 +132,8 @@ module sidecarVM 'jumpbox.bicep' = {
     subnetEndpointsName: subnetEndpointsName
     controlMachineSize: controlMachineSize
     workerMachineSize: workerMachineSize
+    numControlReplicas: numControlReplicas
+    numWorkerReplicas: numWorkerReplicas
   }
   dependsOn: [
     network
