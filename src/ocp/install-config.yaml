@@ -6,7 +6,7 @@ controlPlane:
   name: master
   platform:
     azure:
-      type: Standard_D8s_v3
+      type: $controlMachineSize
       osDisk:
         diskSizeGB: 512
       zones: 
@@ -19,7 +19,7 @@ compute:
   name: worker
   platform:
     azure:
-      type: Standard_D8s_v3
+      type: $workerMachineSize
       osDisk:
         diskSizeGB: 512 
       zones: 

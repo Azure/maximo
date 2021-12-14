@@ -1,5 +1,5 @@
 @description('Prefix name of your storage accounts')
-param storageNamePrefix string = 'maximofiles'
+param storageNamePrefix string
 
 @description('Location for all resources.')
 param location string
@@ -7,10 +7,10 @@ param location string
 // Details for private endpoints
 
 @description('Azure Private Endpoints subnet name')
-param subnetEndpointsName string = 'endpoints'
+param subnetEndpointsName string
 
-@description('Name of the VNet you are deployinh')
-param vnetName string = 'maximo-vnet'
+@description('Name of the VNet you are deploying')
+param vnetName string
 
 // Some variables to grab the details we need
 var vnetId = resourceId(resourceGroup().name, 'Microsoft.Network/virtualNetworks', vnetName)

@@ -31,6 +31,8 @@ runcmd:
     export subnetControlNodeName="${subnetControlNodeName}"
     export subnetWorkerNodeName="${subnetWorkerNodeName}"
     export subnetPrivateEndpointName="${subnetEndpointsName}"
+    export controlMachineSize="${controlMachineSize}"
+    export workerMachineSize="${workerMachineSize}"
  - envsubst < /tmp/OCPInstall/install-config.yaml > /tmp/OCPInstall/QuickCluster/install-config.yaml
  - sudo /tmp/OCPInstall/openshift-install create cluster --dir=/tmp/OCPInstall/QuickCluster --log-level=info
  - az login --service-principal -u $(cat ~/.azure/osServicePrincipal.json | jq -r .clientId) -p $(cat ~/.azure/osServicePrincipal.json | jq -r .clientSecret) --tenant $(cat ~/.azure/osServicePrincipal.json | jq -r .tenantId) --output none && az account set -s $(cat ~/.azure/osServicePrincipal.json | jq -r .subscriptionId) --output none

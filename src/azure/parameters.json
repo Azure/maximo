@@ -52,6 +52,12 @@
         "virtualMachineSize": {
             "value": "Standard_B2ms"
         },
+        "controlMachineSize": {
+            "value": "Standard_D8s_v3"
+        },
+        "workerMachineSize": {
+            "value": "Standard_D8s_v3"
+        },
         "adminUsername": {
             "value": "azureuser"
         },
@@ -70,20 +76,29 @@
         "subnetControlNodeName": {
             "value": "control"
         },
-        "subnetWorkerNodePrefix": {
-            "value": "10.0.2.0/23"
-        },
-        "subnetWorkerNodeName": {
-            "value": "workers"
-        },
         "subnetEndpointsPrefix": {
             "value": "10.0.1.0/24"
         },
         "subnetEndpointsName": {
             "value": "endpoints"
         },
+        "subnetWorkerNodePrefix": {
+            "value": "10.0.2.0/23"
+        },
+        "subnetWorkerNodeName": {
+            "value": "workers"
+        },
+        "subnetBastionPrefix": {
+            "value": "10.0.4.0/27"
+        },
+        "subnetBastionName": {
+            "value": "AzureBastionSubnet"
+        },
         "storageNamePrefix": {
             "value": "maximofiles"
+        },
+        "bastionHostName": {
+            "value": "maximoBastionHost"
         }
     }
 }

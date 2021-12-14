@@ -34,7 +34,11 @@ param subnetWorkerNodeName string
 param subnetEndpointsPrefix string
 param subnetEndpointsName string
 param storageNamePrefix string
-
+param subnetBastionPrefix string
+param subnetBastionName string
+param bastionHostName string
+param controlMachineSize string
+param workerMachineSize string
 
 //create dns zone
 module dnsZone 'dns.bicep' = {
@@ -76,6 +80,21 @@ module premiumStorage 'storage.bicep' = {
   ]
 }
 
+module bastionHost 'bastion.bicep' = {
+  name: 'bastionHost'
+  scope: resourceGroup()
+  params: {
+    subnetBastionName: subnetBastionName
+    subnetBastionPrefix: subnetBastionPrefix
+    bastionHostName: bastionHostName
+    vnetName: vnetName
+    location: location
+  }
+  dependsOn:[
+    network
+  ]
+}
+
 //linux vm sidecar to deploy OCP
 module sidecarVM 'sidecar.bicep' = {
   name: 'LinuxVM'
@@ -109,6 +128,8 @@ module sidecarVM 'sidecar.bicep' = {
     subnetControlNodeName: subnetControlNodeName
     subnetWorkerNodeName: subnetWorkerNodeName
     subnetEndpointsName: subnetEndpointsName
+    controlMachineSize: controlMachineSize
+    workerMachineSize: workerMachineSize
   }
   dependsOn: [
     network
