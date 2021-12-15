@@ -106,7 +106,7 @@ echo "SLS Operator Up"
 #check BAS Operator
 while [ true ]
 do
-    status=$(oc get ClusterServiceVersion behavior-analytics-services-operator.v1.1.0 -n ibm-bas -o json | jq -r .status.phase)
+    status=$(oc get ClusterServiceVersion behavior-analytics-services-operator.v1.1.1 -n ibm-bas -o json | jq -r .status.phase)
     if [ ! "$status" == "Succeeded" ]
     then
         sleep 2
