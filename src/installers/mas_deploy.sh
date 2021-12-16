@@ -92,7 +92,7 @@ echo "Waiting for operators to come online"
 #check SLS
 while [ true ]
 do
-    status=$(oc get ClusterServiceVersion ibm-sls.v3.2.3 -n ibm-sls -o json | jq -r .status.phase)
+    status=$(oc get Operator ibm-sls.ibm-sls -n ibm-sls -o json | jq -r '.status[].refs[] | select(.kind=="ClusterServiceVersion").conditions[].type')
     if [ ! "$status" == "Succeeded" ]
     then
         sleep 2
@@ -106,7 +106,7 @@ echo "SLS Operator Up"
 #check BAS Operator
 while [ true ]
 do
-    status=$(oc get ClusterServiceVersion behavior-analytics-services-operator-certified.v1.1.2 -n ibm-bas -o json | jq -r .status.phase)
+    status=$(oc get Operator behavior-analytics-services-operator-certified.ibm-bas -n ibm-bas -o json | jq -r '.status[].refs[] | select(.kind=="ClusterServiceVersion").conditions[].type')
     if [ ! "$status" == "Succeeded" ]
     then
         sleep 2
@@ -120,7 +120,7 @@ echo "BAS Operator Up"
 #check MAS
 while [ true ]
 do
-    status=$(oc get ClusterServiceVersion ibm-mas.v8.5.1 -n mas-nonprod-core -o json | jq -r .status.phase)
+    status=$(oc get Operator ibm-mas.mas-nonprod-core -n mas-nonprod-core -o json | jq -r '.status[].refs[] | select(.kind=="ClusterServiceVersion").conditions[].type')
     if [ ! "$status" == "Succeeded" ]
     then
         sleep 2
@@ -134,7 +134,7 @@ echo "MAS Operator Up"
 #check Kafka
 while [ true ]
 do
-    status=$(oc get ClusterServiceVersion strimzi-cluster-operator.v0.22.1 -n strimzi-kafka -o json | jq -r .status.phase)
+    status=$(oc get Operator strimzi-kafka-operator.strimzi-kafka -n strimzi-kafka -o json | jq -r '.status[].refs[] | select(.kind=="ClusterServiceVersion").conditions[].type')
     if [ ! "$status" == "Succeeded" ]
     then
         sleep 2
