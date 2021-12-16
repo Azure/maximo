@@ -30,7 +30,7 @@ echo "Fetching install plan..."
 
 while [ true ]
 do
-    installplan=$(oc get installplan -n openshift-operators 2>/dev/null | grep -i service-binding-operator.v0.8.0 | awk '{print $1}')    
+    installplan=$(oc get installplan -n openshift-operators 2>/dev/null | grep -i service-binding-operator.v0.8.0 | awk '{print $1}')
     if [ -z "$installplan" ]
     then
         sleep 10
@@ -42,10 +42,10 @@ done
 oc patch installplan ${installplan} -n openshift-operators --type merge --patch '{"spec":{"approved":true}}'
 
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/sls/sls-operator.yaml
-oc create secret docker-registry ibm-entitlement --docker-server=cp.icr.io --docker-username=cp --docker-password=$ENTITLEMENT_KEY -n ibm-sls
+oc create secret docker-registry ibm-entitlement --docker-server=cp.icr.io --docker-username=cp --docker-password=${ENTITLEMENT_KEY} -n ibm-sls
 
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/mas/mas-operator.yaml
-oc create secret docker-registry ibm-entitlement --docker-server=cp.icr.io --docker-username=cp --docker-password=$ENTITLEMENT_KEY -n mas-nonprod-core
+oc create secret docker-registry ibm-entitlement --docker-server=cp.icr.io --docker-username=cp --docker-password=${ENTITLEMENT_KEY} -n mas-nonprod-core
 
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/bas/bas-operator.yaml
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/strimzi/strimzi-operator.yaml
