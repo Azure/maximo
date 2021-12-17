@@ -35,9 +35,9 @@ runcmd:
     export numControlReplicas="${numControlReplicas}"
     export numWorkerReplicas="${numWorkerReplicas}"
     export customInstallConfigURL="${customInstallConfigURL}"
- - [ wget, -nv, "https://raw.githubusercontent.com/Azure/maximo/main/src/installers/install_config.sh", -O, install_config.sh ]
- - chmod +x install_config.sh
- - sudo -E ./install_config.sh
+ - [ wget, -nv, "https://raw.githubusercontent.com/Azure/maximo/main/src/installers/install_config.sh", -O, /tmp/install_config.sh ]
+ - chmod +x /tmp/install_config.sh
+ - sudo -E /tmp/install_config.sh
  - sudo /tmp/OCPInstall/openshift-install create cluster --dir=/tmp/OCPInstall/QuickCluster --log-level=info
  - az login --service-principal -u $(cat ~/.azure/osServicePrincipal.json | jq -r .clientId) -p $(cat ~/.azure/osServicePrincipal.json | jq -r .clientSecret) --tenant $(cat ~/.azure/osServicePrincipal.json | jq -r .tenantId) --output none && az account set -s $(cat ~/.azure/osServicePrincipal.json | jq -r .subscriptionId) --output none
  - az network vnet subnet update -g $(cat /tmp/OCPInstall/QuickCluster/terraform.azure.auto.tfvars.json | jq -r .azure_network_resource_group_name) -n control --vnet-name $(cat /tmp/OCPInstall/QuickCluster/terraform.azure.auto.tfvars.json | jq -r .azure_virtual_network) --network-security-group $(az resource list --name $(cat /tmp/OCPInstall/QuickCluster/metadata.json | jq -r .infraID)-nsg | jq -r .[0].id) --output none
@@ -47,15 +47,15 @@ runcmd:
  - [ wget, -nv, "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.6.49/openshift-client-linux.tar.gz", -O, /tmp/OCPInstall/openshift-client-linux.tar.gz ]
  - tar xvf /tmp/OCPInstall/openshift-client-linux.tar.gz -C /tmp/OCPInstall
  - export KUBECONFIG=/tmp/OCPInstall/QuickCluster/auth/kubeconfig
- - [ wget, -nv, "https://raw.githubusercontent.com/Azure/maximo/main/src/installers/ocp_setup.sh", -O, ocp_setup.sh ]
- - chmod +x ocp_setup.sh
- - sudo -E ./ocp_setup.sh
- - [ wget, -nv, "https://raw.githubusercontent.com/Azure/maximo/main/src/installers/mas_deploy.sh", -O, mas_deploy.sh ]
- - chmod +x mas_deploy.sh
- - sudo -E ./mas_deploy.sh
- - [ wget, -nv, "https://raw.githubusercontent.com/Azure/maximo/main/src/installers/ocs_deploy.sh", -O, ocs_deploy.sh ]
- - chmod +x ocs_deploy.sh
- - sudo -E ./ocs_deploy.sh
- - [ wget, -nv, "https://raw.githubusercontent.com/Azure/maximo/main/src/installers/cp4d_deploy.sh", -O, cp4d_deploy.sh ]
- - chmod +x cp4d_deploy.sh
- - sudo -E ./cp4d_deploy.sh
+ - [ wget, -nv, "https://raw.githubusercontent.com/Azure/maximo/main/src/installers/ocp_setup.sh", -O, /tmp/ocp_setup.sh ]
+ - chmod +x /tmp/ocp_setup.sh
+ - sudo -E /tmp/ocp_setup.sh
+ - [ wget, -nv, "https://raw.githubusercontent.com/Azure/maximo/main/src/installers/mas_deploy.sh", -O, /tmp/mas_deploy.sh ]
+ - chmod +x /tmp/mas_deploy.sh
+ - sudo -E /tmp/mas_deploy.sh
+ - [ wget, -nv, "https://raw.githubusercontent.com/Azure/maximo/main/src/installers/ocs_deploy.sh", -O, /tmp/ocs_deploy.sh ]
+ - chmod +x /tmp/ocs_deploy.sh
+ - sudo -E /tmp/ocs_deploy.sh
+ - [ wget, -nv, "https://raw.githubusercontent.com/Azure/maximo/main/src/installers/cp4d_deploy.sh", -O, /tmp/cp4d_deploy.sh ]
+ - chmod +x /tmp/cp4d_deploy.sh
+ - sudo -E /tmp/cp4d_deploy.sh

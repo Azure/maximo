@@ -10,7 +10,7 @@ ENTITLEMENT_KEY="$ENTITLEMENT_KEY"
 wget -nv https://github.com/mikefarah/yq/releases/download/v4.13.4/yq_linux_amd64.tar.gz -O - | tar xz && mv -f yq_linux_amd64 /usr/bin/yq
 
 yum install -y -q git
-git clone --quiet https://github.com/ibm-watson-iot/iot-docs.git
+git clone --quiet https://github.com/ibm-watson-iot/iot-docs.git /tmp/
 
 \cp /tmp/OCPInstall/oc /usr/bin #overwrite existing version
 
@@ -63,7 +63,7 @@ export MONGO_NAMESPACE=mongo
 export MONGO_PASSWORD="${PASSWORD}"
 
 #Install Mongo
-cd iot-docs/mongodb/certs/
+cd /tmp/iot-docs/mongodb/certs/
 ./generateSelfSignedCert.sh
 cd ..
 ./install-mongo-ce.sh
@@ -199,9 +199,9 @@ done
 echo "Kafka Service Up"
 
 #deploy mas
-wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/mas/mas-service.yaml -O mas-service.yaml
-envsubst < mas-service.yaml > mas-service-nonprod.yaml
-oc apply -f mas-service-nonprod.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/mas/mas-service.yaml -O /tmp/mas-service.yaml
+envsubst < /tmp/mas-service.yaml > /tmp/mas-service-nonprod.yaml
+oc apply -f /tmp/mas-service-nonprod.yaml
 
 #check MAS
 while [ true ]
@@ -233,11 +233,11 @@ echo QUIT | openssl s_client -connect localhost:7000 -servername localhost -show
 export slsCert1=$(cat outfile00)
 export slsCert2=$(cat outfile01)
 kill $PID
-wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/mas/slsCfg.yaml -O slsCfg.yaml
-envsubst < slsCfg.yaml > slsCfg-nonprod.yaml
-yq eval ".spec.certificates[0].crt = \"$slsCert1\"" -i slsCfg-nonprod.yaml
-yq eval ".spec.certificates[1].crt = \"$slsCert2\"" -i slsCfg-nonprod.yaml
-oc apply -f slsCfg-nonprod.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/mas/slsCfg.yaml -O /tmp/slsCfg.yaml
+envsubst < /tmp/slsCfg.yaml > /tmp/slsCfg-nonprod.yaml
+yq eval ".spec.certificates[0].crt = \"$slsCert1\"" -i /tmp/slsCfg-nonprod.yaml
+yq eval ".spec.certificates[1].crt = \"$slsCert2\"" -i /tmp/slsCfg-nonprod.yaml
+oc apply -f /tmp/slsCfg-nonprod.yaml
 
 #basCfg
 oc delete secret nonprod-usersupplied-bas-creds-system -n mas-nonprod-core 2>/dev/null
@@ -248,11 +248,11 @@ rm -f outfile*
 echo QUIT | openssl s_client -connect $basURL:443 -servername $basURL -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
 export basCert1=$(cat outfile00)
 export basCert2=$(cat outfile01)
-wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/mas/basCfg.yaml -O basCfg.yaml
-envsubst < basCfg.yaml > basCfg-nonprod.yaml
-yq eval ".spec.certificates[0].crt = \"$basCert1\"" -i basCfg-nonprod.yaml
-yq eval ".spec.certificates[1].crt = \"$basCert2\"" -i basCfg-nonprod.yaml
-oc apply -f basCfg-nonprod.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/mas/basCfg.yaml -O /tmp/basCfg.yaml
+envsubst < /tmp/basCfg.yaml > /tmp/basCfg-nonprod.yaml
+yq eval ".spec.certificates[0].crt = \"$basCert1\"" -i /tmp/basCfg-nonprod.yaml
+yq eval ".spec.certificates[1].crt = \"$basCert2\"" -i /tmp/basCfg-nonprod.yaml
+oc apply -f /tmp/basCfg-nonprod.yaml
 
 #mongoCfg
 oc delete secret nonprod-usersupplied-mongo-creds-system -n mas-nonprod-core 2>/dev/null
@@ -267,11 +267,11 @@ export mongoCert1=$(cat outfile00)
 export mongoCert2=$(cat outfile01)
 #mongoCert1=$(openssl s_client -showcerts -servername localhost -connect localhost:7000 </dev/null 2>/dev/null | openssl x509 -outform PEM)
 kill $PID
-wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/mas/mongoCfg.yaml -O mongoCfg.yaml
-envsubst < mongoCfg.yaml > mongoCfg-nonprod.yaml
-yq eval ".spec.certificates[0].crt = \"$mongoCert1\"" -i mongoCfg-nonprod.yaml
-yq eval ".spec.certificates[1].crt = \"$mongoCert2\"" -i mongoCfg-nonprod.yaml
-oc apply -f mongoCfg-nonprod.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/mas/mongoCfg.yaml -O /tmp/mongoCfg.yaml
+envsubst < /tmp/mongoCfg.yaml > /tmp/mongoCfg-nonprod.yaml
+yq eval ".spec.certificates[0].crt = \"$mongoCert1\"" -i /tmp/mongoCfg-nonprod.yaml
+yq eval ".spec.certificates[1].crt = \"$mongoCert2\"" -i /tmp/mongoCfg-nonprod.yaml
+oc apply -f /tmp/mongoCfg-nonprod.yaml
 
 ### Info dump:
 

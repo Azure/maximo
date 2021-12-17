@@ -38,9 +38,9 @@ echo "================ OCP DEPLOY START ================"
  sudo -E /tmp/OCPInstall/oc apply -f /tmp/OCPInstall/QuickCluster/azurefiles-standard.yaml
 
  #Configure Azure Files Premium
- wget -nv "https://raw.githubusercontent.com/Azure/maximo/main/src/installers/azure_premium_files_deploy.sh" -O azure_premium_files_deploy.sh
- chmod +x azure_premium_files_deploy.sh
- sudo -E ./azure_premium_files_deploy.sh
+ wget -nv "https://raw.githubusercontent.com/Azure/maximo/main/src/installers/azure_premium_files_deploy.sh" -O /tmp/azure_premium_files_deploy.sh
+ chmod +x /tmp/azure_premium_files_deploy.sh
+ sudo -E /tmp/azure_premium_files_deploy.sh
 
  sudo -E /tmp/OCPInstall/oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/storageclasses/persistent-volume-binder.yaml
 
