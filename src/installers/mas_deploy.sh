@@ -10,7 +10,7 @@ ENTITLEMENT_KEY="$ENTITLEMENT_KEY"
 wget -nv https://github.com/mikefarah/yq/releases/download/v4.13.4/yq_linux_amd64.tar.gz -O - | tar xz && mv -f yq_linux_amd64 /usr/bin/yq
 
 yum install -y -q git
-git clone --quiet https://github.com/ibm-watson-iot/iot-docs.git /tmp/
+git clone --quiet https://github.com/ibm-watson-iot/iot-docs.git /tmp/iot-docs/
 
 \cp /tmp/OCPInstall/oc /usr/bin #overwrite existing version
 
@@ -229,9 +229,9 @@ oc port-forward service/sls 7000:443 -n ibm-sls &> /dev/null &
 PID=$!
 sleep 1
 rm -f outfile*
-echo QUIT | openssl s_client -connect localhost:7000 -servername localhost -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
-export slsCert1=$(cat outfile00)
-export slsCert2=$(cat outfile01)
+echo QUIT | openssl s_client -connect localhost:7000 -servername localhost -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=/tmp/outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
+export slsCert1=$(cat /tmp/outfile00)
+export slsCert2=$(cat /tmp/outfile01)
 kill $PID
 wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/mas/slsCfg.yaml -O /tmp/slsCfg.yaml
 envsubst < /tmp/slsCfg.yaml > /tmp/slsCfg-nonprod.yaml
@@ -245,9 +245,9 @@ sleep 1
 oc create secret generic nonprod-usersupplied-bas-creds-system --from-literal=api_key=$(oc get secret bas-api-key -n ibm-bas --output="jsonpath={.data.apikey}" | base64 -d) -n mas-nonprod-core
 basURL=$(oc get route bas-endpoint -n ibm-bas -o json | jq -r .status.ingress[0].host)
 rm -f outfile*
-echo QUIT | openssl s_client -connect $basURL:443 -servername $basURL -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
-export basCert1=$(cat outfile00)
-export basCert2=$(cat outfile01)
+echo QUIT | openssl s_client -connect $basURL:443 -servername $basURL -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=/tmp/outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
+export basCert1=$(cat /tmp/outfile00)
+export basCert2=$(cat /tmp/outfile01)
 wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/mas/basCfg.yaml -O /tmp/basCfg.yaml
 envsubst < /tmp/basCfg.yaml > /tmp/basCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$basCert1\"" -i /tmp/basCfg-nonprod.yaml
@@ -262,9 +262,9 @@ oc port-forward service/mas-mongo-ce-svc 7000:27017 -n mongo &> /dev/null &
 PID=$!
 sleep 1
 rm -f outfile*
-echo QUIT | openssl s_client -connect localhost:7000 -servername localhost -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
-export mongoCert1=$(cat outfile00)
-export mongoCert2=$(cat outfile01)
+echo QUIT | openssl s_client -connect localhost:7000 -servername localhost -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=/tmp/outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
+export mongoCert1=$(cat /tmp/outfile00)
+export mongoCert2=$(cat /tmp/outfile01)
 #mongoCert1=$(openssl s_client -showcerts -servername localhost -connect localhost:7000 </dev/null 2>/dev/null | openssl x509 -outform PEM)
 kill $PID
 wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/mas/mongoCfg.yaml -O /tmp/mongoCfg.yaml
