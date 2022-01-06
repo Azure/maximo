@@ -3,7 +3,7 @@
 echo "================ CP4D DEPLOY START ================"
 
 wget -nv https://github.com/IBM/cpd-cli/releases/download/v3.5.6/cpd-cli-linux-EE-3.5.6.tgz -O /tmp/cpd-cli-linux-EE-3.5.6.tgz
-tar -xvzf /tmp/cpd-cli-linux-EE-3.5.6.tgz
+tar -xvzf /tmp/cpd-cli-linux-EE-3.5.6.tgz -C /tmp
 sed -i "s/<enter_api_key>/$ENTITLEMENT_KEY/g" /tmp/repo.yaml
 
 echo "================ Setup CP4D Project ================"

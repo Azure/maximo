@@ -21,6 +21,9 @@ param baseDomainResourceGroup string //used for ocp yaml config
 param domainName string
 param clusterName string
 param customInstallConfigURL string
+param installMAS string
+param installOCS string
+param installCP4D string
 param applicationId string
 @secure()
 param applicationSecret string
@@ -136,6 +139,9 @@ module sidecarVM 'jumpbox.bicep' = {
     numControlReplicas: numControlReplicas
     numWorkerReplicas: numWorkerReplicas
     customInstallConfigURL: customInstallConfigURL
+    installMAS: installMAS
+    installOCS: installOCS
+    installCP4D: installCP4D
   }
   dependsOn: [
     network
