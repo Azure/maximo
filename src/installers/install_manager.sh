@@ -15,8 +15,6 @@ then
     wget -nv "https://raw.githubusercontent.com/Azure/maximo/main/src/installers/mas_deploy.sh" -O /tmp/mas_deploy.sh
     chmod +x /tmp/mas_deploy.sh
     sudo -E /tmp/mas_deploy.sh
-else
-    # do nothing
 fi
 
 if [ "$installOCS" == "Y" ] || [ "$installOCS" == "Yes" ] || [ "$installOCS" == "y" ]
@@ -25,8 +23,6 @@ then
     wget -nv "https://raw.githubusercontent.com/Azure/maximo/main/src/installers/ocs_deploy.sh" -O /tmp/ocs_deploy.sh
     chmod +x /tmp/ocs_deploy.sh
     sudo -E /tmp/ocs_deploy.sh
-else
-    # do nothing
 fi
 
 if [ "$installCP4D" == "Y" ] || [ "$installCP4D" == "Yes" ] || [ "$installCP4D" == "y" ]
@@ -35,8 +31,6 @@ then
     wget -nv "https://raw.githubusercontent.com/Azure/maximo/main/src/installers/cp4d_deploy.sh" -O /tmp/cp4d_deploy.sh
     chmod +x /tmp/cp4d_deploy.sh
     sudo -E /tmp/cp4d_deploy.sh
-else
-    # do nothing
 fi
 
 
