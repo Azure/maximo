@@ -17,7 +17,7 @@ then
     sudo -E /tmp/mas_deploy.sh
 else
     # do nothing
-    fi
+fi
 
 if [ "$installOCS" == "Y" ] || [ "$installOCS" == "Yes" ] || [ "$installOCS" == "y" ]
 then
@@ -27,7 +27,7 @@ then
     sudo -E /tmp/ocs_deploy.sh
 else
     # do nothing
-    fi
+fi
 
 if [ "$installCP4D" == "Y" ] || [ "$installCP4D" == "Yes" ] || [ "$installCP4D" == "y" ]
 then
@@ -37,7 +37,7 @@ then
     sudo -E /tmp/cp4d_deploy.sh
 else
     # do nothing
-    fi
+fi
 
 
 echo "================ Install Manager END ================"
