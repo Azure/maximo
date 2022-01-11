@@ -50,7 +50,7 @@ param numWorkerReplicas string
 //create dns zone
 module dnsZone 'dns.bicep' = {
   name: 'DnsConfig'
-  scope: resourceGroup('Domain')
+  scope: resourceGroup(baseDomainResourceGroup)
   params: {
     domainName: domainName
   }
