@@ -9,28 +9,42 @@ echo "================ OCP DEPLOY START ================"
 #Setup Zone 1
  export zone=1
 
-#Setup DB2 MachineSet
- export numReplicas=1
- envsubst < /tmp/OCPInstall/db2.yaml > /tmp/OCPInstall/QuickCluster/db2.yaml
- sudo -E /tmp/OCPInstall/oc apply -f /tmp/OCPInstall/QuickCluster/db2.yaml
+if [ "$installCP4D" == "Y" ] || [ "$installCP4D" == "Yes" ] || [ "$installCP4D" == "y" ]
+then
+    #Setup DB2 MachineSet
+    export numReplicas=1
+    envsubst < /tmp/OCPInstall/db2.yaml > /tmp/OCPInstall/QuickCluster/db2.yaml
+    sudo -E /tmp/OCPInstall/oc apply -f /tmp/OCPInstall/QuickCluster/db2.yaml
 
-#Setup OCS MachineSet
- export numReplicas=2
- envsubst < /tmp/OCPInstall/ocs.yaml > /tmp/OCPInstall/QuickCluster/ocs.yaml
- sudo -E /tmp/OCPInstall/oc apply -f /tmp/OCPInstall/QuickCluster/ocs.yaml
+fi
+
+if [ "$installOCS" == "Y" ] || [ "$installOCS" == "Yes" ] || [ "$installOCS" == "y" ]
+then
+    #Setup OCS MachineSet
+    export numReplicas=2
+    envsubst < /tmp/OCPInstall/ocs.yaml > /tmp/OCPInstall/QuickCluster/ocs.yaml
+    sudo -E /tmp/OCPInstall/oc apply -f /tmp/OCPInstall/QuickCluster/ocs.yaml
+fi
 
  #Setup Zone 2
  export zone=2
 
- #Setup DB2 MachineSet
- export numReplicas=1
- envsubst < /tmp/OCPInstall/db2.yaml > /tmp/OCPInstall/QuickCluster/db2.yaml
- sudo -E /tmp/OCPInstall/oc apply -f /tmp/OCPInstall/QuickCluster/db2.yaml
+if [ "$installCP4D" == "Y" ] || [ "$installCP4D" == "Yes" ] || [ "$installCP4D" == "y" ]
+then
+    #Setup DB2 MachineSet
+    export numReplicas=1
+    envsubst < /tmp/OCPInstall/db2.yaml > /tmp/OCPInstall/QuickCluster/db2.yaml
+    sudo -E /tmp/OCPInstall/oc apply -f /tmp/OCPInstall/QuickCluster/db2.yaml
 
- #Setup OCS MachineSet
- export numReplicas=1
- envsubst < /tmp/OCPInstall/ocs.yaml > /tmp/OCPInstall/QuickCluster/ocs.yaml
- sudo -E /tmp/OCPInstall/oc apply -f /tmp/OCPInstall/QuickCluster/ocs.yaml
+fi
+
+if [ "$installOCS" == "Y" ] || [ "$installOCS" == "Yes" ] || [ "$installOCS" == "y" ]
+then
+    #Setup OCS MachineSet
+    export numReplicas=2
+    envsubst < /tmp/OCPInstall/ocs.yaml > /tmp/OCPInstall/QuickCluster/ocs.yaml
+    sudo -E /tmp/OCPInstall/oc apply -f /tmp/OCPInstall/QuickCluster/ocs.yaml
+fi
 
  #Configure Azure Files Standard
  wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/storageclasses/azurefiles-standard.yaml -O /tmp/OCPInstall/azurefiles-standard.yaml
@@ -52,5 +66,10 @@ echo "================ OCP DEPLOY START ================"
  envsubst < /tmp/OCPInstall/QuickCluster/dockerconfig.json > /tmp/OCPInstall/QuickCluster/.dockerconfigjson
  sudo -E /tmp/OCPInstall/oc set data secret/pull-secret -n openshift-config --from-file=/tmp/OCPInstall/QuickCluster/.dockerconfigjson
 
+if [ "$installCP4D" == "Y" ] || [ "$installCP4D" == "Yes" ] || [ "$installCP4D" == "y" ]
+then
+    #Configure toleration to deploy csi drivers onto db2 machinesets
+    oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/Db2Warehouse/rook-ceph-operator-config.yaml -n openshift-storage
+fi
 
  echo "================ OCP DEPLOY COMPLETE ================"
