@@ -46,6 +46,7 @@ param controlMachineSize string
 param workerMachineSize string
 param numControlReplicas string
 param numWorkerReplicas string
+param openshiftVersion string
 
 //create dns zone
 module dnsZone 'dns.bicep' = {
@@ -142,6 +143,7 @@ module sidecarVM 'jumpbox.bicep' = {
     installMAS: installMAS
     installOCS: installOCS
     installCP4D: installCP4D
+    openshiftVersion: openshiftVersion
   }
   dependsOn: [
     network
