@@ -867,7 +867,17 @@ Enter all the brokers with port 9093 (TLS) or 9092 (non-TLS). The brokers are <c
 
 Make sure to load the TLS cert onto the Kafka configuration or your connection to port 9093 will fail. If you use port 9092 (non-TLS) the TLS certificate isn't needed.
 
-TODO: Details steps to get the CORRECT certificates (both!)
+To get certs:
+```bash
+cd /tmp
+oc port-forward service/maskafka-kafka-brokers 7000:9093 -n strimzi-kafka &> /dev/null &
+PID=$!
+echo QUIT | openssl s_client -connect localhost:7000 -servername localhost -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=/tmp/outfile - "/-----END CERTIFICATE-----/+1" "{*}"
+ --elide-empty-files --quiet
+ kill $PID
+ cat outfile00
+ cat outfile01
+```
 
 ### Installion IoT tools
 
