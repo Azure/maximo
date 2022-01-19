@@ -4,6 +4,8 @@ echo "================ Install Manager START ================"
 
 export KUBECONFIG=/tmp/OCPInstall/QuickCluster/auth/kubeconfig
 
+\cp /tmp/OCPInstall/oc /usr/bin #overwrite existing version
+
 #Install OCP
 wget -nv "https://raw.githubusercontent.com/Azure/maximo/main/src/installers/ocp_setup.sh" -O /tmp/ocp_setup.sh
 chmod +x /tmp/ocp_setup.sh

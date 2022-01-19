@@ -12,8 +12,6 @@ wget -nv https://github.com/mikefarah/yq/releases/download/v4.13.4/yq_linux_amd6
 yum install -y -q git
 git clone --quiet https://github.com/ibm-watson-iot/iot-docs.git /tmp/iot-docs/
 
-\cp /tmp/OCPInstall/oc /usr/bin #overwrite existing version
-
 # Set up cert manager
 
 oc create namespace cert-manager
