@@ -87,6 +87,9 @@
         },
         "openshiftVersion":{
             "value": "4.6.49"
+        },
+        "azureFilesCSIVersion":{
+            "value": "v1.9.0"
         }
     }
 }

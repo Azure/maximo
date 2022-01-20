@@ -47,6 +47,7 @@ param workerMachineSize string
 param numControlReplicas string
 param numWorkerReplicas string
 param openshiftVersion string
+param azureFilesCSIVersion string
 
 //create dns zone
 module dnsZone 'dns.bicep' = {
@@ -144,6 +145,7 @@ module sidecarVM 'jumpbox.bicep' = {
     installOCS: installOCS
     installCP4D: installCP4D
     openshiftVersion: openshiftVersion
+    azureFilesCSIVersion: azureFilesCSIVersion
   }
   dependsOn: [
     network
