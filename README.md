@@ -800,9 +800,9 @@ To grab the URL check the svc endpoint that sits in front of the nodes. To get t
 oc get svc -n cp4d | grep db2u-engn
 ```
 
-Your URL shuld be formed like this: `jdbc:db2://hostname:port/database_name;sslConnection=true`.
+Your URL shuld be formed like this: `jdbc:db2://hostname:50001/BLUDB;sslConnection=true;`.
 
-Your host is in the list of services above. For example c-db2wh-1634180797242781-db2u-engn-svc.cp4d.svc.cp4d.svc. The port is 50000 for plain or 50001 for SSL, you should use 50001. For the connection string to work with Monnitor you MUST specify `;sslConnection=true` to the end of the connection string.
+Your hostname is in the list of services above. For example c-db2wh-1634180797242781-db2u-engn-svc.cp4d.svc ("service name".projectname.svc). The port is 50000 for plain or 50001 for SSL, you should use 50001. For the connection string to work with Monitor you MUST append `;sslConnection=true;` to the end of the connection string.
 
 ### Installing Kafka
 
