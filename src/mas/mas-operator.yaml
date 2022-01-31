@@ -15,10 +15,10 @@ spec:
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: ibm-mas.v8.6.x
+  name: ibm-mas.v8.x
   namespace: mas-nonprod-core
 spec:
-  channel: 8.6.x
+  channel: 8.x
   installPlanApproval: Automatic
   name: ibm-mas
   source: ibm-operator-catalog
