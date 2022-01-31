@@ -30,4 +30,7 @@ do
      fi
 done
 
+#Configure toleration to deploy csi drivers onto db2 machinesets
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/Db2Warehouse/rook-ceph-operator-config.yaml -n openshift-storage
+
 echo "================ OCS DEPLOY COMPLETE ================"

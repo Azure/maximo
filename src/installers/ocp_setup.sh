@@ -66,10 +66,4 @@ fi
  envsubst < /tmp/OCPInstall/QuickCluster/dockerconfig.json > /tmp/OCPInstall/QuickCluster/.dockerconfigjson
  sudo -E /tmp/OCPInstall/oc set data secret/pull-secret -n openshift-config --from-file=/tmp/OCPInstall/QuickCluster/.dockerconfigjson
 
-if [ "$installCP4D" == "Y" ] || [ "$installCP4D" == "Yes" ] || [ "$installCP4D" == "y" ]
-then
-    #Configure toleration to deploy csi drivers onto db2 machinesets
-    oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/Db2Warehouse/rook-ceph-operator-config.yaml -n openshift-storage
-fi
-
  echo "================ OCP DEPLOY COMPLETE ================"
