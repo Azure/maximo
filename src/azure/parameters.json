@@ -89,7 +89,7 @@
             "value": "4.6.49"
         },
         "azureFilesCSIVersion":{
-            "value": "v1.9.0"
+            "value": "v1.8.0"
         }
     }
 }
