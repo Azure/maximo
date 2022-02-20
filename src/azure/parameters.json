@@ -90,6 +90,9 @@
         },
         "azureFilesCSIVersion":{
             "value": "v1.8.0"
+        },
+        "masChannel":{
+            "value": "8.x"
         }
     }
 }

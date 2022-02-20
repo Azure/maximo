@@ -39,6 +39,7 @@ runcmd:
     export installOCS="${installOCS}"
     export installCP4D="${installCP4D}"
     export azureFilesCSIVersion="${azureFilesCSIVersion}"
+    export masChannel="${masChannel}"
  - [ wget, -nv, "https://raw.githubusercontent.com/Azure/maximo/main/src/installers/install_config.sh", -O, /tmp/install_config.sh ]
  - chmod +x /tmp/install_config.sh
  - sudo -E /tmp/install_config.sh

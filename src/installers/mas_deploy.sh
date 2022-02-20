@@ -42,7 +42,10 @@ oc patch installplan ${installplan} -n openshift-operators --type merge --patch 
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/sls/sls-operator.yaml
 oc create secret docker-registry ibm-entitlement --docker-server=cp.icr.io --docker-username=cp --docker-password=${ENTITLEMENT_KEY} -n ibm-sls
 
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/mas/mas-operator.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/mas/mas-operator.yaml -O /tmp/mas-operator.yaml
+envsubst < /tmp/mas-operator.yaml > /tmp/mas-operator-nonprod.yaml
+oc apply -f /tmp/mas-operator-nonprod.yaml
+
 oc create secret docker-registry ibm-entitlement --docker-server=cp.icr.io --docker-username=cp --docker-password=${ENTITLEMENT_KEY} -n mas-nonprod-core
 
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/bas/bas-operator.yaml
