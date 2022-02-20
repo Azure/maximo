@@ -721,8 +721,8 @@ oc -n cp4d create secret docker-registry ibm-registry --docker-server=cp.icr.io 
 Download and prepare the installer:
 
 ```bash
-wget -nv https://github.com/IBM/cpd-cli/releases/download/v3.5.6/cpd-cli-linux-EE-3.5.6.tgz -O /tmp/cpd-cli-linux-EE-3.5.6.tgz
-tar -xvzf /tmp/cpd-cli-linux-EE-3.5.6.tgz -C /tmp
+wget -nv https://github.com/IBM/cpd-cli/releases/download/v3.5.8/cpd-cli-linux-EE-3.5.8.tgz -O /tmp/cpd-cli-linux-EE-3.5.8.tgz
+tar -xvzf /tmp/cpd-cli-linux-EE-3.5.8.tgz -C /tmp
 sed -i "s/<enter_api_key>/$ENTITLEMENT_KEY/g" /tmp/repo.yaml
 ```
 
