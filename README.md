@@ -1,52 +1,52 @@
 # Maximo on Azure
 
-This repository provides deployment guidance, scripts and best practices for running IBM Maximo Application Suite (Maximo or MAS) on OpenShift using the Azure Cloud. The instruction below have been tested with Maximo 8.5.1 on OpenShift 4.6.
+This repository provides deployment guidance, scripts and best practices for running IBM Maximo Application Suite (Maximo or MAS) on OpenShift using the Azure Cloud. The instruction below have been tested with Maximo 8. on OpenShift 4.6.x.
 
 ## Table of Contents
 
 * [Maximo on Azure](#maximo-on-azure)
-   * [Introduction](#introduction)
-   * [Getting Started](#getting-started)
-   * [What needs to be done](#what-needs-to-be-done)
-   * [Step 1: Preparing Azure](#step-1-preparing-azure)
-   * [Step 2: Deploy and preparing OpenShift](#step-2-deploy-and-preparing-openshift)
-      * [Azure Files CSI drivers](#azure-files-csi-drivers)
-      * [Enabling OIDC authentication against Azure AD](#enabling-oidc-authentication-against-azure-ad)
-      * [Logging In](#logging-in)
-      * [Updating pull secrets](#updating-pull-secrets)
-      * [Updating Worker Nodes](#updating-worker-nodes)
-      * [Installing OpenShift Container Storage (Optional)](#installing-openshift-container-storage-optional)
-      * [Installing IBM Catalog Operator](#installing-ibm-operator-catalog)
-   * [Step 3: Installing Maximo Core](#step-3-installing-maximo-core)
-      * [Step 3a: Dependencies for Maximo](#step-3a-dependencies-for-maximo)
-         * [Installing cert-manager](#installing-cert-manager)
-         * [Installing MongoDB](#installing-mongodb)
-         * [Installing Service Binding Operator](#installing-service-binding-operator)
-         * [Installing IBM Behavior Analytics Services Operator (BAS)](#installing-ibm-behavior-analytics-services-operator-bas)
-         * [Installing IBM Suite License Service (SLS)](#installing-ibm-suite-license-service-sls)
-      * [Step 3b: Installing Maximo](#step-3b-installing-maximo)
-         * [Deploying using the Operator (recommended)](#deploying-using-the-operator-recommended)
-         * [Deploying with install-mas.sh (not recommended)](#deploying-with-install-massh-not-recommended)
-         * [Setting up Maximo](#setting-up-maximo)
-            * [Step 3b.a: Set up MongoDB](#step-3ba-set-up-mongodb)
-            * [Step 3b.b: Set up BAS](#step-3bb-set-up-bas)
-            * [Step 3b.c: Set up SLS](#step-3bc-set-up-sls)
-            * [Step 3b.d: Generate a license.dat file and finalize workspace](#step-3bd-generate-a-licensedat-file-and-finalize-workspace)
-   * [Step 4: Installing Cloud Pak for Data](#step-4-installing-cloud-pak-for-data)
-      * [Installing CP4D 3.5](#installing-cp4d-35)
-      * [Installing CP4D 4.0](#installing-cp4d-40)
-         * [Installing CP4D Operators](#installing-cp4d-operators)
-   * [Step 5: Maximo solution dependencies](#step-5-maximo-solution-dependencies)
-      * [Installing Db2 Warehouse](#installing-db2-warehouse)
-         * [Dedicated nodes](#dedicated-nodes)
-         * [Deploying Db2 Warehouse](#deploying-db2-warehouse)
-         * [Configuring Maximo with DB2WH](#configuring-maximo-with-db2wh)
-      * [Installing Kafka](#installing-kafka)
-         * [Configuring Maximo with Kafka](#configuring-maximo-with-kafka)
-      * [Installion IoT tools](#installion-iot-tools)
-   * [To get your credentials to login](#to-get-your-credentials-to-login)
-   * [Contributing](#contributing)
-   * [Trademarks](#trademarks)
+  * [Introduction](#introduction)
+  * [Getting Started](#getting-started)
+  * [What needs to be done](#what-needs-to-be-done)
+  * [Step 1: Preparing Azure](#step-1-preparing-azure)
+  * [Step 2: Deploy and preparing OpenShift](#step-2-deploy-and-preparing-openshift)
+    * [Azure Files CSI drivers](#azure-files-csi-drivers)
+    * [Enabling OIDC authentication against Azure AD](#enabling-oidc-authentication-against-azure-ad)
+    * [Logging In](#logging-in)
+    * [Updating pull secrets](#updating-pull-secrets)
+    * [Updating Worker Nodes](#updating-worker-nodes)
+    * [Installing OpenShift Container Storage (Optional)](#installing-openshift-container-storage-optional)
+    * [Installing IBM Catalog Operator](#installing-ibm-operator-catalog)
+  * [Step 3: Installing Maximo Core](#step-3-installing-maximo-core)
+    * [Step 3a: Dependencies for Maximo](#step-3a-dependencies-for-maximo)
+      * [Installing cert-manager](#installing-cert-manager)
+      * [Installing MongoDB](#installing-mongodb)
+      * [Installing Service Binding Operator](#installing-service-binding-operator)
+      * [Installing IBM Behavior Analytics Services Operator (BAS)](#installing-ibm-behavior-analytics-services-operator-bas)
+      * [Installing IBM Suite License Service (SLS)](#installing-ibm-suite-license-service-sls)
+    * [Step 3b: Installing Maximo](#step-3b-installing-maximo)
+      * [Deploying using the Operator (recommended)](#deploying-using-the-operator-recommended)
+      * [Deploying with install-mas.sh (not recommended)](#deploying-with-install-massh-not-recommended)
+      * [Setting up Maximo](#setting-up-maximo)
+        * [Step 3b.a: Set up MongoDB](#step-3ba-set-up-mongodb)
+        * [Step 3b.b: Set up BAS](#step-3bb-set-up-bas)
+        * [Step 3b.c: Set up SLS](#step-3bc-set-up-sls)
+        * [Step 3b.d: Generate a license.dat file and finalize workspace](#step-3bd-generate-a-licensedat-file-and-finalize-workspace)
+  * [Step 4: Installing Cloud Pak for Data](#step-4-installing-cloud-pak-for-data)
+    * [Installing CP4D 3.5](#installing-cp4d-35)
+    * [Installing CP4D 4.0](#installing-cp4d-40)
+      * [Installing CP4D Operators](#installing-cp4d-operators)
+  * [Step 5: Maximo solution dependencies](#step-5-maximo-solution-dependencies)
+    * [Installing Db2 Warehouse](#installing-db2-warehouse)
+      * [Dedicated nodes](#dedicated-nodes)
+      * [Deploying Db2 Warehouse](#deploying-db2-warehouse)
+      * [Configuring Maximo with DB2WH](#configuring-maximo-with-db2wh)
+    * [Installing Kafka](#installing-kafka)
+      * [Configuring Maximo with Kafka](#configuring-maximo-with-kafka)
+    * [Install IoT tools](#installion-iot-tools)
+  * [To get your credentials to login](#to-get-your-credentials-to-login)
+  * [Contributing](#contributing)
+  * [Trademarks](#trademarks)
 
 ## Introduction
 
@@ -253,6 +253,7 @@ oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/ocs/ocs-oper
 ```
 
 After provisioning the cluster, go to the OpenShift Container Storage operator in the `openshift-storage` namespace and create a `StorageCluster`. Following settings (which are the default):
+
 * managed-premium as StorageClass
 * Requested capacity, 2TB or 0.5TB
 * Selected nodes: you will see that the operator already pre-selects the nodes we just created. If not, pick the ocs-* nodes
@@ -297,7 +298,7 @@ Maximo has a few requirements that have to be available before it can be install
 1. Service Binding Operator
 1. IBM Behavioral Analytics Systems (BAS)
 1. IBM Suite Licensing Services (SLS)
- 
+
 #### Installing cert-manager
 
 [cert-manager](https://github.com/jetstack/cert-manager) is a Kubernetes add-on to automate the management and issuance of TLS certificates from various issuing sources. It is required for [Maximo](https://www.ibm.com/docs/en/mas85/8.5.0?topic=installation-system-requirements#mas-requirements). For more installation and usage information check out the [cert-manager documentation](https://cert-manager.io/v0.16-docs/installation/openshift/).
@@ -327,10 +328,13 @@ cert-manager-webhook-c4b5687dc-thh2b      1/1     Running   0          2d1h
 
 In this example, we will be installing the community edition of MongoDB on OpenShift using self signed certs. [MongoDB Community Edition](https://www.mongodb.com) is the free version of MongoDB. This version does not come with enterprise support nor certain features typically required by enterprises. We recommend exploring the options below for production use:
 
-* [Azure CosmosDB for MongoDB](https://docs.microsoft.com/en-us/azure/cosmos-db/mongodb/mongodb-introduction)
 * [MongoDB Atlas on Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/)
 
+> 💡 **NOTE**:
+> Azure CosmosDB is currently not supported. Retryable writes are required by MAS which is currently not a feature of CosmosDB's MongoDB API offering.
+<!-->
 If you are not using our globally available service, Azure CosmosDB, then we recommend starting with a minimum 3 node ReplicaSet, with 1 node in each availability zone (outside of the OpenShift cluster). Please verify your deployment will be in the the same region / zones your OpenShift cluster are deployed into.
+<!-->
 
  To get started, you will clone a github repository and execute a few scripts:
 
@@ -433,8 +437,6 @@ oc create secret generic grafana-credentials --from-literal=grafana_username=<en
 
 Finally, deploy the Analytics Proxy. This will take up to 30 minutes to complete:
 
-> 🚧 **WARNING** The below configuration is using the `azurefiles` storage class created in a previous step. If you did not configure this, you will need to update the class with another option.
-
 ```bash
 # Deploy
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/bas/bas-service.yaml
@@ -508,8 +510,6 @@ Review the provided `sls-service.yaml` to make sure the servers used in there ar
     secretName: sls-mongo-credentials
 ```
 
-> 🚧 **WARNING** The YAML configuration is using the `azurefiles` storage class created in a previous step. If you did not configure this, you will need to update the class with another option.
-
 Deploy the service configuration:
 
 If you are happy with the default configuration then proceed with the following command:
@@ -520,10 +520,13 @@ oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/sls/sls-serv
 ```
 
 If you prefer to modify the setup, pull down the config and edit it:
+
 ```bash
 wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/sls/sls-service.yaml -O sls-service.yaml
 ```
+
 After editing:
+
 ```bash
 oc apply -f sls-service.yaml
 ```
@@ -545,6 +548,7 @@ oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/mas/mas-oper
 ```
 
 Add the entitlement key secret to the mas project:
+
 ```bash
 export ENTITLEMENT_KEY=<Entitlement Key>
 oc create secret docker-registry ibm-entitlement --docker-server=cp.icr.io --docker-username=cp --docker-password=$ENTITLEMENT_KEY -n mas-nonprod-core
@@ -559,7 +563,7 @@ oc get csv -n mas-nonprod-core
 Once it says succeeded for MAS, the Truststore and the Common Service Operator (ignore the Service Binding Operator) it is time to install Maximo.
 
 Pull down the maximo service YAML file and export variables that will be updated within the file:
- 
+
 ```bash
 export clusterName=myclustername
 export baseDomain=mydomain.com
@@ -698,41 +702,49 @@ With the configuration for all the pieces complete, you'll get a challenge from 
 
 ![SLS configuration](docs/images/maximo-setup-post-config.png)
 
-
-Once the license is loaded, set up a workspace. This has to be a unique name. Once done, hit "SAVE" and then "FINISH" on the top right. Maximo will no finalize the setup.
-
+Once the license is loaded, set up a workspace. This has to be a unique name. Once done, hit "SAVE" and then "FINISH" on the top right. Maximo will now finalize the setup.
 
 ## Step 4: Installing Cloud Pak for Data
 
-Be cautious handling Cloud Pak for Data (CP4D) as it is quite a delicate web of dependencies. It is easy to mess one up, so make sure you understand what you do before you deviate from the path below.
-
 ### Installing CP4D 3.5
 
-Cloud Pak for Data 3.5 will be installed using the cpd cli found here: 
+Cloud Pak for Data 3.5 will be installed using the cpd cli. CP4D 4.0 is not supported.
 
 Create the namespace for the CLI to run against:
+
 ```bash
 oc new-project cp4d
 export ENTITLEMENT_KEY=<Entitlement Key>
 oc -n cp4d create secret docker-registry ibm-registry --docker-server=cp.icr.io --docker-username=cp  --docker-password=$ENTITLEMENT_KEY
 ```
-Run the following cpdcli commands:
+
+Download and prepare the installer:
+
 ```bash
+wget -nv https://github.com/IBM/cpd-cli/releases/download/v3.5.6/cpd-cli-linux-EE-3.5.6.tgz -O /tmp/cpd-cli-linux-EE-3.5.6.tgz
+tar -xvzf /tmp/cpd-cli-linux-EE-3.5.6.tgz -C /tmp
+sed -i "s/<enter_api_key>/$ENTITLEMENT_KEY/g" /tmp/repo.yaml
+```
 
-./cpd-cli adm --repo ./repo.yaml --assembly lite --namespace cp4d --latest-dependency --apply
+Run the following cpdcli commands:
 
-./cpd-cli install --repo ./repo.yaml --assembly lite --namespace cp4d --storageclass ocs-storagecluster-cephfs --override-config ocs --latest-dependency
+```bash
+#Install CP4D
+./cpd-cli adm --accept-all-licenses --repo /tmp/repo.yaml --assembly lite --namespace cp4d --latest-dependency --apply
 
-./cpd-cli adm --repo ./repo.yaml --assembly db2wh --namespace cp4d --latest-dependency --apply
+./cpd-cli install --accept-all-licenses --repo /tmp/repo.yaml --assembly lite --namespace cp4d --storageclass azurefiles-premium --latest-dependency
 
-./cpd-cli install --repo ./repo.yaml --assembly db2wh --namespace cp4d --storageclass ocs-storagecluster-cephfs --latest-dependency
+#Install db2wh
+./cpd-cli adm --accept-all-licenses --repo /tmp/repo.yaml --assembly db2wh --namespace cp4d --latest-dependency --apply
+
+./cpd-cli install --accept-all-licenses --repo /tmp/repo.yaml --assembly db2wh --namespace cp4d --storageclass azurefiles-premium --latest-dependency
 ```
 
 ## Step 5: Maximo solution dependencies
-
+<!-->
 ### Installing Db2 Warehouse
 
-To deploy a Db2 warehouse for use with CP4D you need to install the DB2 Operator into an operator group in a namespace and create an instance of the `Db2whService`. 
+To deploy a Db2 warehouse for use with CP4D you need to install the DB2 Operator into an operator group in a namespace and create an instance of the `Db2whService`.
 
 The YAML in src/Db2Warehouse/db2-install.yaml will do that for you:
 
@@ -746,6 +758,7 @@ When you install the CP4D DB2 Warehouse Operator, it will also grab the DB2U ope
 ```bash
 oc apply -f db2-service.yaml
 ```
+<!-->
 
 <!-- I don't think we need this anymore? @ranieuwe 
     oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/Db2Warehouse/rook-ceph-operator-config.yaml -n openshift-storage
@@ -753,7 +766,7 @@ oc apply -f db2-service.yaml
 
 #### Dedicated nodes
 
-In order to use dedicated nodes for the db2wh deployment you need to create a new machineset with a taint of `ipd4data`. Dedicated nodes are recommended for production deployments. 
+In order to use dedicated nodes for the db2wh deployment you need to create a new machineset with a taint of `icp4data`. Dedicated nodes are recommended for production deployments.
 
 Apply the taint to your machine like so:
 
