@@ -39,6 +39,7 @@ param installOCS string
 param installCP4D string
 param openshiftVersion string
 param azureFilesCSIVersion string
+param masChannel string
 
 
 var nsgId = resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', networkSecurityGroupName)
