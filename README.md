@@ -1,4 +1,4 @@
-# QuickStart Guide: Maximo on Azure
+# QuickStart Guide: Maximo Application Suite on Azure
 
 This repository provides deployment guidance, scripts and best practices for running IBM Maximo Application Suite (Maximo or MAS) on OpenShift using the Azure Cloud. The instruction below have been tested with Maximo 8.6.x on OpenShift 4.6.x.
 
