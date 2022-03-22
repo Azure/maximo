@@ -533,7 +533,7 @@ oc get LicenseService sls -n ibm-sls -o yaml
 
 ## Step 4: Installing MAS
 
-Maximo Application Suite (MAS) can be installed on OpenShift. IBM provides documentation for MAS on its [documentation site](https://www.ibm.com/docs/en/mas87/8.7.0). Make sure to refer to the documentation for [Maximo 8.7.x](https://www.ibm.com/docs/en/mas87/8.7.0), as that is the version we are describing throughout this document.
+Maximo Application Suite (MAS) can be installed on OpenShift. IBM provides documentation for MAS on its [documentation site](https://www.ibm.com/docs/en/mas86/8.6.0). Make sure to refer to the documentation for [Maximo 8.7.x](https://www.ibm.com/docs/en/mas86/8.6.0), as that is the version we are describing throughout this document.
 
 All of the steps below assume you are logged on to your OpenShift cluster and you have the `oc` CLI available.
 
