@@ -7,7 +7,6 @@ This repository provides deployment guidance, scripts and best practices for run
 ## Table of Contents
 
 * [Maximo on Azure](#quickstart-guide-maximo-on-azure)
-  * [Introduction](#introduction)
   * [Getting Started](#getting-started)
   * [Overview](#overview)
   * [Step 1: Preparing Azure](#step-1-preparing-azure)
@@ -49,8 +48,6 @@ This repository provides deployment guidance, scripts and best practices for run
     * [Pods refusing to schedule](#pods-refusing-to-schedule)
   * [Contributing](#contributing)
   * [Trademarks](#trademarks)
-
-## Introduction
 
 > 🚧 **WARNING** this guide is currently under active development. If you would like to contribute or use this right now, please reach out so we can support you.
 
