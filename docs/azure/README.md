@@ -13,7 +13,7 @@
 
 In order to allow the OCP IPI Installer to deploy within your environment, you will need to [create an Azure Application Registration (SPN)](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal) and grant it `Contributor` and `User Access Administrator` permissions on the subscription you plan to deploy into.
 
-> 💡 **NOTE**: After deployment, you may remove the User Access Administrator access to the subscription. It is used to configured the Managed Identity within the Clusters Resource Group.
+> 💡 **NOTE**: After deployment, you may remove the User Access Administrator access to the subscription. It is used to configure the Managed Identity within the Clusters Resource Group.
 
 After creating the SPN and assigning its access, you will need to create a [secret](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal#option-2-create-a-new-application-secret) that will be used during the OCP install process.
 
@@ -35,7 +35,7 @@ It is recommended to create your own VNet and/or add additional subnets to an ex
 1. **Standard V2**
     1. **SKU:** Standard_ZRS
 1. **Premium File Storage (NFS)**
-    1. **SKU:** Premium_LRS (Upgrade to ZRS when available)
+    1. **SKU:** Premium_ZRS
     1. **HTTPS Traffic Support:** False
 
 It is strongly recommended to create storage accounts using [private endpoints](https://docs.microsoft.com/en-us/azure/storage/common/storage-private-endpoints) connected to the endpoints subnet mentioned in the [Virtual Network](#virtual-network) section.
@@ -48,8 +48,7 @@ This machine may be used as a jump box using Azure Bastion to connect to the Ope
 
 If this machine is desired, we recommending installing the following tools on the VM:
 
-* [OC Client](https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.6.49/openshift-install-linux.tar.gz) (Openshift Client)
-* [Kubectl Client](https://kubernetes.io/docs/tasks/tools/) (included with oc client)
+* [OC Client](https://mirror.openshift.com/pub/openshift-v4/clients/ocp/) (Openshift Client)
 * [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
 
 ## Azure Bastion
