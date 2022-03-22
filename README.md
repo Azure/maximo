@@ -17,7 +17,7 @@ This repository provides deployment guidance, scripts and best practices for run
     * [Logging In](#logging-in)
   * [Step 3: Install Dependencies for MAS](#step-3-install-dependencies-for-mas)
     * [Azure Files CSI drivers](#azure-files-csi-drivers)
-    * [Enabling OIDC authentication against Azure AD](#enabling-oidc-authentication-against-azure-ad)
+    * [Enabling OIDC authentication against Azure AD](#enabling-oidc-authentication-against-azure-ad) (TO BE WRITTEN)
     * [Updating pull secrets](#updating-pull-secrets)
     * [Updating Worker Nodes](#updating-worker-nodes)
     * [Installing OpenShift Container Storage (Optional)](#installing-openshift-container-storage-optional)
@@ -777,8 +777,6 @@ In CP4D you will now see a "database" link pop up. If you go to instances and hi
 
 Click on it, press next and deploy. In this deployment we are using OCS as the certified deployment mechanism. The specifications are [provided by IBM in their documentation](https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/svc-db2w/db2wh-cert-storage.html).
 
-TODO: further notes
-
 ### Configuring MAS with DB2WH
 
 Go to the configuration panel for Maximo by pressing on the cog on the top right or by going to https://<admin.maximocluster.domain>/config. It will ask you for some details that you can get from the CP4D DB2 overview. On your DB2 Warehouse instance, go to details. In the overview you will get the JDBC URL. Something like `jdbc:db2://<CLUSTER_ACCESSIBLE_IP>:32209/BLUDB:user=admin;password=<password>;securityMechanism=9;encryptionAlgorithm=2`. If you click on the copy icon, it gives you the required details.
@@ -884,8 +882,6 @@ oc create secret docker-registry ibm-entitlement --docker-username=cp --docker-p
 oc create ns mas-nonprod-iot
 oc create secret docker-registry ibm-entitlement --docker-username=cp --docker-password=<YOUR_KEY> --docker-server=cp.icr.io -n mas-nonprod-iot
 ```
-
-TODO: Instruct on how to recover from a botched Maximo deploy/cert wise? e.g. go into mongodb, kill tables and update truststore.jks with keytool
 
 ## Tips and Tricks
 
