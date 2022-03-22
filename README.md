@@ -6,47 +6,47 @@ This repository provides deployment guidance, scripts and best practices for run
 
 ## Table of Contents
 
-* [Maximo on Azure](#maximo-on-azure)
+* [Maximo on Azure](#quickstart-guide-maximo-on-azure)
   * [Introduction](#introduction)
   * [Getting Started](#getting-started)
-  * [What needs to be done](#what-needs-to-be-done)
+  * [Overview](#overview)
   * [Step 1: Preparing Azure](#step-1-preparing-azure)
-  * [Step 2: Deploy and preparing OpenShift](#step-2-deploy-and-preparing-openshift)
+  * [Step 2: Deploy and Prepare OpenShift](#step-2-deploy-and-prepare-openshift)
+    * [Install OCP](#install-ocp)
+    * [Logging In](#logging-in)
+  * [Step 3: Install Dependencies for MAS](#step-3-install-dependencies-for-mas)
     * [Azure Files CSI drivers](#azure-files-csi-drivers)
     * [Enabling OIDC authentication against Azure AD](#enabling-oidc-authentication-against-azure-ad)
-    * [Logging In](#logging-in)
     * [Updating pull secrets](#updating-pull-secrets)
     * [Updating Worker Nodes](#updating-worker-nodes)
     * [Installing OpenShift Container Storage (Optional)](#installing-openshift-container-storage-optional)
     * [Installing IBM Catalog Operator](#installing-ibm-operator-catalog)
-  * [Step 3: Installing Maximo Core](#step-3-installing-maximo-core)
-    * [Step 3a: Dependencies for Maximo](#step-3a-dependencies-for-maximo)
       * [Installing cert-manager](#installing-cert-manager)
       * [Installing MongoDB](#installing-mongodb)
       * [Installing Service Binding Operator](#installing-service-binding-operator)
       * [Installing IBM Behavior Analytics Services Operator (BAS)](#installing-ibm-behavior-analytics-services-operator-bas)
       * [Installing IBM Suite License Service (SLS)](#installing-ibm-suite-license-service-sls)
-    * [Step 3b: Installing Maximo](#step-3b-installing-maximo)
-      * [Deploying using the Operator (recommended)](#deploying-using-the-operator-recommended)
-      * [Deploying with install-mas.sh (not recommended)](#deploying-with-install-massh-not-recommended)
-      * [Setting up Maximo](#setting-up-maximo)
-        * [Step 3b.a: Set up MongoDB](#step-3ba-set-up-mongodb)
-        * [Step 3b.b: Set up BAS](#step-3bb-set-up-bas)
-        * [Step 3b.c: Set up SLS](#step-3bc-set-up-sls)
-        * [Step 3b.d: Generate a license.dat file and finalize workspace](#step-3bd-generate-a-licensedat-file-and-finalize-workspace)
-  * [Step 4: Installing Cloud Pak for Data](#step-4-installing-cloud-pak-for-data)
+  * [Step 4: Installing MAS](#step-4-installing-mas)
+    * [Deploying using the Operator](#deploying-using-the-operator)
+    * [Setting up MAS](#setting-up-mas)
+      * [Configuring MongoDB](#configuring-mongodb)
+      * [Configuring BAS](#configuring-bas)
+      * [Configuring SLS](#configuring-sls)
+      * [Generate a license file and finalize workspace](#generate-a-license-file-and-finalize-workspace)
+  * [Step 5: Installing Cloud Pak for Data (Optional)](#step-5-installing-cloud-pak-for-data-optional)
     * [Installing CP4D 3.5](#installing-cp4d-35)
-    * [Installing CP4D 4.0](#installing-cp4d-40)
-      * [Installing CP4D Operators](#installing-cp4d-operators)
-  * [Step 5: Maximo solution dependencies](#step-5-maximo-solution-dependencies)
-    * [Installing Db2 Warehouse](#installing-db2-warehouse)
-      * [Dedicated nodes](#dedicated-nodes)
-      * [Deploying Db2 Warehouse](#deploying-db2-warehouse)
-      * [Configuring Maximo with DB2WH](#configuring-maximo-with-db2wh)
+  * [Step 6: Post Install Dependencies](#step-6-post-install-dependencies)
+    * [Dedicated nodes](#dedicated-nodes)
+    * [Deploying Db2 Warehouse](#deploying-db2-warehouse)
+    * [Configuring MAS with DB2WH](#configuring-mas-with-db2wh)
     * [Installing Kafka](#installing-kafka)
-      * [Configuring Maximo with Kafka](#configuring-maximo-with-kafka)
-    * [Install IoT tools](#installion-iot-tools)
-  * [To get your credentials to login](#to-get-your-credentials-to-login)
+      * [Configuring MAS with Kafka](#configuring-mas-with-kafka)
+    * [Install IoT Dependencies](#install-iot-dependencies)
+  * [Tips and Tricks](#tips-and-tricks)
+    * [To get your credentials to login](#to-get-your-credentials-to-login)
+    * [Shutting Down your Cluster](#shutting-down-your-cluster)
+    * [Restarting Kafka inside BAS](#restarting-kafka-inside-bas)
+    * [Pods refusing to schedule](#pods-refusing-to-schedule)
   * [Contributing](#contributing)
   * [Trademarks](#trademarks)
 
@@ -79,33 +79,58 @@ After these services have been installed and configured, you can successfully in
 
 > 💡 **NOTE**: For the automated installation of OCP and Maximo see this [guide](src/azure/README.md).
 
-## What needs to be done
+## Overview
 
-The goal of this guide is to deploy the Maximo Application Suite within OpenShift running on Azure. 
+The goal of this guide is to deploy the Maximo Application Suite within OpenShift running on Azure in a simliar configuration shown below: 
 
-Diagram:
 
 ![Openshift Architecture](docs/images/ocp-diagram.png)
 
 To accomplish this, you will need to execute the following steps:
 
 1. [Prepare and configure Azure](#step-1-preparing-azure) resources for OpenShift and Maximo install
-2. [Deploy OpenShift](#step-2-deploy-openshift)
-3. [Install the dependencies of the Maximo](#step-3a-dependencies-for-maximo) and then [Maximo itself](#step-3b-installing-maximo) (Core)
-4. Install Cloud Pak for Data and OCS (optional)
-5. Install any dependencies that your Maximo product has
-6. Deploy the Maximo solution.
+2. [Deploy OpenShift](#step-2-deploy-and-prepare-openshift)
+3. [Install the dependencies for MAS](#step-3-Install-dependencies-for-mas) 
+4. [Install MAS](#step-4-installing-mas)
+5. Install Cloud Pak for Data (Optional)
+6. Install Maximo solution.
 
 ## Step 1: Preparing Azure
 
 Please follow [this guide](docs/azure/README.md) to configure Azure.
 
-## Step 2: Deploy and preparing OpenShift
-
-Please follow [this guide](docs/openshift/ocp/README.md) to configure OpenShift Container Platform on Azure.
+## Step 2: Deploy and prepare OpenShift
 
 > 💡 **NOTE**: IBM Maximo does not currently officially support the current version of OpenShift running on Azure Redhat OpenShift (ARO).
 
+### Install OCP
+Please follow [this guide](docs/openshift/ocp/README.md) to configure OpenShift Container Platform on Azure.
+
+### Logging In
+Once you have to OpenShift installed, visit the admin URL and try to log in to validate everything is up and running. The URL will look something like `console-openshift-console.apps.{clustername}.{domain}.{extension}`. The username is kubeadmin and the password was provided to you by the installer.
+
+You will need to login to the `oc` CLI. You can get an easy way to do this by navigating the the `Copy login` page. You can find this on the top right of the screen:
+
+![Copy login panel](docs/images/ocp-copy-login.png)
+
+Login by clicking on display token and use the oc login command to authenticate your `oc` client to your OpenShift deployment OR by exporting the KUKBECONFIG path.
+
+```bash
+export KUBECONFIG=/tmp/OCPInstall/QuickCluster/auth/kubeconfig
+```
+
+> 💡 **TIP**:
+> Copy the `oc` client to your /usr/bin directory to access the client from any directory. This will be required for some installing scripts.
+
+## Step 3: Install dependencies for MAS
+
+Maximo has a few requirements that have to be available before it can be installed. These are:
+
+1. JetStack cert-manager
+1. MongoDB CE
+1. Service Binding Operator
+1. IBM Behavioral Analytics Systems (BAS)
+1. IBM Suite Licensing Services (SLS)
 
 ### Azure Files CSI drivers
 Version: v1.12.0 (Newer versions may be supported)
@@ -165,20 +190,6 @@ curl -skSL https://raw.githubusercontent.com/kubernetes-sigs/azurefile-csi-drive
 
 TODO
 
-### Logging In
-
-Once you have to OpenShift installed, visit the admin URL and try to log in to validate everything is up and running. The URL will look something like `console-openshift-console.apps.{clustername}.{domain}.{extension}`. The username is kubeadmin and the password was provided to you by the installer.
-
-You will need to login to the `oc` CLI. You can get an easy way to do this by navigating the the `Copy login` page. You can find this on the top right of the screen:
-
-![Copy login panel](docs/images/ocp-copy-login.png)
-
-Login by clicking on display token and use the oc login command to authenticate your `oc` client to your OpenShift deployment OR by exporting the KUKBECONFIG path.
-
-```bash
-export KUBECONFIG=/tmp/OCPInstall/QuickCluster/auth/kubeconfig
-```
-
 ### Updating pull secrets
 
 You will need to update the pull secrets to make sure that all containers on OpenShift can pull from the IBM repositories. This means using your entitlement key to be able to pull the containers. This is needed specifically for the install of Db2wh, as there is no other way to slip your entitlement key in. Detailed steps can be found in the [IBM Documentation for CP4D](https://www.ibm.com/docs/en/cpfs?topic=312-installing-foundational-services-by-using-console).
@@ -199,7 +210,7 @@ You will need to update the pull secrets to make sure that all containers on Ope
 
 ```
 
-#### Updating Worker Nodes
+### Updating Worker Nodes
 
 ```bash
 wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/machinesets/worker.yaml -O /tmp/OCPInstall/worker.yaml
@@ -232,7 +243,7 @@ oc scale --replicas=3 machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster
 
 ```
 
-#### Installing OpenShift Container Storage (Optional)
+### Installing OpenShift Container Storage (Optional)
 
 > 💡 **NOTE**: If you are using Azure Premium Files OCS is not required.
 
@@ -266,7 +277,7 @@ After provisioning the cluster, go to the OpenShift Container Storage operator i
 Once you have completed these steps, you can proceed with the requirements for Maximo.
 
 <!-- this can be split off later to the apps section -->
-#### Installing IBM Operator Catalog
+### Installing IBM Operator Catalog
 
 The [IBM Operator Catalog](https://www.ibm.com/docs/en/app-connect/containers_cd?topic=access-enabling-operator-catalog) is an index of operators available to automate deployment and maintenance of IBM Software products into Red Hat OpenShift clusters. Operators within this catalog have been built following Kubernetes best practices and IBM standards to provide a consistent integrated set of capabilities.
 
@@ -285,26 +296,7 @@ NAME                   DISPLAY                TYPE   PUBLISHER   AGE
 ibm-operator-catalog   IBM Operator Catalog   grpc   IBM         5d21h
 ```
 
-## Step 3: Installing Maximo Core
-
-Maximo Application Suite (MAS or Maximo) can be installed on OpenShift. IBM provides documentation for Maximo on its [documentation site](https://www.ibm.com/docs/en/mas85/8.5.0). Make sure to refer to the documentation for [Maximo 8.5.0](https://www.ibm.com/docs/en/mas85/8.5.0), as that is the version we are describing throughout this document.
-
-This steps referring to the base suite to install, also referred to as Maximo Core. All of the steps below assume you are logged on to your OpenShift cluster and you have the `oc` CLI available.
-
-> 💡 **TIP**:
-> Copy the `oc` client to your /usr/bin directory to access the client from any directory. This will be required for some installing scripts.
-
-### Step 3a: Dependencies for Maximo
-
-Maximo has a few requirements that have to be available before it can be installed. These are:
-
-1. JetStack cert-manager
-1. MongoDB CE
-1. Service Binding Operator
-1. IBM Behavioral Analytics Systems (BAS)
-1. IBM Suite Licensing Services (SLS)
-
-#### Installing cert-manager
+### Installing cert-manager
 
 [cert-manager](https://github.com/jetstack/cert-manager) is a Kubernetes add-on to automate the management and issuance of TLS certificates from various issuing sources. It is required for [Maximo](https://www.ibm.com/docs/en/mas85/8.5.0?topic=installation-system-requirements#mas-requirements). For more installation and usage information check out the [cert-manager documentation](https://cert-manager.io/v0.16-docs/installation/openshift/).
 Installation of cert-manager is relatively straight forward. Create a namespace and install:
@@ -329,7 +321,7 @@ cert-manager-cainjector-bd5f9c764-2j29c   1/1     Running   0          2d1h
 cert-manager-webhook-c4b5687dc-thh2b      1/1     Running   0          2d1h
 </pre>
 
-#### Installing MongoDB
+### Installing MongoDB
 
 In this example, we will be installing the community edition of MongoDB on OpenShift using self signed certs. [MongoDB Community Edition](https://www.mongodb.com) is the free version of MongoDB. This version does not come with enterprise support nor certain features typically required by enterprises. We recommend exploring the options below for production use:
 
@@ -399,7 +391,7 @@ BEGIN CERTIFICATE
 END CERTIFICATE
 ``` -->
 
-#### Installing Service Binding Operator
+### Installing Service Binding Operator
 
 [Service Binding Operator](https://github.com/redhat-developer/service-binding-operator/blob/master/README.md) enables application developers to more easily bind applications together with operator managed backing services such as databases, without having to perform manual configuration of secrets, configmaps, etc. 
 
@@ -423,7 +415,7 @@ NAME                              DISPLAY                    VERSION   REPLACES 
 service-binding-operator.v0.8.0   Service Binding Operator   0.8.0     service-binding-operator.v0.7.1   Succeeded
 ```
 
-#### Installing IBM Behavior Analytics Services Operator (BAS)
+### Installing IBM Behavior Analytics Services Operator (BAS)
 
 [IBM Behavior Analytics Services Operator](https://catalog.redhat.com/software/operators/detail/5fabe3c360c9b64020a34f02) is a service that collects, transforms and transmits product usage data.
 
@@ -542,11 +534,17 @@ Wait for IBM SLS to come up, you can check its progress and also grab the connec
 oc get LicenseService sls -n ibm-sls -o yaml
 ```
 
-### Step 3b: Installing Maximo
+## Step 4: Installing MAS
 
-#### Deploying using the Operator
+Maximo Application Suite (MAS) can be installed on OpenShift. IBM provides documentation for MAS on its [documentation site](https://www.ibm.com/docs/en/mas87/8.7.0). Make sure to refer to the documentation for [Maximo 8.7.x](https://www.ibm.com/docs/en/mas87/8.7.0), as that is the version we are describing throughout this document.
 
-Maximo install is the same as the other services: install an operator and then create a Suite service. First we need to deploy the operator:
+All of the steps below assume you are logged on to your OpenShift cluster and you have the `oc` CLI available.
+
+### Deploying using the Operator
+
+In the step below, you will deploy the MAS operator and then configure the Suite service within the operator.
+
+Lets deploy the operator:
 
 ```bash
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/mas/mas-operator.yaml
@@ -565,9 +563,9 @@ Check progress of the operator installation:
 oc get csv -n mas-nonprod-core
 ```
 
-Once it says succeeded for MAS, the Truststore and the Common Service Operator (ignore the Service Binding Operator) it is time to install Maximo.
+Once it says succeeded for MAS, the Truststore and the Common Service Operator (ignore the Service Binding Operator) it is time to install MAS.
 
-Pull down the maximo service YAML file and export variables that will be updated within the file:
+Pull down the mas service YAML file and export variables that will be updated within the file:
 
 ```bash
 export clusterName=myclustername
@@ -590,13 +588,13 @@ Once the route is up for the admin dashboard, we can proceed with the initial se
 oc extract secret/nonprod-credentials-superuser -n mas-nonprod-core --to=-
 ```
 
-Skip the step below and proceed with the Maximo set up.
+Skip the step below and proceed with the MAS set up.
 
-#### Setting up Maximo
+### Setting up MAS
 
-You can get to Maximo on the domain you specified, in our guide this is admin.<cluster_url> (which is in our set up <deployment_name>.apps.cluster.domain). Note that you should always use https to approach. With regular http, you'll get a route not found error. When using self signed certificates (like we do), you will need to visit the api.<cluster_url> page. Navigate there and accept any certificates that pop up.
+You can get to MAS on the domain you specified, in our guide this is admin.<cluster_url> (which is in our set up <deployment_name>.apps.cluster.domain). Note that https is required for access. When using self signed certificates (like our example does), you will need to navigate to api.<cluster_url> page and accept any certificates warnings that pop up.
 
-Navigate to the /initialsetup page on your Maximo instance and accept the SSL certs. You'll be welcomed with a wizard and then a screen like this:
+Next, navigate to the <masurl>/initialsetup page on your MAS instance and accept the SSL certs. You'll be welcomed with a wizard and then a screen like this:
 
  ![Maximo initial setup overview](docs/images/maximo-setup-initial.png)
 <!--
@@ -631,7 +629,7 @@ echo | openssl s_client -servername bas-endpoint-ibm-bas.apps.newcluster.maximoo
 oc describe LicenseService sls -n ibm-sls | grep -A 1 "Registration Key"
 ``` -->
 
-##### Step 3b.a: Set up MongoDB
+#### Configuring MongoDB
 
 You can configure the MongoDB Settings using the following commands:
 
@@ -655,7 +653,7 @@ yq eval ".spec.certificates[1].crt = \"$mongoCert2\"" -i mongoCfg-nonprod.yaml
 oc apply -f mongoCfg-nonprod.yaml
 ```
 
-##### Step 3b.b: Set up BAS
+#### Configuring BAS
 
 You can configure the BAS Settings using the following commands:
 
@@ -675,7 +673,7 @@ yq eval ".spec.certificates[1].crt = \"$basCert2\"" -i basCfg-nonprod.yaml
 oc apply -f basCfg-nonprod.yaml
 ```
 
-##### Step 3b.c: Set up SLS
+#### Configuring SLS
 
 You can configure the SLS Settings using the following commands:
 
@@ -701,7 +699,7 @@ oc apply -f slsCfg-nonprod.yaml
 
 The validation for SLS can take up to 10-15 minutes before it shows a green checkmark. Once it completes it will generate some details you need to generate the license.dat file.
 
-##### Step 3b.d: Generate a license.dat file and finalize workspace
+#### Generate a license file and finalize workspace
 
 With the configuration for all the pieces complete, you'll get a challenge from the SLS. You are provided with a hostname and an ethernet address. Click on the link to take you to the IBM License Center and create a license.dat file. If you have no access, work with someone who does. Take the license.dat and upload it into the page:
 
@@ -709,7 +707,7 @@ With the configuration for all the pieces complete, you'll get a challenge from 
 
 Once the license is loaded, set up a workspace. This has to be a unique name. Once done, hit "SAVE" and then "FINISH" on the top right. Maximo will now finalize the setup.
 
-## Step 4: Installing Cloud Pak for Data
+## Step 5: Installing Cloud Pak for Data (Optional)
 
 ### Installing CP4D 3.5
 
@@ -745,31 +743,9 @@ Run the following cpdcli commands:
 ./cpd-cli install --accept-all-licenses --repo /tmp/repo.yaml --assembly db2wh --namespace cp4d --storageclass azurefiles-premium --latest-dependency
 ```
 
-## Step 5: Maximo solution dependencies
-<!-->
-### Installing Db2 Warehouse
+## Step 6: Post Install Dependencies
 
-To deploy a Db2 warehouse for use with CP4D you need to install the DB2 Operator into an operator group in a namespace and create an instance of the `Db2whService`.
-
-The YAML in src/Db2Warehouse/db2-install.yaml will do that for you:
-
-```bash
-oc apply -f db2-operator.yaml
-
-```
-
-When you install the CP4D DB2 Warehouse Operator, it will also grab the DB2U operator as DB2WH first deploys a regular DB2U to build a warehouse on top. After deploying the operator, you can create a Db2whService in your cp4d namespace. Once you have done this, an instance will light up in your cp4d.
-
-```bash
-oc apply -f db2-service.yaml
-```
-<!-->
-
-<!-- I don't think we need this anymore? @ranieuwe 
-    oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/Db2Warehouse/rook-ceph-operator-config.yaml -n openshift-storage
--->
-
-#### Dedicated nodes
+### Dedicated nodes
 
 In order to use dedicated nodes for the db2wh deployment you need to create a new machineset with a taint of `icp4data`. Dedicated nodes are recommended for production deployments.
 
@@ -796,9 +772,9 @@ When you deploy the db2 cluster, the taint it needs in the deployment is "mas-ma
 oc adm policy add-cluster-role-to-user system:controller:persistent-volume-binder system:serviceaccount:cp4d:zen-databases-sa
 ```
 
-#### Deploying Db2 Warehouse
+### Deploying Db2 Warehouse
 
-In cp4d you will now see a "database" link pop up. Now if you go to instances and hit "New instance" on the top right you will be greeted with this:
+In CP4D you will now see a "database" link pop up. If you go to instances and hit "New instance" on the top right you will be greeted with this:
 
 ![Copy login panel](docs/images/cp4d-db2wh-instance.png)
 
@@ -806,7 +782,7 @@ Click on it, press next and deploy. In this deployment we are using OCS as the c
 
 TODO: further notes
 
-#### Configuring Maximo with DB2WH
+### Configuring MAS with DB2WH
 
 Go to the configuration panel for Maximo by pressing on the cog on the top right or by going to https://<admin.maximocluster.domain>/config. It will ask you for some details that you can get from the CP4D DB2 overview. On your DB2 Warehouse instance, go to details. In the overview you will get the JDBC URL. Something like `jdbc:db2://<CLUSTER_ACCESSIBLE_IP>:32209/BLUDB:user=admin;password=<password>;securityMechanism=9;encryptionAlgorithm=2`. If you click on the copy icon, it gives you the required details.
 
@@ -879,7 +855,7 @@ Metadata for all topics (from broker 2: sasl_ssl://maskafka-kafka-2.maskafka-kaf
  0 topics:
 </pre>
 
-#### Configuring Maximo with Kafka
+#### Configuring MAS with Kafka
 
 Enter all the brokers with port 9093 (TLS) or 9092 (non-TLS). The brokers are <cluster-name>-kafka-<n>.<cluster-name>-kafka-broker.<namespace>.svc, e.g.  maskafka-kafka-0.maskafka-kafka-brokers.strimzi-kafka.svc for a cluster called `maskafka` installed in namespace `strimzi-kafka`. You can see them listed with kcat too for convenience. To get the credentials for Kafka execute `oc extract secret/mas-user --to=- -n strimzi-kafka`.
 
@@ -897,7 +873,7 @@ echo QUIT | openssl s_client -connect localhost:7000 -servername localhost -show
  cat outfile01
 ```
 
-### Installion IoT tools
+### Install IoT Dependencies
 
 The IBM IoT tools requires MongoDB, Kafka and DB2WH, all of which are available if you followed the steps above. If not, please install any missing dependencies.
 
@@ -914,16 +890,13 @@ oc create secret docker-registry ibm-entitlement --docker-username=cp --docker-p
 
 TODO: Instruct on how to recover from a botched Maximo deploy/cert wise? e.g. go into mongodb, kill tables and update truststore.jks with keytool
 
-## To get your credentials to login
+## Tips and Tricks
 
-For Maximo: `oc extract secret/nonprod-credentials-superuser -n mas-nonprod-core --to=-`
+### To get your credentials to login
 
-## Operationalization of your cluster
+For MAS: `oc extract secret/nonprod-credentials-superuser -n mas-nonprod-core --to=-`
 
-<!-- TODO: Split this off? -->
-There are a few things to be aware off when running Maximo. Many of these are our learnings while trying to build this out.
-
-### Snoozing / shutting down your cluster
+### Shutting down your cluster
 
 One of the benefits of cloud is the ability to deallocate your instances and stopping to pay for them. OpenShift supports this and it is possible with Maximo. Snoozing is possible for up to a year or whenever your OpenShift certificates expire. Check the OpenShift documentation for specifics on the support for [graceful shutdowns](https://docs.openshift.com/container-platform/4.6/backup_and_restore/graceful-cluster-shutdown.html).
 
@@ -937,13 +910,13 @@ for node in $(oc get nodes -o jsonpath='{.items[*].metadata.name}'); do oc debug
 
 Next, go to the Azure Portal, select all the VMs that are part of the cluster and stop and deallocate them. When you start the cluster back up, do so by starting the Virtual Machines. It takes about 5 minutes for everything to find its spot again, so have a bit of patience and try to hit the OpenShift UI. Pay special attention on the overview page to any pods that are failing to start (e.g. crashloopbackoff) and delete/restart those pods if needed. Two pods do this every time the cluster starts: `event-api-deployment` and `event-reader-deployment`. Deleting and restarting them - api deployment first - fixes the problem.
 
-### Restarting / fixing Kafka inside BAS
+### Restarting Kafka inside BAS
 
 The Kafka deployment inside of BAS sometimes gets messed up. It loses track of where it is supposed to be. To gracefully correct that, restart the `kafka-zookeeper` pod inside the BAS namespace, followed by the `kafka-kafka-0` pod. If you look at the logs for the pod, you'll see that the zookeeper is cleaning up stale resources and the kafka pod will connect to the zookeeper again.
 
-### Pods refusing to deploy because of zone taints
+### Pods refusing to schedule
 
-Sometimes pods refuse to deploy staying they can't find nodes, this is particularly the case for OCS and Kafka. Most of this is to do with where the virtual machines are logically: their availability zones. Make sure you have worker nodes in each of the availability zones a region provides.
+Sometimes pods refuse to schedule saying they can't find nodes, this is particularly the case for OCS and Kafka. Most of this is to do with where the virtual machines are logically: their availability zones. Make sure you have worker nodes in each of the availability zones a region provides.
 
 ## Contributing
 
