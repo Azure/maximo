@@ -4,6 +4,8 @@ This repository provides deployment guidance, scripts and best practices for run
 
 > 🚧 **NOTE**: The scripts contained within this repo were written with the intention of testing various configurations and integrations on Azure. They allow you to quickly deploy Maximo on Azure so that configurations can be evaluated.
 
+> 🚧 **WARNING** this guide is currently under active development. If you would like to contribute or use this right now, please reach out so we can support you.
+
 ## Table of Contents
 
 * [Maximo on Azure](#quickstart-guide-maximo-on-azure)
@@ -48,8 +50,6 @@ This repository provides deployment guidance, scripts and best practices for run
     * [Pods refusing to schedule](#pods-refusing-to-schedule)
   * [Contributing](#contributing)
   * [Trademarks](#trademarks)
-
-> 🚧 **WARNING** this guide is currently under active development. If you would like to contribute or use this right now, please reach out so we can support you.
 
 ## Getting Started
 
