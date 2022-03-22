@@ -1,6 +1,6 @@
 # Setup OpenShift Container Platform on Azure
 
-The installation of OpenShift on Azure can either be done using the [IPI Installer](https://docs.openshift.com/container-platform/4.8/installing/installing_azure/preparing-to-install-on-azure.html) or the [UPI Installer](#https://github.com/openshift/installer/blob/master/docs/user/azure/install_upi.md).
+The installation of OpenShift on Azure can either be done using the [IPI Installer](https://docs.openshift.com/container-platform/4.8/installing/installing_azure/preparing-to-install-on-azure.html) or the [UPI Installer](https://github.com/openshift/installer/blob/master/docs/user/azure/install_upi.md).
 
 > 💡 **NOTE**: For airgap scenarios, you will most likely need to use the UPI installer since the IPI installer cannot guarentee an airgapped install.
 
