@@ -1,0 +1,68 @@
+apiVersion: machine.openshift.io/v1beta1
+kind: MachineSet
+metadata:
+  labels:
+    machine.openshift.io/cluster-api-cluster: democluster-thhgq #$clusterInstanceName
+    machine.openshift.io/cluster-api-machine-role: worker
+    machine.openshift.io/cluster-api-machine-type: worker
+  name: vi-gpu-tesla-z2
+  namespace: openshift-machine-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      components: vi-gpu-tesla
+      machine.openshift.io/cluster-api-cluster: democluster-thhgq
+      machine.openshift.io/cluster-api-machineset: democluster-thhgq-vi-gpu-tesla-z2
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        components: vi-gpu-tesla
+        machine.openshift.io/cluster-api-cluster: democluster-thhgq
+        machine.openshift.io/cluster-api-machine-role: worker
+        machine.openshift.io/cluster-api-machine-type: worker
+        machine.openshift.io/cluster-api-machineset: democluster-thhgq-vi-gpu-tesla-z2
+    spec:
+      metadata:
+        creationTimestamp: null
+        labels:
+          components: vi-gpu-tesla
+          node-role.kubernetes.io/worker: ""
+          icp4data: vi-gpu-tesla2wh
+      providerSpec:
+        value:
+          apiVersion: azureproviderconfig.openshift.io/v1beta1
+          credentialsSecret:
+            name: azure-cloud-credentials
+            namespace: openshift-machine-api
+          image:
+            offer: ""
+            publisher: ""
+            resourceID: /resourceGroups/democluster-thhgq-rg/providers/Microsoft.Compute/images/democluster-thhgq
+            sku: ""
+            version: ""
+          internalLoadBalancer: ""
+          kind: AzureMachineProviderSpec
+          location: SouthCentralUS
+          managedIdentity: democluster-thhgq-identity
+          metadata:
+            creationTimestamp: null
+          natRule: null
+          networkResourceGroup: democluster-thhgq-rg
+          osDisk:
+            diskSizeGB: 128
+            managedDisk:
+              storageAccountType: Premium_LRS
+            osType: Linux
+          publicIP: false
+          publicLoadBalancer: democluster-thhgq
+          resourceGroup: democluster-thhgq-rg
+          sshPrivateKey: ""
+          sshPublicKey: ""
+          subnet: workers
+          userDataSecret:
+            name: worker-user-data
+          vmSize: Standard_NC12s_v3
+          vnet: maximo-vnet
+          zone: "2"
