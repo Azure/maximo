@@ -24,6 +24,7 @@ param customInstallConfigURL string
 param installMAS string
 param installOCS string
 param installCP4D string
+param installVI string
 param applicationId string
 @secure()
 param applicationSecret string
@@ -145,6 +146,7 @@ module sidecarVM 'jumpbox.bicep' = {
     installMAS: installMAS
     installOCS: installOCS
     installCP4D: installCP4D
+    installVI: installVI
     openshiftVersion: openshiftVersion
     azureFilesCSIVersion: azureFilesCSIVersion
     masChannel: masChannel

@@ -35,5 +35,13 @@ then
     sudo -E /tmp/cp4d_deploy.sh
 fi
 
+if [ "$installVI" == "Y" ] || [ "$installVI" == "Yes" ] || [ "$installVI" == "y" ]
+then
+    #Deploy VI
+    wget -nv "https://raw.githubusercontent.com/Azure/maximo/main/src/installers/vi-deploy.sh" -O /tmp/vi-deploy.sh
+    chmod +x /tmp/vi-deploy.sh
+    sudo -E /tmp/vi-deploy.sh
+fi
+
 
 echo "================ Install Manager END ================"

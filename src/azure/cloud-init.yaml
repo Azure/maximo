@@ -38,6 +38,7 @@ runcmd:
     export installMAS="${installMAS}"
     export installOCS="${installOCS}"
     export installCP4D="${installCP4D}"
+    export installVI="${installVI}"
     export azureFilesCSIVersion="${azureFilesCSIVersion}"
     export masChannel="${masChannel}"
  - [ wget, -nv, "https://raw.githubusercontent.com/Azure/maximo/main/src/installers/install_config.sh", -O, /tmp/install_config.sh ]
