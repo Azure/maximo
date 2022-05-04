@@ -2,27 +2,27 @@ apiVersion: machine.openshift.io/v1beta1
 kind: MachineSet
 metadata:
   labels:
-    machine.openshift.io/cluster-api-cluster: democluster-thhgq #$clusterInstanceName
+    machine.openshift.io/cluster-api-cluster: $clusterInstanceName #$clusterInstanceName
     machine.openshift.io/cluster-api-machine-role: worker
     machine.openshift.io/cluster-api-machine-type: worker
-  name: vi-gpu-tesla-z2
+  name: vi-gpu-tesla-z$zone
   namespace: openshift-machine-api
 spec:
   replicas: 1
   selector:
     matchLabels:
       components: vi-gpu-tesla
-      machine.openshift.io/cluster-api-cluster: democluster-thhgq
-      machine.openshift.io/cluster-api-machineset: democluster-thhgq-vi-gpu-tesla-z2
+      machine.openshift.io/cluster-api-cluster: $clusterInstanceName
+      machine.openshift.io/cluster-api-machineset: $clusterInstanceName-vi-gpu-tesla-z$zone
   template:
     metadata:
       creationTimestamp: null
       labels:
         components: vi-gpu-tesla
-        machine.openshift.io/cluster-api-cluster: democluster-thhgq
+        machine.openshift.io/cluster-api-cluster: $clusterInstanceName
         machine.openshift.io/cluster-api-machine-role: worker
         machine.openshift.io/cluster-api-machine-type: worker
-        machine.openshift.io/cluster-api-machineset: democluster-thhgq-vi-gpu-tesla-z2
+        machine.openshift.io/cluster-api-machineset: $clusterInstanceName-vi-gpu-tesla-z$zone
     spec:
       metadata:
         creationTimestamp: null
@@ -39,30 +39,30 @@ spec:
           image:
             offer: ""
             publisher: ""
-            resourceID: /resourceGroups/democluster-thhgq-rg/providers/Microsoft.Compute/images/democluster-thhgq
+            resourceID: /resourceGroups/democluster-thhgq-rg/providers/Microsoft.Compute/images/$clusterInstanceName
             sku: ""
             version: ""
           internalLoadBalancer: ""
           kind: AzureMachineProviderSpec
-          location: SouthCentralUS
-          managedIdentity: democluster-thhgq-identity
+          location: $deployRegion
+          managedIdentity: $clusterInstanceName-identity
           metadata:
             creationTimestamp: null
           natRule: null
-          networkResourceGroup: democluster-thhgq-rg
+          networkResourceGroup: $resourceGroupName
           osDisk:
             diskSizeGB: 128
             managedDisk:
               storageAccountType: Premium_LRS
             osType: Linux
           publicIP: false
-          publicLoadBalancer: democluster-thhgq
-          resourceGroup: democluster-thhgq-rg
+          publicLoadBalancer: $clusterInstanceName
+          resourceGroup: $clusterInstanceName-rg
           sshPrivateKey: ""
           sshPublicKey: ""
           subnet: workers
           userDataSecret:
             name: worker-user-data
           vmSize: Standard_NC12s_v3
-          vnet: maximo-vnet
-          zone: "2"
+          vnet: $vnetName
+          zone: "$zone"
