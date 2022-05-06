@@ -28,6 +28,7 @@ You will need a public DNS Zone that can be accessed by the OpenShift installer.
 - Install MAS (y/n)
 - Install OCS (y/n)
 - Install CP4D (y/n)
+- Install VI (y/n)
 
 The Domain Name must match the name of the DNS Zone that you will be using for OpenShift. During the deployment this DNS Zone will be updated with records to resolve to the cluster. If it is not accessible by the Client Id, the deployment will fail.
 

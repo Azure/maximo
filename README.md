@@ -36,7 +36,11 @@ This repository provides deployment guidance, scripts and best practices for run
       * [Generate a license file and finalize workspace](#generate-a-license-file-and-finalize-workspace)
   * [Step 5: Installing Cloud Pak for Data (Optional)](#step-5-installing-cloud-pak-for-data-optional)
     * [Installing CP4D 3.5](#installing-cp4d-35)
-  * [Step 6: Post Install Dependencies](#step-6-post-install-dependencies)
+  * [Step 6: Installing Visual Inspection (Optional)(#step6-installing-visual-inspection)]
+    * [Visual Inspection Requirements]
+    * [Installing Visual Inspection Components]
+    * [Post-Install Steps]
+  * [Step 7: Post Install Dependencies](#step-7-post-install-dependencies)
     * [Dedicated nodes](#dedicated-nodes)
     * [Deploying Db2 Warehouse](#deploying-db2-warehouse)
     * [Configuring MAS with DB2WH](#configuring-mas-with-db2wh)
@@ -740,7 +744,21 @@ Run the following cpdcli commands:
 ./cpd-cli install --accept-all-licenses --repo /tmp/repo.yaml --assembly db2wh --namespace cp4d --storageclass azurefiles-premium --latest-dependency
 ```
 
-## Step 6: Post Install Dependencies
+## Step 6: Install Visual Inspection (Optional)
+
+### Visual Inspection Requirements
+
+If you wish to use Visual Inspection (VI), your OpenShift deployment must accomodate GPU-enabled worker nodes. To this end, this deployment contains a Machineset set specification in `src/machinesets/worker-vi-tesla.yaml` which will deploy Standard_NC12s_v3 Virtual Machines, which are GPU enabled with NVIDIA Tesla V100 GPUs, and you can modify this spec to increase the size of the VM per your needs.
+
+### Installing Visual Inspection Components
+
+The included installer script includes parameters that can control if you wish to install Visual Inspection components during your deployment. This will take care of creating the machineset with GPU-enabled workers, installing all the required node discovery features, and the NVidia GPU operator. Please see the "" section about enabling Visual Inspection Pre-Requirements during your deployment.
+
+## Post-Deployment Steps
+
+Once your cluster has been deployed, you can enable the Visual Inspection feature inside of MAS.
+
+## Step 7: Post Install Dependencies
 
 ### Dedicated nodes
 
