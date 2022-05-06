@@ -50,7 +50,8 @@ param numWorkerReplicas string
 param openshiftVersion string
 param azureFilesCSIVersion string
 param masChannel string
-
+param nvidiaOperatorChannel string
+param nvidiaOperatorCSV string
 //create dns zone
 module dnsZone 'dns.bicep' = {
   name: 'DnsConfig'
@@ -150,6 +151,8 @@ module sidecarVM 'jumpbox.bicep' = {
     openshiftVersion: openshiftVersion
     azureFilesCSIVersion: azureFilesCSIVersion
     masChannel: masChannel
+    nvidiaOperatorChannel: nvidiaOperatorChannel
+    nvidiaOperatorCSV: nvidiaOperatorCSV
   }
   dependsOn: [
     network

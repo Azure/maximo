@@ -16,15 +16,13 @@ oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/nfd/nfd-oper
 # Set up NVIDIA GPU Operator
 wget https://raw.githubusercontent.com/Azure/maximo/main/src/vi/nv-operator.yaml
 
-CHANNEL=$(oc get packagemanifest gpu-operator-certified -n openshift-marketplace -o jsonpath='{.status.defaultChannel}')
+#We've set the current known working version and channel service version of the operator, but if you want to have the script pull the most recent version, you can uncomment these lines
+#nvidiaOperatorChannel=$(oc get packagemanifest gpu-operator-certified -n openshift-marketplace -o jsonpath='{.status.defaultChannel}')
+#nvidiaOperatorCSV=$(oc get packagemanifests/gpu-operator-certified -n openshift-marketplace -ojson | jq -r '.status.channels[] | select(.name == "'$CHANNEL'") | .currentCSV')
 
-CSV=$(oc get packagemanifests/gpu-operator-certified -n openshift-marketplace -ojson | jq -r '.status.channels[] | select(.name == "'$CHANNEL'") | .currentCSV')
+sed -i "s/{CHANNEL}/$nvidiaOperatorChannel/" nv-operator.yaml
 
-wget https://raw.githubusercontent.com/Azure/maximo/main/src/vi/nv-operator.yaml
-
-sed -i "s/{CHANNEL}/$CHANNEL/" nv-operator.yaml
-
-sed -i "s/{CSV}/$CSV/" nv-operator.yaml
+sed -i "s/{CSV}/$nvidiaOperatorCSV/" nv-operator.yaml
 
 oc apply -f nv-operator.yaml
 

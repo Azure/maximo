@@ -93,6 +93,13 @@
         },
         "masChannel":{
             "value": "8.6.x"
+        },
+        "nvidiaOperatorChannel" : {
+            "value": "1.10"
+        },
+        "nvidiaOperatorCSV" : {
+            "value": "gpu-operator-certified.v1.10.1"
         }
+
     }
 }
