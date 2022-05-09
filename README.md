@@ -883,7 +883,31 @@ oc create ns mas-nonprod-iot
 oc create secret docker-registry ibm-entitlement --docker-username=cp --docker-password=<YOUR_KEY> --docker-server=cp.icr.io -n mas-nonprod-iot
 ```
 
+<!-- Solution deployments -->
+
+## Step 7a: Installing Manage
+
+TODO
+
+## Step 7b: Installing Health
+
+TODO
+
+## Step 7c: Installing Visual Inspection
+
+TODO
+
+## Step 7d: Installing Monitor and IoT
+
+TODO
+
+## Step 7e: Installing Predict
+
+TODO
+
 ## Tips and Tricks
+
+TODO
 
 ### To get your credentials to login
 
