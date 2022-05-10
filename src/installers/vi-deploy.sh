@@ -8,7 +8,7 @@ echo "================ VI DEPLOY START ================"
 #CLUSTER_URL="apps.newcluster.maximoonazure.com"
 
 #Setup VI Tesla MachineSet
-wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/machinesets/worker-vi-tesla.yaml -O /tmp/OCPInstall/worker-vi-tesla.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/machinesets/worker-vi-tesla.yaml -O /tmp/OCPInstall/worker-vi-tesla.yaml
 
 #Setup Zone 1
 export zone=1
@@ -18,13 +18,13 @@ envsubst < /tmp/OCPInstall/worker-vi-tesla.yaml > /tmp/OCPInstall/QuickCluster/w
 sudo -E /tmp/OCPInstall/oc apply -f /tmp/OCPInstall/QuickCluster/worker-vi-tesla.yaml
 
 # Set up Node Feature Discovery (nfd)
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/nfd/nfd-operator.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/nfd/nfd-operator.yaml
 
 # NOTE: Cluster-wide entitement required for certain version of Openshift: See here:
 # 
 
 # Set up NVIDIA GPU Operator
-wget https://raw.githubusercontent.com/Azure/maximo/main/src/vi/nv-operator.yaml
+wget https://raw.githubusercontent.com/Azure/maximo/$branchName/src/vi/nv-operator.yaml
 
 #We've set the current known working version and channel service version of the operator, but if you want to have the script pull the most recent version, you can uncomment these lines
 #nvidiaOperatorChannel=$(oc get packagemanifest gpu-operator-certified -n openshift-marketplace -o jsonpath='{.status.defaultChannel}')

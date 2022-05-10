@@ -158,14 +158,14 @@ export clientId="clientId" #This account will be used by OCP to access azure fil
 export clientSecret="clientSecret"
 
  #Configure Azure Files Standard
- wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/storageclasses/azurefiles-standard.yaml -O /tmp/OCPInstall/azurefiles-standard.yaml
+ wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/azurefiles-standard.yaml -O /tmp/OCPInstall/azurefiles-standard.yaml
  envsubst < /tmp/OCPInstall/azurefiles-standard.yaml > /tmp/OCPInstall/QuickCluster/azurefiles-standard.yaml
  oc apply -f /tmp/OCPInstall/QuickCluster/azurefiles-standard.yaml
 
 #Configure Azure Files Premium
 
 #Create the azure.json file and upload as secret
-wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/storageclasses/azure.json -O /tmp/OCPInstall/azure.json
+wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/azure.json -O /tmp/OCPInstall/azure.json
 envsubst < /tmp/OCPInstall/azure.json > /tmp/OCPInstall/QuickCluster/azure.json
 oc create secret generic azure-cloud-provider --from-literal=cloud-config=$(cat /tmp/OCPInstall/QuickCluster/azure.json | base64 | awk '{printf $0}'; echo) -n kube-system
 
@@ -180,11 +180,11 @@ echo "Driver version " $driver_version
 curl -skSL https://raw.githubusercontent.com/kubernetes-sigs/azurefile-csi-driver/$driver_version/deploy/install-driver.sh | bash -s $driver_version --
 
 #Deploy premium Storage Class
- wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/storageclasses/azurefiles-premium.yaml -O /tmp/OCPInstall/azurefiles-premium.yaml
+ wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/azurefiles-premium.yaml -O /tmp/OCPInstall/azurefiles-premium.yaml
  envsubst < /tmp/OCPInstall/azurefiles-premium.yaml > /tmp/OCPInstall/QuickCluster/azurefiles-premium.yaml
  oc apply -f /tmp/OCPInstall/QuickCluster/azurefiles-premium.yaml
 
- oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/storageclasses/persistent-volume-binder.yaml
+ oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/persistent-volume-binder.yaml
 ```
 
 ### Enabling OIDC authentication against Azure AD
@@ -214,7 +214,7 @@ You will need to update the pull secrets to make sure that all containers on Ope
 ### Updating Worker Nodes
 
 ```bash
-wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/machinesets/worker.yaml -O /tmp/OCPInstall/worker.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/machinesets/worker.yaml -O /tmp/OCPInstall/worker.yaml
 
 #Set variables to match your environment
 export clusterInstanceName="clusterInstanceName"
@@ -251,7 +251,7 @@ oc scale --replicas=3 machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster
 OpenShift Container Storage provides ceph to our cluster. Ceph is used by a variety of Maximo services to store its data. Before we can deploy OCS, we need to make a new machineset for it as it is quite needy: a minimum of 30 vCPUs and 72GB of RAM is required. In our sizing we use 4x B8ms for this machineset, the bare minimum and put them on their own nodes so there's no resource contention. After the machineset we need the OCS operator. Alternatively, you can install it from the OperatorHub.
 
 ```bash
-wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/machinesets/ocs.yaml -O ocs.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/machinesets/ocs.yaml -O ocs.yaml
 export zone=1
 export numReplicas=2
 envsubst < ocs.yaml > /tmp/OCPInstall/QuickCluster/ocs.yaml
@@ -266,7 +266,7 @@ oc apply -f /tmp/OCPInstall/QuickCluster/ocs.yaml
 oc create ns openshift-storage
 
 # Install the operator
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/ocs/ocs-operator.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/ocs/ocs-operator.yaml
 ```
 
 After provisioning the cluster, go to the OpenShift Container Storage operator in the `openshift-storage` namespace and create a `StorageCluster`. Following settings (which are the default):
@@ -285,7 +285,7 @@ The [IBM Operator Catalog](https://www.ibm.com/docs/en/app-connect/containers_cd
 To install, run the following commands:
 
 ```bash
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/operatorcatalogs/catalog-source.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/operatorcatalogs/catalog-source.yaml
 ```
 
 To validate everything is up and running, check `oc get catalogsource/ibm-operator-catalog -n openshift-marketplace`.
@@ -399,7 +399,7 @@ END CERTIFICATE
 We have to put this operator on manual approval and you can NOT and should NOT upgrade the operator to a newer version. Maximo requires 0.8.0 specifically. To install, run the following commands:
 
 ```bash
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/servicebinding/service-binding-operator.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/servicebinding/service-binding-operator.yaml
 
 installplan=$(oc get installplan -n openshift-operators | grep -i service-binding | awk '{print $1}'); echo "installplan: $installplan"
 oc patch installplan ${installplan} -n openshift-operators --type merge --patch '{"spec":{"approved":true}}'
@@ -423,7 +423,7 @@ service-binding-operator.v0.8.0   Service Binding Operator   0.8.0     service-b
 To install, run the following commands:
 
 ```bash
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/bas/bas-operator.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/bas/bas-operator.yaml
 ```
 
 Next, you will need to create 2 secrets. Be sure to update the username and password in the example below:
@@ -437,7 +437,7 @@ Finally, deploy the Analytics Proxy. This will take up to 30 minutes to complete
 
 ```bash
 # Deploy
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/bas/bas-service.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/bas/bas-service.yaml
 
 # You can monitor the progress, keep an eye on the status section:
 oc describe AnalyticsProxy analyticsproxy -n ibm-bas
@@ -450,7 +450,7 @@ Once this is complete, retrieve the bas endpoint and the API Key for use when do
 
 ```bash
 oc get routes bas-endpoint -n ibm-bas
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/bas/bas-api-key.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/bas/bas-api-key.yaml
 ```
 
 To get the credentials and details from BAS, please see [Setting up Maximo](#setting-up-maximo).
@@ -478,7 +478,7 @@ oc create secret docker-registry ibm-entitlement --docker-server=cp.icr.io --doc
 Deploy the operator group and subscription configurations for both Suite Licensing Service (SLS) and the truststore manager operator (requirement for SLS)
 
 ```bash
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/sls/sls-operator.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/sls/sls-operator.yaml
 ```
 
 This will take a while, as usual, check its progress with `oc get csv -n ibm-sls`.
@@ -514,13 +514,13 @@ If you are happy with the default configuration then proceed with the following 
 
 ```bash
 # Deploy
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/sls/sls-service.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/sls/sls-service.yaml
 ```
 
 If you prefer to modify the setup, pull down the config and edit it:
 
 ```bash
-wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/sls/sls-service.yaml -O sls-service.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/sls/sls-service.yaml -O sls-service.yaml
 ```
 
 After editing:
@@ -548,7 +548,7 @@ In the step below, you will deploy the MAS operator and then configure the Suite
 Lets deploy the operator:
 
 ```bash
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/mas/mas-operator.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/mas/mas-operator.yaml
 ```
 
 Add the entitlement key secret to the mas project:
@@ -571,7 +571,7 @@ Pull down the mas service YAML file and export variables that will be updated wi
 ```bash
 export clusterName=myclustername
 export baseDomain=mydomain.com
-wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/mas/mas-service.yaml -O mas-service.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/mas/mas-service.yaml -O mas-service.yaml
 envsubst < mas-service.yaml > mas-service-nonprod.yaml
 oc apply -f mas-service-nonprod.yaml
 ```
@@ -647,7 +647,7 @@ export mongoCert1=$(cat outfile00)
 export mongoCert2=$(cat outfile01)
 #mongoCert1=$(openssl s_client -showcerts -servername localhost -connect localhost:7000 </dev/null 2>/dev/null | openssl x509 -outform PEM)
 kill $PID
-wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/mas/mongoCfg.yaml -O mongoCfg.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/mas/mongoCfg.yaml -O mongoCfg.yaml
 envsubst < mongoCfg.yaml > mongoCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$mongoCert1\"" -i mongoCfg-nonprod.yaml
 yq eval ".spec.certificates[1].crt = \"$mongoCert2\"" -i mongoCfg-nonprod.yaml
@@ -667,7 +667,7 @@ rm -f outfile*
 openssl s_client -connect $basURL:443 -servername $basURL -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
 export basCert1=$(cat outfile00)
 export basCert2=$(cat outfile01)
-wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/mas/basCfg.yaml -O basCfg.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/mas/basCfg.yaml -O basCfg.yaml
 envsubst < basCfg.yaml > basCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$basCert1\"" -i basCfg-nonprod.yaml
 yq eval ".spec.certificates[1].crt = \"$basCert2\"" -i basCfg-nonprod.yaml
@@ -691,7 +691,7 @@ rm -f outfile*
 openssl s_client -connect localhost:7000 -servername localhost -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
 export slsCert1=$(cat outfile00)
 export slsCert2=$(cat outfile01)
-wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/mas/slsCfg.yaml -O slsCfg.yaml
+wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/mas/slsCfg.yaml -O slsCfg.yaml
 envsubst < slsCfg.yaml > slsCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$slsCert1\"" -i slsCfg-nonprod.yaml
 yq eval ".spec.certificates[1].crt = \"$slsCert2\"" -i slsCfg-nonprod.yaml

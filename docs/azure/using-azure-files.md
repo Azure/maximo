@@ -33,7 +33,7 @@ With the file ready, it is time to push it to OpenShift and add create permissio
 ```bash
 
 ## Creating the storage class
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/StorageClasses/azure-files.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/StorageClasses/azure-files.yaml
 
 # The azure files provisioner will create a storage account and grab its access key. However, it 
 # can't store it inside OpenShift as a secret because it has no permission. The below fixes that.

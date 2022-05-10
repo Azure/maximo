@@ -5,7 +5,7 @@ echo "================ Install Config Check START ================"
 if [ -z "$customInstallConfigURL" ]
     then
         #empty
-        wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/ocp/install-config.yaml -O /tmp/OCPInstall/install-config.yaml
+        wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/ocp/install-config.yaml -O /tmp/OCPInstall/install-config.yaml
     else
         wget -nv $customInstallConfigURL -O /tmp/OCPInstall/install-config.yaml
         #custom
