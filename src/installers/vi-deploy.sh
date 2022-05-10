@@ -7,6 +7,16 @@ echo "================ VI DEPLOY START ================"
 #ENTITLEMENT_KEY="$ENTITLEMENT_KEY"
 #CLUSTER_URL="apps.newcluster.maximoonazure.com"
 
+#Setup VI Tesla MachineSet
+wget -nv https://raw.githubusercontent.com/Azure/maximo/main/src/machinesets/worker-vi-tesla.yaml -O /tmp/OCPInstall/worker-vi-tesla.yaml
+
+#Setup Zone 1
+export zone=1
+#Setup Number of Machines per Zone
+export numReplicas=2
+envsubst < /tmp/OCPInstall/worker-vi-tesla.yaml > /tmp/OCPInstall/QuickCluster/worker-vi-tesla.yaml
+sudo -E /tmp/OCPInstall/oc apply -f /tmp/OCPInstall/QuickCluster/worker-vi-tesla.yaml
+
 # Set up Node Feature Discovery (nfd)
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/nfd/nfd-operator.yaml
 
@@ -26,7 +36,7 @@ sed -i "s/{CSV}/$nvidiaOperatorCSV/" nv-operator.yaml
 
 oc apply -f nv-operator.yaml
 
-oc get csv -n nvidia-gpu-operator $CSV -ojsonpath={.metadata.annotations.alm-examples} | jq .[0] > clusterpolicy.json
+oc get csv -n nvidia-gpu-operator $nvidiaOperatorCSV -ojsonpath={.metadata.annotations.alm-examples} | jq .[0] > clusterpolicy.json
 
 oc apply -f clusterpolicy.json
 

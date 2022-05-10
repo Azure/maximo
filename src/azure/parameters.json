@@ -86,7 +86,7 @@
             "value": "maximoBastionHost"
         },
         "openshiftVersion":{
-            "value": "4.6.52"
+            "value": "4.8.22"
         },
         "azureFilesCSIVersion":{
             "value": "v1.12.0"
@@ -95,10 +95,10 @@
             "value": "8.6.x"
         },
         "nvidiaOperatorChannel" : {
-            "value": "1.10"
+            "value": "v1.9.0"
         },
         "nvidiaOperatorCSV" : {
-            "value": "gpu-operator-certified.v1.10.1"
+            "value": "gpu-operator-certified.v1.9.1"
         }
 
     }
