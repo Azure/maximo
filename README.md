@@ -183,9 +183,32 @@ curl -skSL https://raw.githubusercontent.com/kubernetes-sigs/azurefile-csi-drive
  oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/storageclasses/persistent-volume-binder.yaml
 ```
 
-### Enabling OIDC authentication against Azure AD
+### Enabling SAML authentication against Azure AD
 
-TODO
+Maximo Application Suite supports SAML for authentication into the platform, including the use of Azure AD as the SAML IdP. To enable Azure AD as the SAML IdP you need to take the following steps:
+
+1. Open the Azure Portal and go to the Azure Active Directory blade. Register an Enterprise Application in Azure Active Directory, you may need permissions for this or have your global administrator create this for you
+   - Give it a name, e.g. Maximo SAML
+   - Select "Integrate any other application you don't find in the gallery"
+1. After deploying Maximo Application Suite, go to the Maximo administration portal and select "Configure SAML" (can also be found on the configuration panel) and fill out step 1. Name the service provider something that is convenient. 
+   - Pick emailAddress as the [nameid-format](https://docs.microsoft.com/en-us/azure/active-directory/develop/single-sign-on-saml-protocol?msclkid=866c050dd0b011eca7e7a70540390891#nameidpolicy). 
+   - Click on **Generate file**, wait and then **Download file**. Store this file, you need it in the next step.
+1. Switch back to the Azure Portal and go into the newly registered application. Click on **single sign on** and then select **SAML**. Click on **upload metadata file** and select the file you downloaded from the Maximo configuration panel and then click on **Add**. 
+1. On the next page that opens, you can optionally put in the URL to the homepage for the Maximo workspace into the RelayState field. That allows you to SSO to the application from the Microsoft MyApps experience. Next press **Save**. 
+1. On step 3 in the Azure AD Portal authentication overview, you need to download the **Federation Metadata XML**. Switch back to Maximo's SAML configuration panel and in the step 3 there upload the Azure AD Federation Metadata XML document.
+
+The steps above have loaded the definitions of the SAML Endpoint into the Azure AD Enterprise Application and into Maximo so that they can exchange the SAML messages and understand eachother. Next we need to create users in Maximo and grant those users access on Azure AD to control the single sign-on.
+
+1. Go to the Azure AD Enterprise Application you created, click on **users and groups**. Click on **add user/group** and add a designated user (yourself) to the application. Take note of the UPN (email address) the user uses.
+1. Switch back to Maximo and create a new user there with the following details
+   - Authentication type: SAML
+   - Username: the UPN used in Azure AD - they have to match
+   - Primary email: the UPN used in Azure AD
+   
+   The rest of the fields can be populated as you like with whatever permissions necessary
+1. Open a new browser window (in private), go to the Maximo home or admin page, enter your Azure AD UPN, it should redirect you to Azure AD for authentication and sign you in successfully.
+
+Any errors can be reviewed by looking at the logs for the `coreidp` pods.
 
 ### Updating pull secrets
 
