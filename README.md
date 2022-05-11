@@ -1,6 +1,6 @@
 # QuickStart Guide: Maximo Application Suite on Azure
 
-This repository provides deployment guidance, scripts and best practices for running IBM Maximo Application Suite (Maximo or MAS) on OpenShift using the Azure Cloud. The instruction below have been tested with Maximo 8.6.x on OpenShift 4.6.x.
+This repository provides deployment guidance, scripts and best practices for running IBM Maximo Application Suite (Maximo or MAS) on OpenShift using the Azure Cloud. The instruction below have been tested with Maximo 8.7.x on OpenShift 4.8.x.
 
 > 🚧 **NOTE**: The scripts contained within this repo were written with the intention of testing various configurations and integrations on Azure. They allow you to quickly deploy Maximo on Azure so that configurations can be evaluated.
 
@@ -8,52 +8,48 @@ This repository provides deployment guidance, scripts and best practices for run
 
 ## Table of Contents
 
-* [Maximo on Azure](#quickstart-guide-maximo-on-azure)
-  * [Getting Started](#getting-started)
-  * [Overview](#overview)
-  * [Step 1: Preparing Azure](#step-1-preparing-azure)
-  * [Step 2: Deploy and Prepare OpenShift](#step-2-deploy-and-prepare-openshift)
-    * [Install OCP](#install-ocp)
-    * [Logging In](#logging-in)
-  * [Step 3: Install Dependencies for MAS](#step-3-install-dependencies-for-mas)
-    * [Azure Files CSI drivers](#azure-files-csi-drivers)
-    * [Enabling OIDC authentication against Azure AD](#enabling-oidc-authentication-against-azure-ad) (TO BE WRITTEN)
-    * [Updating pull secrets](#updating-pull-secrets)
-    * [Updating Worker Nodes](#updating-worker-nodes)
-    * [Installing OpenShift Container Storage (Optional)](#installing-openshift-container-storage-optional)
-    * [Installing IBM Catalog Operator](#installing-ibm-operator-catalog)
-      * [Installing cert-manager](#installing-cert-manager)
-      * [Installing MongoDB](#installing-mongodb)
-      * [Installing Service Binding Operator](#installing-service-binding-operator)
-      * [Installing IBM Behavior Analytics Services Operator (BAS)](#installing-ibm-behavior-analytics-services-operator-bas)
-      * [Installing IBM Suite License Service (SLS)](#installing-ibm-suite-license-service-sls)
-  * [Step 4: Installing MAS](#step-4-installing-mas)
-    * [Deploying using the Operator](#deploying-using-the-operator)
-    * [Setting up MAS](#setting-up-mas)
-      * [Configuring MongoDB](#configuring-mongodb)
-      * [Configuring BAS](#configuring-bas)
-      * [Configuring SLS](#configuring-sls)
-      * [Generate a license file and finalize workspace](#generate-a-license-file-and-finalize-workspace)
-  * [Step 5: Installing Cloud Pak for Data (Optional)](#step-5-installing-cloud-pak-for-data-optional)
-    * [Installing CP4D 3.5](#installing-cp4d-35)
-  * [Step 6: Installing Visual Inspection (Optional)(#step6-installing-visual-inspection)]
-    * [Visual Inspection Requirements]
-    * [Installing Visual Inspection Components]
-    * [Post-Install Steps]
-  * [Step 7: Post Install Dependencies](#step-7-post-install-dependencies)
-    * [Dedicated nodes](#dedicated-nodes)
-    * [Deploying Db2 Warehouse](#deploying-db2-warehouse)
-    * [Configuring MAS with DB2WH](#configuring-mas-with-db2wh)
-    * [Installing Kafka](#installing-kafka)
-      * [Configuring MAS with Kafka](#configuring-mas-with-kafka)
-    * [Install IoT Dependencies](#install-iot-dependencies)
-  * [Tips and Tricks](#tips-and-tricks)
-    * [To get your credentials to login](#to-get-your-credentials-to-login)
-    * [Shutting Down your Cluster](#shutting-down-your-cluster)
-    * [Restarting Kafka inside BAS](#restarting-kafka-inside-bas)
-    * [Pods refusing to schedule](#pods-refusing-to-schedule)
-  * [Contributing](#contributing)
-  * [Trademarks](#trademarks)
+- [QuickStart Guide: Maximo Application Suite on Azure](#quickstart-guide-maximo-application-suite-on-azure)
+  - [Table of Contents](#table-of-contents)
+  - [Getting Started](#getting-started)
+  - [Overview](#overview)
+  - [Step 1: Preparing Azure](#step-1-preparing-azure)
+  - [Step 2: Deploy and prepare OpenShift](#step-2-deploy-and-prepare-openshift)
+    - [Install OCP](#install-ocp)
+    - [Logging In](#logging-in)
+  - [Step 3: Install dependencies for MAS](#step-3-install-dependencies-for-mas)
+    - [Azure Files CSI drivers](#azure-files-csi-drivers)
+    - [Enabling SAML authentication against Azure AD](#enabling-saml-authentication-against-azure-ad)
+    - [Updating pull secrets](#updating-pull-secrets)
+    - [Updating Worker Nodes](#updating-worker-nodes)
+    - [Installing OpenShift Container Storage (Optional)](#installing-openshift-container-storage-optional)
+    - [Installing IBM Operator Catalog](#installing-ibm-operator-catalog)
+    - [Installing cert-manager](#installing-cert-manager)
+    - [Installing MongoDB](#installing-mongodb)
+    - [Installing Service Binding Operator](#installing-service-binding-operator)
+    - [Installing IBM Behavior Analytics Services Operator (BAS)](#installing-ibm-behavior-analytics-services-operator-bas)
+  - [Step 4: Installing MAS](#step-4-installing-mas)
+    - [Deploying using the Operator](#deploying-using-the-operator)
+    - [Setting up MAS](#setting-up-mas)
+  - [Step 5: Installing Cloud Pak for Data (Optional)](#step-5-installing-cloud-pak-for-data-optional)
+    - [Installing CP4D 3.5](#installing-cp4d-35)
+  - [Step 6: Post Install Dependencies](#step-6-post-install-dependencies)
+    - [Dedicated nodes](#dedicated-nodes)
+    - [Deploying Db2 Warehouse](#deploying-db2-warehouse)
+    - [Configuring MAS with DB2WH](#configuring-mas-with-db2wh)
+    - [Installing Kafka](#installing-kafka)
+    - [Install IoT Dependencies](#install-iot-dependencies)
+  - [Step 7a: Installing Manage](#step-7a-installing-manage)
+  - [Step 7b: Installing Health](#step-7b-installing-health)
+  - [Step 7c: Installing Visual Inspection](#step-7c-installing-visual-inspection)
+  - [Step 7d: Installing Monitor and IoT](#step-7d-installing-monitor-and-iot)
+  - [Step 7e: Installing Predict](#step-7e-installing-predict)
+  - [Tips and Tricks](#tips-and-tricks)
+    - [To get your credentials to login](#to-get-your-credentials-to-login)
+    - [Shutting down your cluster](#shutting-down-your-cluster)
+    - [Restarting Kafka inside BAS](#restarting-kafka-inside-bas)
+    - [Pods refusing to schedule](#pods-refusing-to-schedule)
+  - [Contributing](#contributing)
+
 
 ## Getting Started
 
@@ -187,9 +183,32 @@ curl -skSL https://raw.githubusercontent.com/kubernetes-sigs/azurefile-csi-drive
  oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/persistent-volume-binder.yaml
 ```
 
-### Enabling OIDC authentication against Azure AD
+### Enabling SAML authentication against Azure AD
 
-TODO
+Maximo Application Suite supports SAML for authentication into the platform, including the use of Azure AD as the SAML IdP. To enable Azure AD as the SAML IdP you need to take the following steps:
+
+1. Open the Azure Portal and go to the Azure Active Directory blade. Register an Enterprise Application in Azure Active Directory, you may need permissions for this or have your global administrator create this for you
+   - Give it a name, e.g. Maximo SAML
+   - Select "Integrate any other application you don't find in the gallery"
+1. After deploying Maximo Application Suite, go to the Maximo administration portal and select "Configure SAML" (can also be found on the configuration panel) and fill out step 1. Name the service provider something that is convenient. 
+   - Pick emailAddress as the [nameid-format](https://docs.microsoft.com/en-us/azure/active-directory/develop/single-sign-on-saml-protocol?msclkid=866c050dd0b011eca7e7a70540390891#nameidpolicy). 
+   - Click on **Generate file**, wait and then **Download file**. Store this file, you need it in the next step.
+1. Switch back to the Azure Portal and go into the newly registered application. Click on **single sign on** and then select **SAML**. Click on **upload metadata file** and select the file you downloaded from the Maximo configuration panel and then click on **Add**. 
+1. On the next page that opens, you can optionally put in the URL to the homepage for the Maximo workspace into the RelayState field. That allows you to SSO to the application from the Microsoft MyApps experience. Next press **Save**. 
+1. On step 3 in the Azure AD Portal authentication overview, you need to download the **Federation Metadata XML**. Switch back to Maximo's SAML configuration panel and in the step 3 there upload the Azure AD Federation Metadata XML document.
+
+The steps above have loaded the definitions of the SAML Endpoint into the Azure AD Enterprise Application and into Maximo so that they can exchange the SAML messages and understand eachother. Next we need to create users in Maximo and grant those users access on Azure AD to control the single sign-on.
+
+1. Go to the Azure AD Enterprise Application you created, click on **users and groups**. Click on **add user/group** and add a designated user (yourself) to the application. Take note of the UPN (email address) the user uses.
+1. Switch back to Maximo and create a new user there with the following details
+   - Authentication type: SAML
+   - Username: the UPN used in Azure AD - they have to match
+   - Primary email: the UPN used in Azure AD
+   
+   The rest of the fields can be populated as you like with whatever permissions necessary
+1. Open a new browser window (in private), go to the Maximo home or admin page, enter your Azure AD UPN, it should redirect you to Azure AD for authentication and sign you in successfully.
+
+Any errors can be reviewed by looking at the logs for the `coreidp` pods.
 
 ### Updating pull secrets
 
@@ -299,7 +318,7 @@ ibm-operator-catalog   IBM Operator Catalog   grpc   IBM         5d21h
 
 ### Installing cert-manager
 
-[cert-manager](https://github.com/jetstack/cert-manager) is a Kubernetes add-on to automate the management and issuance of TLS certificates from various issuing sources. It is required for [Maximo](https://www.ibm.com/docs/en/mas85/8.5.0?topic=installation-system-requirements#mas-requirements). For more installation and usage information check out the [cert-manager documentation](https://cert-manager.io/v0.16-docs/installation/openshift/).
+[cert-manager](https://github.com/jetstack/cert-manager) is a Kubernetes add-on to automate the management and issuance of TLS certificates from various issuing sources. It is required for [Maximo](https://www.ibm.com/docs/en/mas87/8.7.0?topic=installation-system-requirements#mas-requirements). For more installation and usage information check out the [cert-manager documentation](https://cert-manager.io/v0.16-docs/installation/openshift/).
 Installation of cert-manager is relatively straight forward. Create a namespace and install:
 
 ```bash
@@ -537,7 +556,7 @@ oc get LicenseService sls -n ibm-sls -o yaml
 
 ## Step 4: Installing MAS
 
-Maximo Application Suite (MAS) can be installed on OpenShift. IBM provides documentation for MAS on its [documentation site](https://www.ibm.com/docs/en/mas86/8.6.0). Make sure to refer to the documentation for [Maximo 8.7.x](https://www.ibm.com/docs/en/mas86/8.6.0), as that is the version we are describing throughout this document.
+Maximo Application Suite (MAS) can be installed on OpenShift. IBM provides documentation for MAS on its [documentation site](https://www.ibm.com/docs/en/mas87/8.7.0). Make sure to refer to the documentation for [Maximo 8.7.x](https://www.ibm.com/docs/en/mas87/8.7.0), as that is the version we are describing throughout this document.
 
 All of the steps below assume you are logged on to your OpenShift cluster and you have the `oc` CLI available.
 
@@ -799,7 +818,7 @@ Click on it, press next and deploy. In this deployment we are using OCS as the c
 
 Go to the configuration panel for Maximo by pressing on the cog on the top right or by going to https://<admin.maximocluster.domain>/config. It will ask you for some details that you can get from the CP4D DB2 overview. On your DB2 Warehouse instance, go to details. In the overview you will get the JDBC URL. Something like `jdbc:db2://<CLUSTER_ACCESSIBLE_IP>:32209/BLUDB:user=admin;password=<password>;securityMechanism=9;encryptionAlgorithm=2`. If you click on the copy icon, it gives you the required details.
 
-Please read the [Maximo documentation on how to specify the URL for DB2WH specifically](https://www.ibm.com/docs/en/mas85/8.5.0?topic=administering-configuring-suite#data) as it depends on the Maximo application you are deploying. Especially so for manage and monitor (requires SSL).
+Please read the [Maximo documentation on how to specify the URL for DB2WH specifically](https://www.ibm.com/docs/en/mas87/8.7.0?topic=administering-configuring-suite#data) as it depends on the Maximo application you are deploying. Especially so for manage and monitor (requires SSL).
 
 To grab the URL check the svc endpoint that sits in front of the nodes. To get that, execute the following:
 
@@ -901,7 +920,56 @@ oc create ns mas-nonprod-iot
 oc create secret docker-registry ibm-entitlement --docker-username=cp --docker-password=<YOUR_KEY> --docker-server=cp.icr.io -n mas-nonprod-iot
 ```
 
+<!-- Solution deployments -->
+
+## Step 7: Installing applications on top of Maximo
+
+Maximo Application Suite is the base platform that Maximo Applications will need to be installed on top of. Figuring out what technologies are required is a bit of a challenge. Follow the Flowchart below to determine what is needed.
+
+```mermaid
+graph TD
+  A[Start] --> B
+  B{Manage/VI only?} --> |Yes| C
+  C{Need a database?} --> |Yes| SQL[Install SQL Server on a VM] --> I
+  C ----> |No| I
+  B ----> |No| D[Install CP4D]  
+    D --> E  
+    E{Need manage?} --> |Yes| F
+    E ----> |No| G 
+    F{Need health?} --> |Yes| Q[Set up a DB2WH ROW] --> G
+    F ----> |No| G      
+    G{Need monitor?} --> |Yes| Mongo[Pick a Mongo] --> Kafka[Pick a Kafka] --> R[Set up a DB2WH on CP4D] --> IoT[Set up IoT Tools] --> H
+    G ----> |No| I
+  H{Need predict?} --> |Yes| WatsonStudio[Install Watson Studio] --> WatsonML[Install Watson ML] --> I
+  H ----> |No| I
+  I{Need VI?} --> |Yes| N[OpenShift 4.8.22 + Nvidia] --> Z
+  I ----> |No| Z
+  Z[End]
+```
+
+## Step 7a: Installing Manage
+
+TODO
+
+## Step 7b: Installing Health
+
+TODO
+
+## Step 7c: Installing Visual Inspection
+
+TODO
+
+## Step 7d: Installing Monitor and IoT
+
+TODO
+
+## Step 7e: Installing Predict
+
+TODO
+
 ## Tips and Tricks
+
+TODO
 
 ### To get your credentials to login
 
@@ -909,7 +977,7 @@ For MAS: `oc extract secret/nonprod-credentials-superuser -n mas-nonprod-core --
 
 ### Shutting down your cluster
 
-One of the benefits of cloud is the ability to deallocate your instances and stopping to pay for them. OpenShift supports this and it is possible with Maximo. Snoozing is possible for up to a year or whenever your OpenShift certificates expire. Check the OpenShift documentation for specifics on the support for [graceful shutdowns](https://docs.openshift.com/container-platform/4.6/backup_and_restore/graceful-cluster-shutdown.html).
+One of the benefits of cloud is the ability to deallocate your instances and stopping to pay for them. OpenShift supports this and it is possible with Maximo. Snoozing is possible for up to a year or whenever your OpenShift certificates expire. Check the OpenShift documentation for specifics on the support for [graceful shutdowns](https://docs.openshift.com/container-platform/4.8/backup_and_restore/graceful-cluster-shutdown.html).
 
 To shutdown your cluster you have to stop and deallocate your nodes. This can be done in two days, either by asking the nodes to shutdown themselves and deallocate through Azure or to stop and deallocate from Azure directly. Make sure to deallocate, otherwise your virtual machines will be continue to be billed.
 
@@ -929,6 +997,7 @@ The Kafka deployment inside of BAS sometimes gets messed up. It loses track of w
 
 Sometimes pods refuse to schedule saying they can't find nodes, this is particularly the case for OCS and Kafka. Most of this is to do with where the virtual machines are logically: their availability zones. Make sure you have worker nodes in each of the availability zones a region provides.
 
+<!-- markdown-link-check-disable -->
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require ou to agree to a Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us the rights to use your contribution. For details, visit <https://cla.opensource.microsoft.com>.
@@ -939,6 +1008,7 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 
 ## Trademarks
 
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft trademarks or logos is subject to and must follow [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/legal/intellectualproperty/trademarks/usage/general).
+This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft trademarks or logos is subject to and must follow [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks).
 
 Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship. Any use of third-party trademarks or logos are subject to those third-party's policies.
+<!-- markdown-link-check-enable -->
