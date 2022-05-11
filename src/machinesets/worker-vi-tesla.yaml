@@ -8,7 +8,7 @@ metadata:
   name: vi-gpu-tesla-z$zone
   namespace: openshift-machine-api
 spec:
-  replicas: 1
+  replicas: $numReplicas
   selector:
     matchLabels:
       components: vi-gpu-tesla
@@ -39,7 +39,7 @@ spec:
           image:
             offer: ""
             publisher: ""
-            resourceID: /resourceGroups/democluster-thhgq-rg/providers/Microsoft.Compute/images/$clusterInstanceName
+            resourceID: /resourceGroups/$clusterInstanceName-rg/providers/Microsoft.Compute/images/$clusterInstanceName
             sku: ""
             version: ""
           internalLoadBalancer: ""
@@ -60,7 +60,7 @@ spec:
           resourceGroup: $clusterInstanceName-rg
           sshPrivateKey: ""
           sshPublicKey: ""
-          subnet: workers
+          subnet: $subnetWorkerNodeName
           userDataSecret:
             name: worker-user-data
           vmSize: Standard_NC12s_v3
