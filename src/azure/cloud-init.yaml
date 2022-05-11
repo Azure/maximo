@@ -44,7 +44,7 @@ runcmd:
     export branchName="${branchName}"
     export nvidiaOperatorChannel="${nvidiaOperatorChannel}"
     export nvidiaOperatorCSV="${nvidiaOperatorCSV}"
- - [ wget, -nv, "https://raw.githubusercontent.com/Azure/maximo/$branchName/src/installers/install_config.sh", -O, /tmp/install_config.sh ]
+ - [ wget, -nv, "https://raw.githubusercontent.com/Azure/maximo/${branchName}/src/installers/install_config.sh", -O, /tmp/install_config.sh ]
  - chmod +x /tmp/install_config.sh
  - sudo -E /tmp/install_config.sh
  - sudo /tmp/OCPInstall/openshift-install create cluster --dir=/tmp/OCPInstall/QuickCluster --log-level=info
@@ -55,6 +55,6 @@ runcmd:
  - export clusterInstanceName=$(cat /tmp/OCPInstall/QuickCluster/metadata.json | jq -r .infraID)
  - [ wget, -nv, "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${openshiftVersion}/openshift-client-linux.tar.gz", -O, /tmp/OCPInstall/openshift-client-linux.tar.gz ]
  - tar xvf /tmp/OCPInstall/openshift-client-linux.tar.gz -C /tmp/OCPInstall
- - [ wget, -nv, "https://raw.githubusercontent.com/Azure/maximo/$branchName/src/installers/install_manager.sh", -O, /tmp/install_manager.sh ]
+ - [ wget, -nv, "https://raw.githubusercontent.com/Azure/maximo/${branchName}/src/installers/install_manager.sh", -O, /tmp/install_manager.sh ]
  - chmod +x /tmp/install_manager.sh
  - sudo -E /tmp/install_manager.sh

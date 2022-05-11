@@ -52,6 +52,8 @@ param azureFilesCSIVersion string
 param masChannel string
 param nvidiaOperatorChannel string
 param nvidiaOperatorCSV string
+param branchName string
+
 //create dns zone
 module dnsZone 'dns.bicep' = {
   name: 'DnsConfig'
@@ -153,6 +155,7 @@ module sidecarVM 'jumpbox.bicep' = {
     masChannel: masChannel
     nvidiaOperatorChannel: nvidiaOperatorChannel
     nvidiaOperatorCSV: nvidiaOperatorCSV
+    branchName: branchName
   }
   dependsOn: [
     network
