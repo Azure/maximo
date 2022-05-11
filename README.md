@@ -1,6 +1,6 @@
 # QuickStart Guide: Maximo Application Suite on Azure
 
-This repository provides deployment guidance, scripts and best practices for running IBM Maximo Application Suite (Maximo or MAS) on OpenShift using the Azure Cloud. The instruction below have been tested with Maximo 8.6.x on OpenShift 4.6.x.
+This repository provides deployment guidance, scripts and best practices for running IBM Maximo Application Suite (Maximo or MAS) on OpenShift using the Azure Cloud. The instruction below have been tested with Maximo 8.7.x on OpenShift 4.8.x.
 
 > 🚧 **NOTE**: The scripts contained within this repo were written with the intention of testing various configurations and integrations on Azure. They allow you to quickly deploy Maximo on Azure so that configurations can be evaluated.
 
@@ -318,7 +318,7 @@ ibm-operator-catalog   IBM Operator Catalog   grpc   IBM         5d21h
 
 ### Installing cert-manager
 
-[cert-manager](https://github.com/jetstack/cert-manager) is a Kubernetes add-on to automate the management and issuance of TLS certificates from various issuing sources. It is required for [Maximo](https://www.ibm.com/docs/en/mas85/8.5.0?topic=installation-system-requirements#mas-requirements). For more installation and usage information check out the [cert-manager documentation](https://cert-manager.io/v0.16-docs/installation/openshift/).
+[cert-manager](https://github.com/jetstack/cert-manager) is a Kubernetes add-on to automate the management and issuance of TLS certificates from various issuing sources. It is required for [Maximo](https://www.ibm.com/docs/en/mas87/8.7.0?topic=installation-system-requirements#mas-requirements). For more installation and usage information check out the [cert-manager documentation](https://cert-manager.io/v0.16-docs/installation/openshift/).
 Installation of cert-manager is relatively straight forward. Create a namespace and install:
 
 ```bash
@@ -556,7 +556,7 @@ oc get LicenseService sls -n ibm-sls -o yaml
 
 ## Step 4: Installing MAS
 
-Maximo Application Suite (MAS) can be installed on OpenShift. IBM provides documentation for MAS on its [documentation site](https://www.ibm.com/docs/en/mas86/8.6.0). Make sure to refer to the documentation for [Maximo 8.7.x](https://www.ibm.com/docs/en/mas86/8.6.0), as that is the version we are describing throughout this document.
+Maximo Application Suite (MAS) can be installed on OpenShift. IBM provides documentation for MAS on its [documentation site](https://www.ibm.com/docs/en/mas87/8.7.0). Make sure to refer to the documentation for [Maximo 8.7.x](https://www.ibm.com/docs/en/mas87/8.7.0), as that is the version we are describing throughout this document.
 
 All of the steps below assume you are logged on to your OpenShift cluster and you have the `oc` CLI available.
 
@@ -804,7 +804,7 @@ Click on it, press next and deploy. In this deployment we are using OCS as the c
 
 Go to the configuration panel for Maximo by pressing on the cog on the top right or by going to https://<admin.maximocluster.domain>/config. It will ask you for some details that you can get from the CP4D DB2 overview. On your DB2 Warehouse instance, go to details. In the overview you will get the JDBC URL. Something like `jdbc:db2://<CLUSTER_ACCESSIBLE_IP>:32209/BLUDB:user=admin;password=<password>;securityMechanism=9;encryptionAlgorithm=2`. If you click on the copy icon, it gives you the required details.
 
-Please read the [Maximo documentation on how to specify the URL for DB2WH specifically](https://www.ibm.com/docs/en/mas85/8.5.0?topic=administering-configuring-suite#data) as it depends on the Maximo application you are deploying. Especially so for manage and monitor (requires SSL).
+Please read the [Maximo documentation on how to specify the URL for DB2WH specifically](https://www.ibm.com/docs/en/mas87/8.7.0?topic=administering-configuring-suite#data) as it depends on the Maximo application you are deploying. Especially so for manage and monitor (requires SSL).
 
 To grab the URL check the svc endpoint that sits in front of the nodes. To get that, execute the following:
 
@@ -963,7 +963,7 @@ For MAS: `oc extract secret/nonprod-credentials-superuser -n mas-nonprod-core --
 
 ### Shutting down your cluster
 
-One of the benefits of cloud is the ability to deallocate your instances and stopping to pay for them. OpenShift supports this and it is possible with Maximo. Snoozing is possible for up to a year or whenever your OpenShift certificates expire. Check the OpenShift documentation for specifics on the support for [graceful shutdowns](https://docs.openshift.com/container-platform/4.6/backup_and_restore/graceful-cluster-shutdown.html).
+One of the benefits of cloud is the ability to deallocate your instances and stopping to pay for them. OpenShift supports this and it is possible with Maximo. Snoozing is possible for up to a year or whenever your OpenShift certificates expire. Check the OpenShift documentation for specifics on the support for [graceful shutdowns](https://docs.openshift.com/container-platform/4.8/backup_and_restore/graceful-cluster-shutdown.html).
 
 To shutdown your cluster you have to stop and deallocate your nodes. This can be done in two days, either by asking the nodes to shutdown themselves and deallocate through Azure or to stop and deallocate from Azure directly. Make sure to deallocate, otherwise your virtual machines will be continue to be billed.
 
