@@ -908,6 +908,31 @@ oc create secret docker-registry ibm-entitlement --docker-username=cp --docker-p
 
 <!-- Solution deployments -->
 
+## Step 7: Installing applications on top of Maximo
+
+Maximo Application Suite is the base platform that Maximo Applications will need to be installed on top of. Figuring out what technologies are required is a bit of a challenge. Follow the Flowchart below to determine what is needed.
+
+```mermaid
+graph TD
+  A[Start] --> B
+  B{Manage/VI only?} --> |Yes| C
+  C{Need a database?} --> |Yes| SQL[Install SQL Server on a VM] --> I
+  C ----> |No| I
+  B ----> |No| D[Install CP4D]  
+    D --> E  
+    E{Need manage?} --> |Yes| F
+    E ----> |No| G 
+    F{Need health?} --> |Yes| Q[Set up a DB2WH ROW] --> G
+    F ----> |No| G      
+    G{Need monitor?} --> |Yes| Mongo[Pick a Mongo] --> Kafka[Pick a Kafka] --> R[Set up a DB2WH on CP4D] --> IoT[Set up IoT Tools] --> H
+    G ----> |No| I
+  H{Need predict?} --> |Yes| WatsonStudio[Install Watson Studio] --> WatsonML[Install Watson ML] --> I
+  H ----> |No| I
+  I{Need VI?} --> |Yes| N[OpenShift 4.8.22 + Nvidia] --> Z
+  I ----> |No| Z
+  Z[End]
+```
+
 ## Step 7a: Installing Manage
 
 TODO
