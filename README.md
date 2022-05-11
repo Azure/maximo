@@ -773,7 +773,7 @@ If you wish to use Visual Inspection (VI), your OpenShift deployment must accomo
 
 The included installer script includes parameters that can control if you wish to install Visual Inspection components during your deployment. This will take care of creating the machineset with GPU-enabled workers, installing all the required node discovery features, and the NVidia GPU operator. Please see the "" section about enabling Visual Inspection Pre-Requirements during your deployment.
 
-## Post-Deployment Steps
+### Post-Deployment Steps
 
 Once your cluster has been deployed, you can enable the Visual Inspection feature inside of MAS.
 
@@ -922,7 +922,7 @@ oc create secret docker-registry ibm-entitlement --docker-username=cp --docker-p
 
 <!-- Solution deployments -->
 
-## Step 7: Installing applications on top of Maximo
+## Step 8: Installing applications on top of Maximo
 
 Maximo Application Suite is the base platform that Maximo Applications will need to be installed on top of. Figuring out what technologies are required is a bit of a challenge. Follow the Flowchart below to determine what is needed.
 
@@ -947,23 +947,23 @@ graph TD
   Z[End]
 ```
 
-## Step 7a: Installing Manage
+## Step 8a: Installing Manage
 
 TODO
 
-## Step 7b: Installing Health
+## Step 8b: Installing Health
 
 TODO
 
-## Step 7c: Installing Visual Inspection
+## Step 8c: Installing Visual Inspection
 
 TODO
 
-## Step 7d: Installing Monitor and IoT
+## Step 8d: Installing Monitor and IoT
 
 TODO
 
-## Step 7e: Installing Predict
+## Step 8e: Installing Predict
 
 TODO
 
