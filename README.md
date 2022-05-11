@@ -50,7 +50,7 @@ This repository provides deployment guidance, scripts and best practices for run
     - [Pods refusing to schedule](#pods-refusing-to-schedule)
   - [Contributing](#contributing)
 
-  
+
 ## Getting Started
 
 To move forward with a Maximo install you will need a few basics:
@@ -958,6 +958,7 @@ The Kafka deployment inside of BAS sometimes gets messed up. It loses track of w
 
 Sometimes pods refuse to schedule saying they can't find nodes, this is particularly the case for OCS and Kafka. Most of this is to do with where the virtual machines are logically: their availability zones. Make sure you have worker nodes in each of the availability zones a region provides.
 
+<!-- markdown-link-check-disable -->
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require ou to agree to a Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us the rights to use your contribution. For details, visit <https://cla.opensource.microsoft.com>.
@@ -971,3 +972,4 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft trademarks or logos is subject to and must follow [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks).
 
 Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship. Any use of third-party trademarks or logos are subject to those third-party's policies.
+<!-- markdown-link-check-enable -->

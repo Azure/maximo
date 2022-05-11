@@ -1,3 +1,4 @@
+<!-- markdown-link-check-disable -->
 <!-- BEGIN MICROSOFT SECURITY.MD V0.0.5 BLOCK -->
 
 ## Security
@@ -39,3 +40,4 @@ We prefer all communications to be in English.
 Microsoft follows the principle of [Coordinated Vulnerability Disclosure](https://www.microsoft.com/en-us/msrc/cvd).
 
 <!-- END MICROSOFT SECURITY.MD BLOCK -->
+<!-- markdown-link-check-enable -->
