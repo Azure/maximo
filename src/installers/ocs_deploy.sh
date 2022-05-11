@@ -2,7 +2,7 @@
 
 echo "================ OCS DEPLOY START ================"
 
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/ocs/ocs-operator.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/ocs/ocs-operator.yaml
 
 #check API Kind is avaliable
 while [ true ]
@@ -16,7 +16,7 @@ do
      fi
 done
 
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/ocs/ocs-create-cluster.yaml
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/ocs/ocs-create-cluster.yaml
 
 #check Cluster
 while [ true ]
@@ -31,6 +31,6 @@ do
 done
 
 #Configure toleration to deploy csi drivers onto db2 machinesets
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/CloudPakForData/3.5/Db2Warehouse/rook-ceph-operator-config.yaml -n openshift-storage
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/CloudPakForData/3.5/Db2Warehouse/rook-ceph-operator-config.yaml -n openshift-storage
 
 echo "================ OCS DEPLOY COMPLETE ================"

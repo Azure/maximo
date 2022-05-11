@@ -24,6 +24,7 @@ param customInstallConfigURL string
 param installMAS string
 param installOCS string
 param installCP4D string
+param installVI string
 param applicationId string
 @secure()
 param applicationSecret string
@@ -49,6 +50,9 @@ param numWorkerReplicas string
 param openshiftVersion string
 param azureFilesCSIVersion string
 param masChannel string
+param nvidiaOperatorChannel string
+param nvidiaOperatorCSV string
+param branchName string
 
 //create dns zone
 module dnsZone 'dns.bicep' = {
@@ -145,9 +149,13 @@ module sidecarVM 'jumpbox.bicep' = {
     installMAS: installMAS
     installOCS: installOCS
     installCP4D: installCP4D
+    installVI: installVI
     openshiftVersion: openshiftVersion
     azureFilesCSIVersion: azureFilesCSIVersion
     masChannel: masChannel
+    nvidiaOperatorChannel: nvidiaOperatorChannel
+    nvidiaOperatorCSV: nvidiaOperatorCSV
+    branchName: branchName
   }
   dependsOn: [
     network
