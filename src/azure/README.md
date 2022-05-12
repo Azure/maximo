@@ -39,3 +39,7 @@ az deployment group create --resource-group  OCP-Sidecar --template-file bootstr
 ```
 
 After the deployment is finished, you can SSH into the JumpBoxVM and look in the directory: `/tmp/OCPInstall/QuickCluster` for install artifacts. For logs, you can look at: `cat /var/log/cloud-init-output.log`
+
+Alternatively you can deploy straight from this repository:
+
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fmaximo%2Fmain%2Fsrc%2Fazure%2Fbootstrap.bicep)
