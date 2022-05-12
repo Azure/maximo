@@ -1,0 +1,1180 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.4.1008.15138",
+      "templateHash": "18212629084163701197"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string"
+    },
+    "networkSecurityGroupRules": {
+      "type": "array"
+    },
+    "virtualMachineName": {
+      "type": "string"
+    },
+    "osDiskType": {
+      "type": "string"
+    },
+    "virtualMachineSize": {
+      "type": "string"
+    },
+    "adminUsername": {
+      "type": "string"
+    },
+    "adminPassword": {
+      "type": "secureString"
+    },
+    "zone": {
+      "type": "string"
+    },
+    "baseDomainResourceGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource Group Name where Public DNS Zone exists"
+      }
+    },
+    "domainName": {
+      "type": "string"
+    },
+    "clusterName": {
+      "type": "string"
+    },
+    "customInstallConfigURL": {
+      "type": "string"
+    },
+    "installMAS": {
+      "type": "string"
+    },
+    "installOCS": {
+      "type": "string"
+    },
+    "installCP4D": {
+      "type": "string"
+    },
+    "installVI": {
+      "type": "string"
+    },
+    "applicationId": {
+      "type": "string"
+    },
+    "applicationSecret": {
+      "type": "secureString"
+    },
+    "sshPubKey": {
+      "type": "string"
+    },
+    "pullSecret": {
+      "type": "string"
+    },
+    "entitlementKey": {
+      "type": "string"
+    },
+    "vnetName": {
+      "type": "string"
+    },
+    "vnetAddressPrefix": {
+      "type": "string"
+    },
+    "subnetControlNodePrefix": {
+      "type": "string"
+    },
+    "subnetControlNodeName": {
+      "type": "string"
+    },
+    "subnetWorkerNodePrefix": {
+      "type": "string"
+    },
+    "subnetWorkerNodeName": {
+      "type": "string"
+    },
+    "subnetEndpointsPrefix": {
+      "type": "string"
+    },
+    "subnetEndpointsName": {
+      "type": "string"
+    },
+    "storageNamePrefix": {
+      "type": "string"
+    },
+    "subnetBastionPrefix": {
+      "type": "string"
+    },
+    "subnetBastionName": {
+      "type": "string"
+    },
+    "bastionHostName": {
+      "type": "string"
+    },
+    "controlMachineSize": {
+      "type": "string"
+    },
+    "workerMachineSize": {
+      "type": "string"
+    },
+    "numControlReplicas": {
+      "type": "string"
+    },
+    "numWorkerReplicas": {
+      "type": "string"
+    },
+    "openshiftVersion": {
+      "type": "string"
+    },
+    "azureFilesCSIVersion": {
+      "type": "string"
+    },
+    "masChannel": {
+      "type": "string"
+    },
+    "nvidiaOperatorChannel": {
+      "type": "string"
+    },
+    "nvidiaOperatorCSV": {
+      "type": "string"
+    },
+    "branchName": {
+      "type": "string"
+    }
+  },
+  "functions": [],
+  "resources": [
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "DnsConfig",
+      "resourceGroup": "[parameters('baseDomainResourceGroup')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "domainName": {
+            "value": "[parameters('domainName')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.4.1008.15138",
+              "templateHash": "15808138794048878421"
+            }
+          },
+          "parameters": {
+            "domainName": {
+              "type": "string"
+            }
+          },
+          "functions": [],
+          "resources": [
+            {
+              "type": "Microsoft.Network/dnsZones",
+              "apiVersion": "2018-05-01",
+              "name": "[parameters('domainName')]",
+              "location": "global",
+              "properties": {
+                "zoneType": "Public"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "VNet",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "vnetName": {
+            "value": "[parameters('vnetName')]"
+          },
+          "vnetAddressPrefix": {
+            "value": "[parameters('vnetAddressPrefix')]"
+          },
+          "subnetControlNodePrefix": {
+            "value": "[parameters('subnetControlNodePrefix')]"
+          },
+          "subnetControlNodeName": {
+            "value": "[parameters('subnetControlNodeName')]"
+          },
+          "subnetWorkerNodePrefix": {
+            "value": "[parameters('subnetWorkerNodePrefix')]"
+          },
+          "subnetWorkerNodeName": {
+            "value": "[parameters('subnetWorkerNodeName')]"
+          },
+          "subnetEndpointsPrefix": {
+            "value": "[parameters('subnetEndpointsPrefix')]"
+          },
+          "subnetEndpointsName": {
+            "value": "[parameters('subnetEndpointsName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.4.1008.15138",
+              "templateHash": "3281478433896821948"
+            }
+          },
+          "parameters": {
+            "vnetName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the VNet you are deploying"
+              }
+            },
+            "vnetAddressPrefix": {
+              "type": "string",
+              "metadata": {
+                "description": "Total address prefix"
+              }
+            },
+            "subnetControlNodePrefix": {
+              "type": "string",
+              "metadata": {
+                "description": "Control plane node prefix"
+              }
+            },
+            "subnetControlNodeName": {
+              "type": "string",
+              "metadata": {
+                "description": "Control plane subnet name"
+              }
+            },
+            "subnetWorkerNodePrefix": {
+              "type": "string",
+              "metadata": {
+                "description": "Worker node prefix"
+              }
+            },
+            "subnetWorkerNodeName": {
+              "type": "string",
+              "metadata": {
+                "description": "Worker node subnet name"
+              }
+            },
+            "subnetEndpointsPrefix": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure Private Endpoints subnet prefix"
+              }
+            },
+            "subnetEndpointsName": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure Private Endpoints subnet name"
+              }
+            },
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Location for all resources."
+              }
+            }
+          },
+          "functions": [],
+          "resources": [
+            {
+              "type": "Microsoft.Network/virtualNetworks",
+              "apiVersion": "2021-03-01",
+              "name": "[parameters('vnetName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "addressSpace": {
+                  "addressPrefixes": [
+                    "[parameters('vnetAddressPrefix')]"
+                  ]
+                },
+                "subnets": [
+                  {
+                    "name": "[parameters('subnetControlNodeName')]",
+                    "properties": {
+                      "addressPrefix": "[parameters('subnetControlNodePrefix')]"
+                    }
+                  },
+                  {
+                    "name": "[parameters('subnetWorkerNodeName')]",
+                    "properties": {
+                      "addressPrefix": "[parameters('subnetWorkerNodePrefix')]"
+                    }
+                  },
+                  {
+                    "name": "[parameters('subnetEndpointsName')]",
+                    "properties": {
+                      "privateEndpointNetworkPolicies": "Disabled",
+                      "privateLinkServiceNetworkPolicies": "Enabled",
+                      "addressPrefix": "[parameters('subnetEndpointsPrefix')]"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "privateStorage",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "storageNamePrefix": {
+            "value": "[parameters('storageNamePrefix')]"
+          },
+          "subnetEndpointsName": {
+            "value": "[parameters('subnetEndpointsName')]"
+          },
+          "vnetName": {
+            "value": "[parameters('vnetName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.4.1008.15138",
+              "templateHash": "290844128263826205"
+            }
+          },
+          "parameters": {
+            "storageNamePrefix": {
+              "type": "string",
+              "metadata": {
+                "description": "Prefix name of your storage accounts"
+              }
+            },
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Location for all resources."
+              }
+            },
+            "subnetEndpointsName": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure Private Endpoints subnet name"
+              }
+            },
+            "vnetName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the VNet you are deploying"
+              }
+            }
+          },
+          "functions": [],
+          "variables": {
+            "vnetId": "[resourceId(resourceGroup().name, 'Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
+            "subnetReference": "[format('{0}/subnets/{1}', variables('vnetId'), parameters('subnetEndpointsName'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Storage/storageAccounts",
+              "apiVersion": "2021-06-01",
+              "name": "[take(format('{0}prm{1}', parameters('storageNamePrefix'), uniqueString(resourceGroup().id)), 24)]",
+              "location": "[parameters('location')]",
+              "kind": "FileStorage",
+              "sku": {
+                "name": "Premium_LRS"
+              },
+              "properties": {
+                "allowSharedKeyAccess": true,
+                "minimumTlsVersion": "TLS1_2",
+                "allowBlobPublicAccess": false,
+                "supportsHttpsTrafficOnly": false,
+                "networkAcls": {
+                  "bypass": "AzureServices",
+                  "virtualNetworkRules": [],
+                  "ipRules": [],
+                  "defaultAction": "Deny"
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Storage/storageAccounts",
+              "apiVersion": "2021-06-01",
+              "name": "[take(format('{0}std{1}', parameters('storageNamePrefix'), uniqueString(resourceGroup().id)), 24)]",
+              "location": "[parameters('location')]",
+              "kind": "StorageV2",
+              "sku": {
+                "name": "Standard_ZRS"
+              },
+              "properties": {
+                "allowSharedKeyAccess": true,
+                "minimumTlsVersion": "TLS1_2",
+                "allowBlobPublicAccess": false,
+                "supportsHttpsTrafficOnly": true,
+                "networkAcls": {
+                  "bypass": "AzureServices",
+                  "virtualNetworkRules": [],
+                  "ipRules": [],
+                  "defaultAction": "Deny"
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Network/privateDnsZones",
+              "apiVersion": "2020-06-01",
+              "name": "[format('privatelink.file.{0}', environment().suffixes.storage)]",
+              "location": "global",
+              "properties": {}
+            },
+            {
+              "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+              "apiVersion": "2020-06-01",
+              "name": "[format('{0}/{1}-link', format('privatelink.file.{0}', environment().suffixes.storage), parameters('vnetName'))]",
+              "location": "global",
+              "properties": {
+                "registrationEnabled": false,
+                "virtualNetwork": {
+                  "id": "[variables('vnetId')]"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', format('privatelink.file.{0}', environment().suffixes.storage))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/privateEndpoints",
+              "apiVersion": "2021-03-01",
+              "name": "premiumstorage",
+              "location": "[parameters('location')]",
+              "properties": {
+                "subnet": {
+                  "id": "[variables('subnetReference')]"
+                },
+                "privateLinkServiceConnections": [
+                  {
+                    "properties": {
+                      "privateLinkServiceId": "[resourceId('Microsoft.Storage/storageAccounts', take(format('{0}prm{1}', parameters('storageNamePrefix'), uniqueString(resourceGroup().id)), 24))]",
+                      "groupIds": [
+                        "file"
+                      ]
+                    },
+                    "name": "PremiumFilesEndpoint"
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', take(format('{0}prm{1}', parameters('storageNamePrefix'), uniqueString(resourceGroup().id)), 24))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+              "apiVersion": "2020-06-01",
+              "name": "[format('{0}/dnsgroupname', 'premiumstorage')]",
+              "properties": {
+                "privateDnsZoneConfigs": [
+                  {
+                    "name": "premium",
+                    "properties": {
+                      "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones', format('privatelink.file.{0}', environment().suffixes.storage))]"
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', format('privatelink.file.{0}', environment().suffixes.storage))]",
+                "[resourceId('Microsoft.Network/privateEndpoints', 'premiumstorage')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/privateEndpoints",
+              "apiVersion": "2021-03-01",
+              "name": "standardstorage",
+              "location": "[parameters('location')]",
+              "properties": {
+                "subnet": {
+                  "id": "[variables('subnetReference')]"
+                },
+                "privateLinkServiceConnections": [
+                  {
+                    "properties": {
+                      "privateLinkServiceId": "[resourceId('Microsoft.Storage/storageAccounts', take(format('{0}std{1}', parameters('storageNamePrefix'), uniqueString(resourceGroup().id)), 24))]",
+                      "groupIds": [
+                        "file"
+                      ]
+                    },
+                    "name": "StandardFilesEndpoint"
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', take(format('{0}std{1}', parameters('storageNamePrefix'), uniqueString(resourceGroup().id)), 24))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+              "apiVersion": "2020-06-01",
+              "name": "[format('{0}/dnsgroupname', 'standardstorage')]",
+              "properties": {
+                "privateDnsZoneConfigs": [
+                  {
+                    "name": "standard",
+                    "properties": {
+                      "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones', format('privatelink.file.{0}', environment().suffixes.storage))]"
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', format('privatelink.file.{0}', environment().suffixes.storage))]",
+                "[resourceId('Microsoft.Network/privateEndpoints', 'standardstorage')]"
+              ]
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'VNet')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "bastionHost",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "subnetBastionName": {
+            "value": "[parameters('subnetBastionName')]"
+          },
+          "subnetBastionPrefix": {
+            "value": "[parameters('subnetBastionPrefix')]"
+          },
+          "bastionHostName": {
+            "value": "[parameters('bastionHostName')]"
+          },
+          "vnetName": {
+            "value": "[parameters('vnetName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.4.1008.15138",
+              "templateHash": "8659063233847675361"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Location for all resources."
+              }
+            },
+            "bastionHostName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of Azure Bastion resource"
+              }
+            },
+            "subnetBastionPrefix": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure Bastion subnet prefix"
+              }
+            },
+            "subnetBastionName": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure Private Endpoints subnet name"
+              }
+            },
+            "vnetName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the VNet you are deploying"
+              }
+            }
+          },
+          "functions": [],
+          "variables": {
+            "publicIpAddressName": "[format('{0}-pip', parameters('bastionHostName'))]",
+            "networkSecurityGroupName": "[format('{0}-nsg', parameters('bastionHostName'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Network/publicIPAddresses",
+              "apiVersion": "2020-05-01",
+              "name": "[variables('publicIpAddressName')]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "Standard"
+              },
+              "properties": {
+                "publicIPAllocationMethod": "Static"
+              }
+            },
+            {
+              "type": "Microsoft.Network/networkSecurityGroups",
+              "apiVersion": "2019-02-01",
+              "name": "[variables('networkSecurityGroupName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "securityRules": [
+                  {
+                    "name": "AllowHttpsInbound",
+                    "properties": {
+                      "priority": 120,
+                      "protocol": "Tcp",
+                      "access": "Allow",
+                      "direction": "Inbound",
+                      "sourceAddressPrefix": "Internet",
+                      "sourcePortRange": "*",
+                      "destinationAddressPrefix": "*",
+                      "destinationPortRange": "443"
+                    }
+                  },
+                  {
+                    "name": "AllowGatewayManagerInbound",
+                    "properties": {
+                      "priority": 130,
+                      "protocol": "Tcp",
+                      "access": "Allow",
+                      "direction": "Inbound",
+                      "sourceAddressPrefix": "GatewayManager",
+                      "sourcePortRange": "*",
+                      "destinationAddressPrefix": "*",
+                      "destinationPortRange": "443"
+                    }
+                  },
+                  {
+                    "name": "AllowAzureLoadBalancerInbound",
+                    "properties": {
+                      "priority": 140,
+                      "protocol": "Tcp",
+                      "access": "Allow",
+                      "direction": "Inbound",
+                      "sourceAddressPrefix": "AzureLoadBalancer",
+                      "sourcePortRange": "*",
+                      "destinationAddressPrefix": "*",
+                      "destinationPortRange": "443"
+                    }
+                  },
+                  {
+                    "name": "AllowBastionHostCommunication",
+                    "properties": {
+                      "priority": 150,
+                      "protocol": "*",
+                      "access": "Allow",
+                      "direction": "Inbound",
+                      "sourceAddressPrefix": "VirtualNetwork",
+                      "sourcePortRange": "*",
+                      "destinationAddressPrefix": "VirtualNetwork",
+                      "destinationPortRanges": [
+                        "8080",
+                        "5701"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "AllowSshRdpOutbound",
+                    "properties": {
+                      "priority": 100,
+                      "protocol": "*",
+                      "access": "Allow",
+                      "direction": "Outbound",
+                      "sourceAddressPrefix": "*",
+                      "sourcePortRange": "*",
+                      "destinationAddressPrefix": "VirtualNetwork",
+                      "destinationPortRanges": [
+                        "22",
+                        "3389"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "AllowAzureCloudOutbound",
+                    "properties": {
+                      "priority": 110,
+                      "protocol": "Tcp",
+                      "access": "Allow",
+                      "direction": "Outbound",
+                      "sourceAddressPrefix": "*",
+                      "sourcePortRange": "*",
+                      "destinationAddressPrefix": "AzureCloud",
+                      "destinationPortRange": "443"
+                    }
+                  },
+                  {
+                    "name": "AllowBastionCommunication",
+                    "properties": {
+                      "priority": 120,
+                      "protocol": "*",
+                      "access": "Allow",
+                      "direction": "Outbound",
+                      "sourceAddressPrefix": "VirtualNetwork",
+                      "sourcePortRange": "*",
+                      "destinationAddressPrefix": "VirtualNetwork",
+                      "destinationPortRanges": [
+                        "8080",
+                        "5701"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "AllowGetSessionInformation",
+                    "properties": {
+                      "priority": 130,
+                      "protocol": "*",
+                      "access": "Allow",
+                      "direction": "Outbound",
+                      "sourceAddressPrefix": "*",
+                      "sourcePortRange": "*",
+                      "destinationAddressPrefix": "Internet",
+                      "destinationPortRange": "80"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Microsoft.Network/virtualNetworks/subnets",
+              "apiVersion": "2020-05-01",
+              "name": "[format('{0}/{1}', parameters('vnetName'), parameters('subnetBastionName'))]",
+              "properties": {
+                "addressPrefix": "[parameters('subnetBastionPrefix')]",
+                "networkSecurityGroup": {
+                  "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/bastionHosts",
+              "apiVersion": "2020-05-01",
+              "name": "[parameters('bastionHostName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "ipConfigurations": [
+                  {
+                    "name": "IpConf",
+                    "properties": {
+                      "subnet": {
+                        "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('subnetBastionName'))]"
+                      },
+                      "publicIPAddress": {
+                        "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName'))]"
+                      }
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('subnetBastionName'))]"
+              ]
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'VNet')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "LinuxVM",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "networkInterfaceName": {
+            "value": "[format('{0}-nic', parameters('virtualMachineName'))]"
+          },
+          "networkSecurityGroupName": {
+            "value": "[format('{0}-nsg', parameters('virtualMachineName'))]"
+          },
+          "networkSecurityGroupRules": {
+            "value": "[parameters('networkSecurityGroupRules')]"
+          },
+          "subnetName": {
+            "value": "[parameters('subnetWorkerNodeName')]"
+          },
+          "virtualNetworkName": {
+            "value": "[parameters('vnetName')]"
+          },
+          "virtualMachineName": {
+            "value": "[parameters('virtualMachineName')]"
+          },
+          "osDiskType": {
+            "value": "[parameters('osDiskType')]"
+          },
+          "virtualMachineSize": {
+            "value": "[parameters('virtualMachineSize')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "zone": {
+            "value": "[parameters('zone')]"
+          },
+          "applicationId": {
+            "value": "[parameters('applicationId')]"
+          },
+          "applicationSecret": {
+            "value": "[parameters('applicationSecret')]"
+          },
+          "sshPubKey": {
+            "value": "[parameters('sshPubKey')]"
+          },
+          "pullSecret": {
+            "value": "[parameters('pullSecret')]"
+          },
+          "entitlementKey": {
+            "value": "[parameters('entitlementKey')]"
+          },
+          "baseDomain": {
+            "value": "[parameters('domainName')]"
+          },
+          "clusterName": {
+            "value": "[parameters('clusterName')]"
+          },
+          "baseDomainResourceGroup": {
+            "value": "[parameters('baseDomainResourceGroup')]"
+          },
+          "vnetName": {
+            "value": "[parameters('vnetName')]"
+          },
+          "subnetControlNodeName": {
+            "value": "[parameters('subnetControlNodeName')]"
+          },
+          "subnetWorkerNodeName": {
+            "value": "[parameters('subnetWorkerNodeName')]"
+          },
+          "subnetEndpointsName": {
+            "value": "[parameters('subnetEndpointsName')]"
+          },
+          "controlMachineSize": {
+            "value": "[parameters('controlMachineSize')]"
+          },
+          "workerMachineSize": {
+            "value": "[parameters('workerMachineSize')]"
+          },
+          "numControlReplicas": {
+            "value": "[parameters('numControlReplicas')]"
+          },
+          "numWorkerReplicas": {
+            "value": "[parameters('numWorkerReplicas')]"
+          },
+          "customInstallConfigURL": {
+            "value": "[parameters('customInstallConfigURL')]"
+          },
+          "installMAS": {
+            "value": "[parameters('installMAS')]"
+          },
+          "installOCS": {
+            "value": "[parameters('installOCS')]"
+          },
+          "installCP4D": {
+            "value": "[parameters('installCP4D')]"
+          },
+          "installVI": {
+            "value": "[parameters('installVI')]"
+          },
+          "openshiftVersion": {
+            "value": "[parameters('openshiftVersion')]"
+          },
+          "azureFilesCSIVersion": {
+            "value": "[parameters('azureFilesCSIVersion')]"
+          },
+          "masChannel": {
+            "value": "[parameters('masChannel')]"
+          },
+          "nvidiaOperatorChannel": {
+            "value": "[parameters('nvidiaOperatorChannel')]"
+          },
+          "nvidiaOperatorCSV": {
+            "value": "[parameters('nvidiaOperatorCSV')]"
+          },
+          "branchName": {
+            "value": "[parameters('branchName')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.4.1008.15138",
+              "templateHash": "14511094482602868716"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string"
+            },
+            "networkInterfaceName": {
+              "type": "string"
+            },
+            "networkSecurityGroupName": {
+              "type": "string"
+            },
+            "networkSecurityGroupRules": {
+              "type": "array"
+            },
+            "subnetName": {
+              "type": "string"
+            },
+            "virtualNetworkName": {
+              "type": "string"
+            },
+            "virtualMachineName": {
+              "type": "string"
+            },
+            "osDiskType": {
+              "type": "string"
+            },
+            "virtualMachineSize": {
+              "type": "string"
+            },
+            "adminUsername": {
+              "type": "string"
+            },
+            "adminPassword": {
+              "type": "secureString"
+            },
+            "zone": {
+              "type": "string"
+            },
+            "applicationId": {
+              "type": "string"
+            },
+            "applicationSecret": {
+              "type": "secureString"
+            },
+            "sshPubKey": {
+              "type": "string"
+            },
+            "pullSecret": {
+              "type": "string"
+            },
+            "entitlementKey": {
+              "type": "string"
+            },
+            "baseDomain": {
+              "type": "string"
+            },
+            "clusterName": {
+              "type": "string"
+            },
+            "baseDomainResourceGroup": {
+              "type": "string"
+            },
+            "vnetName": {
+              "type": "string"
+            },
+            "subnetControlNodeName": {
+              "type": "string"
+            },
+            "subnetWorkerNodeName": {
+              "type": "string"
+            },
+            "subnetEndpointsName": {
+              "type": "string"
+            },
+            "controlMachineSize": {
+              "type": "string"
+            },
+            "workerMachineSize": {
+              "type": "string"
+            },
+            "numControlReplicas": {
+              "type": "string"
+            },
+            "numWorkerReplicas": {
+              "type": "string"
+            },
+            "customInstallConfigURL": {
+              "type": "string"
+            },
+            "installMAS": {
+              "type": "string"
+            },
+            "installOCS": {
+              "type": "string"
+            },
+            "installCP4D": {
+              "type": "string"
+            },
+            "installVI": {
+              "type": "string"
+            },
+            "openshiftVersion": {
+              "type": "string"
+            },
+            "azureFilesCSIVersion": {
+              "type": "string"
+            },
+            "masChannel": {
+              "type": "string"
+            },
+            "nvidiaOperatorChannel": {
+              "type": "string"
+            },
+            "nvidiaOperatorCSV": {
+              "type": "string"
+            },
+            "branchName": {
+              "type": "string"
+            }
+          },
+          "functions": [],
+          "variables": {
+            "nsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroupName'))]",
+            "vnetId": "[resourceId(resourceGroup().name, 'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+            "subnetRef": "[format('{0}/subnets/{1}', variables('vnetId'), parameters('subnetName'))]",
+            "subscriptionId": "[subscription().subscriptionId]",
+            "tenantId": "[subscription().tenantId]",
+            "resourceGroupName": "[resourceGroup().name]",
+            "cloudInitData": "[format('#cloud-config\n\nruncmd:\n - mkdir /tmp/OCPInstall\n - mkdir ~/.azure/\n - echo ''{{\"subscriptionId\":\"{0}\",\"clientId\":\"{1}\",\"clientSecret\":\"{2}\",\"tenantId\":\"{3}\"}}'' > ~/.azure/osServicePrincipal.json\n - sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc\n - |\n    echo -e \"[azure-cli]\n    name=Azure CLI\n    baseurl=https://packages.microsoft.com/yumrepos/azure-cli\n    enabled=1\n    gpgcheck=1\n    gpgkey=https://packages.microsoft.com/keys/microsoft.asc\" | sudo tee /etc/yum.repos.d/azure-cli.repo\n - sudo dnf -y install azure-cli\n - [ wget, -nv, \"https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{4}/openshift-install-linux.tar.gz\", -O, /tmp/OCPInstall/openshift-install-linux.tar.gz ]\n - echo \"ssh-rsa {5}\" > /tmp/id_rsa\n - mkdir /tmp/OCPInstall/QuickCluster\n - tar xvf /tmp/OCPInstall/openshift-install-linux.tar.gz -C /tmp/OCPInstall\n - |\n    export baseDomain=\"{6}\"\n    export clusterName=\"{7}\"\n    export deployRegion=\"{8}\"\n    export baseDomainResourceGroup=\"{9}\"\n    export pullSecret=''{10}''\n    export sshPubKey=\"{11}\"\n    export ENTITLEMENT_KEY=\"{12}\"\n    export vnetName=\"{13}\"\n    export resourceGroupName=\"{14}\"\n    export subnetControlNodeName=\"{15}\"\n    export subnetWorkerNodeName=\"{16}\"\n    export subnetPrivateEndpointName=\"{17}\"\n    export controlMachineSize=\"{18}\"\n    export workerMachineSize=\"{19}\"\n    export numControlReplicas=\"{20}\"\n    export numWorkerReplicas=\"{21}\"\n    export customInstallConfigURL=\"{22}\"\n    export installMAS=\"{23}\"\n    export installOCS=\"{24}\"\n    export installCP4D=\"{25}\"\n    export installVI=\"{26}\"\n    export azureFilesCSIVersion=\"{27}\"\n    export masChannel=\"{28}\"\n    export branchName=\"{29}\"\n    export nvidiaOperatorChannel=\"{30}\"\n    export nvidiaOperatorCSV=\"{31}\"\n - [ wget, -nv, \"https://raw.githubusercontent.com/Azure/maximo/{32}/src/installers/install_config.sh\", -O, /tmp/install_config.sh ]\n - chmod +x /tmp/install_config.sh\n - sudo -E /tmp/install_config.sh\n - sudo /tmp/OCPInstall/openshift-install create cluster --dir=/tmp/OCPInstall/QuickCluster --log-level=info\n - az login --service-principal -u $(cat ~/.azure/osServicePrincipal.json | jq -r .clientId) -p $(cat ~/.azure/osServicePrincipal.json | jq -r .clientSecret) --tenant $(cat ~/.azure/osServicePrincipal.json | jq -r .tenantId) --output none && az account set -s $(cat ~/.azure/osServicePrincipal.json | jq -r .subscriptionId) --output none\n - az network vnet subnet update -g $(cat /tmp/OCPInstall/QuickCluster/terraform.azure.auto.tfvars.json | jq -r .azure_network_resource_group_name) -n control --vnet-name $(cat /tmp/OCPInstall/QuickCluster/terraform.azure.auto.tfvars.json | jq -r .azure_virtual_network) --network-security-group $(az resource list --name $(cat /tmp/OCPInstall/QuickCluster/metadata.json | jq -r .infraID)-nsg | jq -r .[0].id) --output none\n - az network vnet subnet update -g $(cat /tmp/OCPInstall/QuickCluster/terraform.azure.auto.tfvars.json | jq -r .azure_network_resource_group_name) -n workers --vnet-name $(cat /tmp/OCPInstall/QuickCluster/terraform.azure.auto.tfvars.json | jq -r .azure_virtual_network) --network-security-group $(az resource list --name $(cat /tmp/OCPInstall/QuickCluster/metadata.json | jq -r .infraID)-nsg | jq -r .[0].id) --output none\n - az network vnet subnet update -g $(cat /tmp/OCPInstall/QuickCluster/terraform.azure.auto.tfvars.json | jq -r .azure_network_resource_group_name) -n endpoints --vnet-name $(cat /tmp/OCPInstall/QuickCluster/terraform.azure.auto.tfvars.json | jq -r .azure_virtual_network) --network-security-group $(az resource list --name $(cat /tmp/OCPInstall/QuickCluster/metadata.json | jq -r .infraID)-nsg | jq -r .[0].id) --disable-private-endpoint-network-policies --output none\n - export clusterInstanceName=$(cat /tmp/OCPInstall/QuickCluster/metadata.json | jq -r .infraID)\n - [ wget, -nv, \"https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{33}/openshift-client-linux.tar.gz\", -O, /tmp/OCPInstall/openshift-client-linux.tar.gz ]\n - tar xvf /tmp/OCPInstall/openshift-client-linux.tar.gz -C /tmp/OCPInstall\n - [ wget, -nv, \"https://raw.githubusercontent.com/Azure/maximo/{34}/src/installers/install_manager.sh\", -O, /tmp/install_manager.sh ]\n - chmod +x /tmp/install_manager.sh\n - sudo -E /tmp/install_manager.sh\n', variables('subscriptionId'), parameters('applicationId'), parameters('applicationSecret'), variables('tenantId'), parameters('openshiftVersion'), parameters('sshPubKey'), parameters('baseDomain'), parameters('clusterName'), parameters('location'), parameters('baseDomainResourceGroup'), parameters('pullSecret'), parameters('sshPubKey'), parameters('entitlementKey'), parameters('vnetName'), variables('resourceGroupName'), parameters('subnetControlNodeName'), parameters('subnetWorkerNodeName'), parameters('subnetEndpointsName'), parameters('controlMachineSize'), parameters('workerMachineSize'), parameters('numControlReplicas'), parameters('numWorkerReplicas'), parameters('customInstallConfigURL'), parameters('installMAS'), parameters('installOCS'), parameters('installCP4D'), parameters('installVI'), parameters('azureFilesCSIVersion'), parameters('masChannel'), parameters('branchName'), parameters('nvidiaOperatorChannel'), parameters('nvidiaOperatorCSV'), parameters('branchName'), parameters('openshiftVersion'), parameters('branchName'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Network/networkInterfaces",
+              "apiVersion": "2018-10-01",
+              "name": "[parameters('networkInterfaceName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "ipConfigurations": [
+                  {
+                    "name": "ipconfig1",
+                    "properties": {
+                      "subnet": {
+                        "id": "[variables('subnetRef')]"
+                      },
+                      "privateIPAllocationMethod": "Dynamic"
+                    }
+                  }
+                ],
+                "networkSecurityGroup": {
+                  "id": "[variables('nsgId')]"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroupName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/networkSecurityGroups",
+              "apiVersion": "2019-02-01",
+              "name": "[parameters('networkSecurityGroupName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "securityRules": "[parameters('networkSecurityGroupRules')]"
+              }
+            },
+            {
+              "type": "Microsoft.Compute/virtualMachines",
+              "apiVersion": "2021-03-01",
+              "name": "[parameters('virtualMachineName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "hardwareProfile": {
+                  "vmSize": "[parameters('virtualMachineSize')]"
+                },
+                "storageProfile": {
+                  "osDisk": {
+                    "createOption": "FromImage",
+                    "managedDisk": {
+                      "storageAccountType": "[parameters('osDiskType')]"
+                    }
+                  },
+                  "imageReference": {
+                    "publisher": "RedHat",
+                    "offer": "RHEL",
+                    "sku": "8_4",
+                    "version": "latest"
+                  }
+                },
+                "networkProfile": {
+                  "networkInterfaces": [
+                    {
+                      "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaceName'))]"
+                    }
+                  ]
+                },
+                "osProfile": {
+                  "computerName": "[parameters('virtualMachineName')]",
+                  "adminUsername": "[parameters('adminUsername')]",
+                  "adminPassword": "[parameters('adminPassword')]",
+                  "customData": "[base64(variables('cloudInitData'))]",
+                  "linuxConfiguration": {
+                    "disablePasswordAuthentication": false
+                  }
+                },
+                "diagnosticsProfile": {
+                  "bootDiagnostics": {
+                    "enabled": true
+                  }
+                }
+              },
+              "zones": [
+                "[parameters('zone')]"
+              ],
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaceName'))]"
+              ]
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'VNet')]"
+      ]
+    }
+  ]
+}

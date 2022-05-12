@@ -42,4 +42,4 @@ After the deployment is finished, you can SSH into the JumpBoxVM and look in the
 
 Alternatively you can deploy straight from this repository:
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fmaximo%2Fmain%2Fsrc%2Fazure%2Fbootstrap.bicep)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fmaximo%2Fdeploytoazure%2Fsrc%2Fazure%2F/armTemplates%2Fbootstrap.json)
