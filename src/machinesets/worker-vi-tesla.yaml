@@ -2,7 +2,7 @@ apiVersion: machine.openshift.io/v1beta1
 kind: MachineSet
 metadata:
   labels:
-    machine.openshift.io/cluster-api-cluster: $clusterInstanceName #$clusterInstanceName
+    machine.openshift.io/cluster-api-cluster: $clusterInstanceName
     machine.openshift.io/cluster-api-machine-role: worker
     machine.openshift.io/cluster-api-machine-type: worker
   name: vi-gpu-tesla-z$zone

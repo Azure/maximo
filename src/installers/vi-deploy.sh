@@ -13,7 +13,7 @@ wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/machines
 #Setup Zone 1
 export zone=1
 #Setup Number of Machines per Zone
-export numReplicas=2
+export numReplicas=1
 envsubst < /tmp/OCPInstall/worker-vi-tesla.yaml > /tmp/OCPInstall/QuickCluster/worker-vi-tesla.yaml
 sudo -E /tmp/OCPInstall/oc apply -f /tmp/OCPInstall/QuickCluster/worker-vi-tesla.yaml
 

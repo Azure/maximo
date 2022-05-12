@@ -41,13 +41,15 @@ This repository provides deployment guidance, scripts and best practices for run
     - [Deploying Db2 Warehouse](#deploying-db2-warehouse)
     - [Configuring MAS and getting the DB2WH connection string](#configuring-mas-and-getting-the-db2wh-connection-string)
     - [Installing Kafka](#installing-kafka)
+      - [Configuring MAS with Kafka](#configuring-mas-with-kafka)
     - [Install IoT Dependencies](#install-iot-dependencies)
-  - [Step 8: Installing applications on top of Maximo](#step-8-installing-applications-on-top-of-maximo)
+  - [Step 8: Installing applications on top of MAS](#step-8-installing-applications-on-top-of-mas)
   - [Step 8a: Installing Manage](#step-8a-installing-manage)
   - [Step 8b: Installing Health](#step-8b-installing-health)
   - [Step 8c: Installing Visual Inspection](#step-8c-installing-visual-inspection)
-  - [Step 8d: Installing Monitor and IoT](#step-8d-installing-monitor-and-iot)
-  - [Step 8e: Installing Predict](#step-8e-installing-predict)
+  - [Step 8d: Installing IoT](#step-8d-installing-iot)
+  - [Step 8e: Installing Monitor](#step-8e-installing-monitor)
+  - [Step 8f: Installing Predict](#step-8f-installing-predict)
   - [Tips and Tricks](#tips-and-tricks)
     - [To get your credentials to login](#to-get-your-credentials-to-login)
     - [Shutting down your cluster](#shutting-down-your-cluster)
@@ -58,11 +60,12 @@ This repository provides deployment guidance, scripts and best practices for run
 
 ## Getting Started
 
-To move forward with a Maximo install you will need a few basics:
+To move forward with a MAS install you will need a few basics:
 
 * An active Azure subscription.
   * A quota of at least 40 vCPU allowed for your VM type of choice (Dsv4 recommended). Request [a quota increase](https://docs.microsoft.com/azure/azure-portal/supportability/regional-quota-requests) if needed.
   * You will need subscription owner permissions for the deployment.
+    * If you cannot obtain subscription level permissions, it is possible to target a resource group in the `install-config.yaml` file instead.
 * A domain or subdomain. If you don't have one, you can register one through Azure using an App Service Domain.
   * If you will be using a subdomain, you will need to delegate authority of the sub domain to the public Azure DNS Zone as described [here](https://docs.microsoft.com/azure/dns/delegate-subdomain)
 * Access to the IBM licensing service for IBM Maximo.
@@ -70,7 +73,10 @@ To move forward with a Maximo install you will need a few basics:
 
 These are normally provided by your organization. The IBM Entitlement key will be needed after your OpenShift cluster is deployed but you will not need the IBM License for Maximo until the last few steps. Once you have secured access to an Azure subscription, you need:
 
-* An Application Registration (SPN) with Contributor and User Access Administrator access on the Subscription you are intending to deploy into.
+* An Application Registration (SPN) with Contributor and User Access Administrator access on the Subscription you are intending to deploy into. If you are not able to assign permissions at a resource group level, the prefered method is to create 2 resource groups:
+  * [Template deployed resources](src/azure/README.md) (VNet, Storage Accounts, Bastion, JumpBox...etc)
+  * Installer (IPI) deployed resources (control nodes, worker nodes, load balancers...etc)
+  After these 2 resource groups are created, you will need to grant `Owner` or  `Contributor` + `User Access Administrator` to the SPN on both resource groups. The resource group for the template deployed resources should be used in the parameters file for the bicep file and the resoruce group for the installer should be added as a setting in the `install-config.yaml` file the under `platform.azure.resourceGroupName` section. More information can be found in the [openshift installer docs](https://docs.openshift.com/container-platform/4.8/installing/installing_azure/installing-azure-customizations.html#installation-configuration-parameters-additional-azure_installing-azure-customizations) and here: [Step 1: Preparing Azure](#step-1-preparing-azure).
 <!-- * OpenShift Container Platform up and running on a cluster with at least 24 vCPUs active for the worker nodes. You can deploy Azure Red Hat OpenShift or [OpenShift Container Platform](docs/openshift/ocp/README.md). -->
 
 > 💡 **TIP**: It is recommended to use a Linux, Windows Subsystem for Linux or macOS system to complete the installation. You will need some command line binaries that are not as readily available on Windows.
@@ -79,23 +85,23 @@ For the installation you will need the OpenShift client. You can [grab the OpenS
 
 After these services have been installed and configured, you can successfully install and configure Maximo Application Suite (MAS) on OpenShift running on Azure.
 
-> 💡 **NOTE**: For the automated installation of OCP and Maximo see this [guide](src/azure/README.md).
+> 💡 **NOTE**: For the automated installation of OCP and MAS see this [guide](src/azure/README.md).
 
 ## Overview
 
-The goal of this guide is to deploy the Maximo Application Suite within OpenShift running on Azure in a simliar configuration shown below: 
+The goal of this guide is to deploy the Maximo Application Suite (MAS) within OpenShift running on Azure in a similiar configuration shown below: 
 
 
 ![Openshift Architecture](docs/images/ocp-diagram.png)
 
 To accomplish this, you will need to execute the following steps:
 
-1. [Prepare and configure Azure](#step-1-preparing-azure) resources for OpenShift and Maximo install
+1. [Prepare and configure Azure](#step-1-preparing-azure) resources for OpenShift and MAS install
 2. [Deploy OpenShift](#step-2-deploy-and-prepare-openshift)
 3. [Install the dependencies for MAS](#step-3-Install-dependencies-for-mas) 
 4. [Install MAS](#step-4-installing-mas)
 5. Install Cloud Pak for Data (Optional)
-6. Install Maximo solution.
+6. Install Maximo Application Suite.
 
 ## Step 1: Preparing Azure
 
@@ -103,7 +109,7 @@ Please follow [this guide](docs/azure/README.md) to configure Azure.
 
 ## Step 2: Deploy and prepare OpenShift
 
-> 💡 **NOTE**: IBM Maximo does not currently officially support the current version of OpenShift running on Azure Redhat OpenShift (ARO).
+> 💡 **NOTE**: IBM MAS does not currently officially support the current version of OpenShift running on Azure Redhat OpenShift (ARO).
 
 ### Install OCP
 Please follow [this guide](docs/openshift/ocp/README.md) to configure OpenShift Container Platform on Azure.
@@ -140,6 +146,10 @@ Version: v1.12.0 (Newer versions may be supported)
 > 💡 **TIP**:
 > Copy the `oc` and `kubectl` client to your `/usr/bin` directory to access the client from any directory. This will be required for some installing scripts.
 
+> 💡 **NOTE**: Azure File Shares (SMB) [does not support hard links](https://docs.microsoft.com/en-us/rest/api/storageservices/features-not-supported-by-the-azure-file-service) for most services. Azure Premium Files (NFS) is required and recommended as the backend storage for various services support MAS.
+
+> 🚧 **WARNING** Enabling `Secure Transfer Required` on the storage account will block access to NFS shares on Azure Premium Files. This must be disabled to prevent Pods from failing to start.
+
 Run the following commands to configure Azure Files within your cluster:
 
 ```bash
@@ -157,6 +167,7 @@ export tenantId="tenantId"
 export subscriptionId="subscriptionId"
 export clientId="clientId" #This account will be used by OCP to access azure files to create shares within Azure Storage.
 export clientSecret="clientSecret"
+export branchName="main"
 
  #Configure Azure Files Standard
  wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/azurefiles-standard.yaml -O /tmp/OCPInstall/azurefiles-standard.yaml
@@ -238,33 +249,34 @@ You will need to update the pull secrets to make sure that all containers on Ope
 ### Updating Worker Nodes
 
 ```bash
-wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/machinesets/worker.yaml -O /tmp/OCPInstall/worker.yaml
-
 #Set variables to match your environment
 export clusterInstanceName="clusterInstanceName"
 export resourceGroupName="resourceGroupName"
 export subnetWorkerNodeName="subnetWorkerNodeName"
+export branchName="main"
+
+wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/machinesets/worker.yaml -O /tmp/OCPInstall/worker.yaml
 
 export zone=1
 export numReplicas=3
 envsubst < /tmp/OCPInstall/worker.yaml > /tmp/OCPInstall/QuickCluster/worker.yaml
 oc apply -f /tmp/OCPInstall/QuickCluster/worker.yaml
 oc scale --replicas=0 machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster/worker.yaml | head -n1 | awk '{ print $2}') -n openshift-machine-api
-oc scale --replicas=3 machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster/worker.yaml | head -n1 | awk '{ print $2}') -n openshift-machine-api
+oc scale --replicas=$numReplicas machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster/worker.yaml | head -n1 | awk '{ print $2}') -n openshift-machine-api
 
 export zone=2
 export numReplicas=3
 envsubst < /tmp/OCPInstall/worker.yaml > /tmp/OCPInstall/QuickCluster/worker.yaml
 oc apply -f /tmp/OCPInstall/QuickCluster/worker.yaml
 oc scale --replicas=0 machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster/worker.yaml | head -n1 | awk '{ print $2}') -n openshift-machine-api
-oc scale --replicas=3 machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster/worker.yaml | head -n1 | awk '{ print $2}') -n openshift-machine-api
+oc scale --replicas=$numReplicas machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster/worker.yaml | head -n1 | awk '{ print $2}') -n openshift-machine-api
 
 export zone=3
 export numReplicas=3
 envsubst < /tmp/OCPInstall/worker.yaml > /tmp/OCPInstall/QuickCluster/worker.yaml
 oc apply -f /tmp/OCPInstall/QuickCluster/worker.yaml
 oc scale --replicas=0 machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster/worker.yaml | head -n1 | awk '{ print $2}') -n openshift-machine-api
-oc scale --replicas=3 machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster/worker.yaml | head -n1 | awk '{ print $2}') -n openshift-machine-api
+oc scale --replicas=$numReplicas machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster/worker.yaml | head -n1 | awk '{ print $2}') -n openshift-machine-api
 
 ```
 
@@ -275,7 +287,14 @@ oc scale --replicas=3 machineset $(grep -A3 'name:' /tmp/OCPInstall/QuickCluster
 OpenShift Container Storage provides ceph to our cluster. Ceph is used by a variety of Maximo services to store its data. Before we can deploy OCS, we need to make a new machineset for it as it is quite needy: a minimum of 30 vCPUs and 72GB of RAM is required. In our sizing we use 4x B8ms for this machineset, the bare minimum and put them on their own nodes so there's no resource contention. After the machineset we need the OCS operator. Alternatively, you can install it from the OperatorHub.
 
 ```bash
+#Set variables to match your environment
+export clusterInstanceName="clusterInstanceName"
+export resourceGroupName="resourceGroupName"
+export subnetWorkerNodeName="subnetWorkerNodeName"
+export branchName="main"
+
 wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/machinesets/ocs.yaml -O ocs.yaml
+
 export zone=1
 export numReplicas=2
 envsubst < ocs.yaml > /tmp/OCPInstall/QuickCluster/ocs.yaml
@@ -309,6 +328,7 @@ The [IBM Operator Catalog](https://www.ibm.com/docs/en/app-connect/containers_cd
 To install, run the following commands:
 
 ```bash
+export branchName="main"
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/operatorcatalogs/catalog-source.yaml
 ```
 
@@ -423,6 +443,7 @@ END CERTIFICATE
 We have to put this operator on manual approval and you can NOT and should NOT upgrade the operator to a newer version. Maximo requires 0.8.0 specifically. To install, run the following commands:
 
 ```bash
+export branchName="main"
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/servicebinding/service-binding-operator.yaml
 
 installplan=$(oc get installplan -n openshift-operators | grep -i service-binding | awk '{print $1}'); echo "installplan: $installplan"
@@ -447,6 +468,7 @@ service-binding-operator.v0.8.0   Service Binding Operator   0.8.0     service-b
 To install, run the following commands:
 
 ```bash
+export branchName="main"
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/bas/bas-operator.yaml
 ```
 
@@ -460,6 +482,8 @@ oc create secret generic grafana-credentials --from-literal=grafana_username=<en
 Finally, deploy the Analytics Proxy. This will take up to 30 minutes to complete:
 
 ```bash
+export branchName="main"
+
 # Deploy
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/bas/bas-service.yaml
 
@@ -473,6 +497,7 @@ oc status
 Once this is complete, retrieve the bas endpoint and the API Key for use when doing the initial setup of Maximo:
 
 ```bash
+export branchName="main"
 oc get routes bas-endpoint -n ibm-bas
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/bas/bas-api-key.yaml
 ```
@@ -502,6 +527,7 @@ oc create secret docker-registry ibm-entitlement --docker-server=cp.icr.io --doc
 Deploy the operator group and subscription configurations for both Suite Licensing Service (SLS) and the truststore manager operator (requirement for SLS)
 
 ```bash
+export branchName="main"
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/sls/sls-operator.yaml
 ```
 
@@ -537,6 +563,7 @@ Deploy the service configuration:
 If you are happy with the default configuration then proceed with the following command:
 
 ```bash
+export branchName="main"
 # Deploy
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/sls/sls-service.yaml
 ```
@@ -544,6 +571,7 @@ oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/sls/s
 If you prefer to modify the setup, pull down the config and edit it:
 
 ```bash
+export branchName="main"
 wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/sls/sls-service.yaml -O sls-service.yaml
 ```
 
@@ -572,6 +600,7 @@ In the step below, you will deploy the MAS operator and then configure the Suite
 Lets deploy the operator:
 
 ```bash
+export branchName="main"
 oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/mas/mas-operator.yaml
 ```
 
@@ -593,6 +622,7 @@ Once it says succeeded for MAS, the Truststore and the Common Service Operator (
 Pull down the mas service YAML file and export variables that will be updated within the file:
 
 ```bash
+export branchName="main"
 export clusterName=myclustername
 export baseDomain=mydomain.com
 wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/mas/mas-service.yaml -O mas-service.yaml
@@ -659,6 +689,8 @@ oc describe LicenseService sls -n ibm-sls | grep -A 1 "Registration Key"
 You can configure the MongoDB Settings using the following commands:
 
 ```bash
+export branchName="main"
+
 oc delete secret nonprod-usersupplied-mongo-creds-system -n mas-nonprod-core 2>/dev/null
 sleep 1
 oc create secret generic nonprod-usersupplied-mongo-creds-system --from-literal=username=admin --from-literal=password=$(oc extract secret/mas-mongo-ce-admin-password --to=- -n mongo) -n mas-nonprod-core
@@ -683,6 +715,8 @@ oc apply -f mongoCfg-nonprod.yaml
 You can configure the BAS Settings using the following commands:
 
 ```bash
+export branchName="main"
+
 oc delete secret nonprod-usersupplied-bas-creds-system -n mas-nonprod-core 2>/dev/null
 sleep 1
 oc create secret generic nonprod-usersupplied-bas-creds-system --from-literal=api_key=$(oc get secret bas-api-key -n ibm-bas --output="jsonpath={.data.apikey}" | base64 -d) -n mas-nonprod-core
@@ -703,6 +737,8 @@ oc apply -f basCfg-nonprod.yaml
 You can configure the SLS Settings using the following commands:
 
 ```bash
+export branchName="main"
+
 oc delete secret nonprod-usersupplied-sls-creds-system -n mas-nonprod-core 2>/dev/null
 sleep 1
 oc create secret generic nonprod-usersupplied-sls-creds-system --from-literal=registrationKey=$(oc get LicenseService sls -n ibm-sls --output json | jq -r .status.registrationKey) -n mas-nonprod-core
@@ -768,20 +804,6 @@ Run the following cpdcli commands:
 ./cpd-cli install --accept-all-licenses --repo /tmp/repo.yaml --assembly db2wh --namespace cp4d --storageclass azurefiles-premium --latest-dependency
 ```
 
-## Step 6: Install Visual Inspection (Optional)
-
-### Visual Inspection Requirements
-
-If you wish to use Visual Inspection (VI), your OpenShift deployment must accomodate GPU-enabled worker nodes. To this end, this deployment contains a Machineset set specification in `src/machinesets/worker-vi-tesla.yaml` which will deploy Standard_NC12s_v3 Virtual Machines, which are GPU enabled with NVIDIA Tesla V100 GPUs, and you can modify this spec to increase the size of the VM per your needs.
-
-### Installing Visual Inspection Components
-
-The included installer script includes parameters that can control if you wish to install Visual Inspection components during your deployment. This will take care of creating the machineset with GPU-enabled workers, installing all the required node discovery features, and the NVidia GPU operator. Please see the "" section about enabling Visual Inspection Pre-Requirements during your deployment.
-
-### Post-Deployment Steps
-
-Once your cluster has been deployed, you can enable the Visual Inspection feature inside of MAS.
-
 ## Step 7: Post Install Dependencies
 
 ### Dedicated nodes
@@ -800,7 +822,26 @@ taints:
 We have provided a MachineSet definition in `src/machinesets/db2.yaml` that has the correct taints and recommend sizing for a small DB2 cluster. Install these machines before you deploy DB2. Do so as follows:
 
 ```bash
-oc apply -f src/machinesets/db2.yaml
+#Set variables to match your environment
+export clusterInstanceName="clusterInstanceName"
+export resourceGroupName="resourceGroupName"
+export subnetWorkerNodeName="subnetWorkerNodeName"
+export branchName="main"
+
+wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/machinesets/db2.yaml -O /tmp/OCPInstall/db2.yaml
+
+export zone=1
+#Setup DB2 MachineSet
+export numReplicas=1
+envsubst < /tmp/OCPInstall/db2.yaml > /tmp/OCPInstall/QuickCluster/db2.yaml
+sudo -E /tmp/OCPInstall/oc apply -f /tmp/OCPInstall/QuickCluster/db2.yaml
+
+export zone=2
+#Setup DB2 MachineSet
+export numReplicas=1
+envsubst < /tmp/OCPInstall/db2.yaml > /tmp/OCPInstall/QuickCluster/db2.yaml
+sudo -E /tmp/OCPInstall/oc apply -f /tmp/OCPInstall/QuickCluster/db2.yaml
+
 ```
 
 When you deploy the db2 cluster, the taint it needs in the deployment is "mas-manage-db2wh". By default the db2wh can't see the machinesets from its service account (zen-databases-sa). Grant it permission to allow to see the machines so it can validate if taints and tolerations are going hand in hand.
@@ -831,7 +872,7 @@ To grab the URL check the svc endpoint that sits in front of the nodes. To get t
 oc get svc -n cp4d | grep db2u-engn
 ```
 
-Your URL shuld be formed like this: `jdbc:db2://hostname:50001/BLUDB:sslConnection=true;`.
+Your URL should be formed like this: `jdbc:db2://hostname:50001/BLUDB:sslConnection=true;`.
 
 Your hostname is in the list of services above. For example c-db2wh-1634180797242781-db2u-engn-svc.cp4d.svc ("service name".projectname.svc). The port is 50000 for plain or 50001 for SSL, you should use 50001. For the connection string to work with Monitor you MUST append `:sslConnection=true;` to the end of the connection string.
 
@@ -910,24 +951,9 @@ echo QUIT | openssl s_client -connect localhost:7000 -servername localhost -show
  cat outfile01
 ```
 
-### Install IoT Dependencies
-
-The IBM IoT tools requires MongoDB, Kafka and DB2WH, all of which are available if you followed the steps above. If not, please install any missing dependencies.
-
-Go to the Maximo Configuration -> Catalog -> Tools and click on IoT. Next click Continue on the right.
-
-The IoT tool needs an ibm-entitlement key for the cp.icr.io repository. This is your regular IBM entitlement key. Create as such:
-
-```bash
-oc create secret docker-registry ibm-entitlement --docker-username=cp --docker-password=<YOUR_KEY> --docker-server=cp.icr.io -n mas-nonprod-core
-
-oc create ns mas-nonprod-iot
-oc create secret docker-registry ibm-entitlement --docker-username=cp --docker-password=<YOUR_KEY> --docker-server=cp.icr.io -n mas-nonprod-iot
-```
-
 <!-- Solution deployments -->
 
-## Step 8: Installing applications on top of Maximo
+## Step 8: Installing applications on top of MAS
 
 Maximo Application Suite is the base platform that one or more Maximo applications are installed on top of. Each application supports a variety of databases, but the requirements on the database are different per application. Generally speaking you can use SQL Server, Oracle or Db2. Azure SQL DB is currently not supported. As it stands right now, we you run DB2WH on OpenShift using Cloud Park for Data 3.5. You can back the DB2WH using Azure Files Premium.
 
@@ -984,15 +1010,91 @@ Once you have set up the database, you can go ahead and install Health as part o
 
 ## Step 8c: Installing Visual Inspection
 
-TODO
+If you wish to use Visual Inspection (VI), your OpenShift deployment must accomodate GPU-enabled worker nodes. To do this, you can deploy a Machineset set specification as follows:
 
-## Step 8d: Installing Monitor and IoT
+```bash
+#Set variables to match your environment
+export clusterInstanceName="clusterInstanceName"
+export resourceGroupName="resourceGroupName"
+export subnetWorkerNodeName="subnetWorkerNodeName"
+export branchName="main"
 
-TODO
+wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/machinesets/worker-vi-tesla.yaml -O /tmp/OCPInstall/worker-vi-tesla.yaml
 
-## Step 8e: Installing Predict
+export zone=1
+export numReplicas=1
+envsubst < /tmp/OCPInstall/worker-vi-tesla.yaml > /tmp/OCPInstall/QuickCluster/worker-vi-tesla.yaml
+oc apply -f /tmp/OCPInstall/QuickCluster/worker-vi-tesla.yaml
+```
 
-TODO
+Thie file can be found in the directory: `src/machinesets/worker-vi-tesla.yaml` which will deploy Standard_NC12s_v3 Virtual Machines. These are NVIDIA Tesla V100 GPUs.
+
+Once the machinesets have been deployed, you can proceed to deploying the Visual Inspection application inside of MAS. To deploy Visual Inspection, navigate to the catalog > Visual Inspection. Once this is open, click deploy (you can ignore the VI Edge integration for now).
+
+For more information, see the IBM Docs for [Visual Inspection](https://www.ibm.com/docs/en/mas87/8.7.0?topic=applications-maximo-visual-inspection).
+
+## Step 8d: Installing IoT
+
+IoT has 3 dependencies:
+  - DB2WH
+  - MongoDB
+  - Kafka Broker
+
+Start by configuring the DB2WH. Grab the connection string for your Column based DB2WH instance as described above in the [configuring MAS and getting the DB2WH connection string](#configuring-mas-and-getting-the-db2wh-connection-string) section.
+
+> ❗**IMPORTANT** Make sure the connection string for the DB2WH includes `sslConnection=true;` otherwise the install will fail. An example, correct, connection string is as follows: `jdbc:db2://c-db2wh-1652286547816056-db2u-engn-svc.cp4d.svc:50001/BLUDB:sslConnection=true;`
+
+Enter the connection string, username and password (default admin/password) and check the SSL Enabled box. There are no additional driver settings and the certificates are not required unless the DB2WH is outside of the cluster. Click save and and then activate. This takes ~2 hours, have patience. After that manage is available in your workspace.
+
+Next, if you have not already configured MongoDB, proceed to these steps: [configure MongoDB](#configuring-mongodb).
+
+Finally, configure the Kafka Broker by [Installing Kafka](#installing-kafka) and [Configuring MAS with Kafka](#configuring-mas-with-kafka).
+
+Once all of these dependencies have been configured, you can proceed to the MAS admin panel, go to the catalog and click on Tools > IoT to deploy and activate.
+
+## Step 8e: Installing Monitor
+
+Monitor has 2 dependencies:
+ - DB2WH
+ - IoT
+
+ Start by configuring the DB2WH. Grab the connection string for your Column based DB2WH instance as described above in the [configuring MAS and getting the DB2WH connection string](#configuring-mas-and-getting-the-db2wh-connection-string) section.
+
+> ❗**IMPORTANT** Make sure the connection string for the DB2WH includes `sslConnection=true;` otherwise the install will fail. An example, correct, connection string is as follows: `jdbc:db2://c-db2wh-1652286547816056-db2u-engn-svc.cp4d.svc:50001/BLUDB:sslConnection=true;`
+
+Enter the connection string, username and password (default admin/password) and check the SSL Enabled box. There are no additional driver settings and the certificates are not required unless the DB2WH is outside of the cluster. Click save and and then activate. This takes ~2 hours, have patience. After that manage is available in your workspace.
+
+IoT steps were completed in the [Step 8d: Installing IoT](#step-8d-installing-iot).
+
+Once all of these dependencies have been configured, you can proceed to the MAS admin panel, go to the catalog and click on Monitor to deploy and activate.
+
+## Step 8f: Installing Predict
+
+To start the deployment of predict, DB2WH must be configured. For more information on configuring DB2WH see these steps: [configuring MAS and getting the DB2WH connection string](#configuring-mas-and-getting-the-db2wh-connection-string).
+
+Following the deployment, you will need to configure the following:
+
+  - IBM Watson Studio
+  - IBM Watson Machine Learning
+  - [Installing Health](#step-8b-installing-health)
+  - [Installing Monitor](#step-8e-installing-monitor)
+
+IBM Watson products must be installed on Cloud Pak for Data. To get started, follow these steps for [Installing CP4D 3.5](#installing-cp4d-35). Once this is complete, using the same installer, you can deploy the dependencies running the following commands:
+
+```bash
+#Login to cluster
+export KUBECONFIG=/tmp/OCPInstall/QuickCluster/auth/kubeconfig
+
+#Install Watson Studio
+cpd-cli install --repo /tmp/repo.yaml --assembly wsl --namespace cp4d --storageclass azurefiles-premium --latest-dependency --accept-all-licenses
+
+#Install Watson Machine Learning
+cpd-cli install --repo /tmp/repo.yaml --assembly wml --namespace cp4d --storageclass azurefiles-premium --latest-dependency --accept-all-licenses
+```
+
+After these dependencies are configured, you may proceed to activating Predict.
+
+> 💡 **NOTE**: During activation, you will be prompted to enter settings for the IBM Watson Studio. This information is the CP4D URL and the login credentials for CP4D.
 
 ## Tips and Tricks
 
