@@ -8,54 +8,54 @@ This repository provides deployment guidance, scripts and best practices for run
 
 ## Table of Contents
 
-- [QuickStart Guide: Maximo Application Suite on Azure](#quickstart-guide-maximo-application-suite-on-azure)
-  - [Table of Contents](#table-of-contents)
-  - [Getting Started](#getting-started)
-  - [Overview](#overview)
-  - [Step 1: Preparing Azure](#step-1-preparing-azure)
-  - [Step 2: Deploy and prepare OpenShift](#step-2-deploy-and-prepare-openshift)
-    - [Install OCP](#install-ocp)
-    - [Logging In](#logging-in)
-  - [Step 3: Install dependencies for MAS](#step-3-install-dependencies-for-mas)
-    - [Azure Files CSI drivers](#azure-files-csi-drivers)
-    - [Enabling SAML authentication against Azure AD](#enabling-saml-authentication-against-azure-ad)
-    - [Updating pull secrets](#updating-pull-secrets)
-    - [Updating Worker Nodes](#updating-worker-nodes)
-    - [Installing OpenShift Container Storage (Optional)](#installing-openshift-container-storage-optional)
-    - [Installing IBM Operator Catalog](#installing-ibm-operator-catalog)
-    - [Installing cert-manager](#installing-cert-manager)
-    - [Installing MongoDB](#installing-mongodb)
-    - [Installing Service Binding Operator](#installing-service-binding-operator)
-    - [Installing IBM Behavior Analytics Services Operator (BAS)](#installing-ibm-behavior-analytics-services-operator-bas)
-  - [Step 4: Installing MAS](#step-4-installing-mas)
-    - [Deploying using the Operator](#deploying-using-the-operator)
-    - [Setting up MAS](#setting-up-mas)
-  - [Step 5: Installing Cloud Pak for Data (Optional)](#step-5-installing-cloud-pak-for-data-optional)
-    - [Installing CP4D 3.5](#installing-cp4d-35)
-  - [Step 6: Install Visual Inspection (Optional)](#step-6-install-visual-inspection-optional)
-    - [Visual Inspection Requirements](#visual-inspection-requirements)
-    - [Installing Visual Inspection Components](#installing-visual-inspection-components)
-    - [Post-Deployment Steps](#post-deployment-steps)
-  - [Step 7: Post Install Dependencies](#step-7-post-install-dependencies)
-    - [Dedicated nodes](#dedicated-nodes)
-    - [Deploying Db2 Warehouse](#deploying-db2-warehouse)
-    - [Configuring MAS and getting the DB2WH connection string](#configuring-mas-and-getting-the-db2wh-connection-string)
-    - [Installing Kafka](#installing-kafka)
-      - [Configuring MAS with Kafka](#configuring-mas-with-kafka)
-    - [Install IoT Dependencies](#install-iot-dependencies)
-  - [Step 8: Installing applications on top of MAS](#step-8-installing-applications-on-top-of-mas)
-  - [Step 8a: Installing Manage](#step-8a-installing-manage)
-  - [Step 8b: Installing Health](#step-8b-installing-health)
-  - [Step 8c: Installing Visual Inspection](#step-8c-installing-visual-inspection)
-  - [Step 8d: Installing IoT](#step-8d-installing-iot)
-  - [Step 8e: Installing Monitor](#step-8e-installing-monitor)
-  - [Step 8f: Installing Predict](#step-8f-installing-predict)
-  - [Tips and Tricks](#tips-and-tricks)
-    - [To get your credentials to login](#to-get-your-credentials-to-login)
-    - [Shutting down your cluster](#shutting-down-your-cluster)
-    - [Restarting Kafka inside BAS](#restarting-kafka-inside-bas)
-    - [Pods refusing to schedule](#pods-refusing-to-schedule)
-  - [Contributing](#contributing)
+- [Getting Started](#getting-started)
+- [Overview](#overview)
+- [Step 1: Preparing Azure](#step-1-preparing-azure)
+- [Step 2: Deploy and prepare OpenShift](#step-2-deploy-and-prepare-openshift)
+  * [Install OCP](#install-ocp)
+  * [Logging In](#logging-in)
+- [Step 3: Install dependencies for MAS](#step-3-install-dependencies-for-mas)
+  * [Azure Files CSI drivers](#azure-files-csi-drivers)
+  * [Enabling SAML authentication against Azure AD](#enabling-saml-authentication-against-azure-ad)
+  * [Updating pull secrets](#updating-pull-secrets)
+  * [Updating Worker Nodes](#updating-worker-nodes)
+  * [Installing OpenShift Container Storage (Optional)](#installing-openshift-container-storage-optional)
+  * [Installing IBM Operator Catalog](#installing-ibm-operator-catalog)
+  * [Installing cert-manager](#installing-cert-manager)
+  * [Installing MongoDB](#installing-mongodb)
+  * [Installing Service Binding Operator](#installing-service-binding-operator)
+  * [Installing IBM Behavior Analytics Services Operator (BAS)](#installing-ibm-behavior-analytics-services-operator-bas)
+  * [Installing IBM Suite License Service (SLS)](#installing-ibm-suite-license-service-sls)
+- [Step 4: Installing MAS](#step-4-installing-mas)
+  * [Deploying using the Operator](#deploying-using-the-operator)
+  * [Setting up MAS](#setting-up-mas)
+    + [Configuring MongoDB](#configuring-mongodb)
+    + [Configuring BAS](#configuring-bas)
+    + [Configuring SLS](#configuring-sls)
+    + [Generate a license file and finalize workspace](#generate-a-license-file-and-finalize-workspace)
+- [Step 5: Installing Cloud Pak for Data (Optional)](#step-5-installing-cloud-pak-for-data-optional)
+  * [Installing CP4D 3.5](#installing-cp4d-35)
+- [Step 6: Post Install Dependencies](#step-6-post-install-dependencies)
+  * [Dedicated nodes](#dedicated-nodes)
+  * [Deploying Db2 Warehouse](#deploying-db2-warehouse)
+  * [Configuring MAS and getting the DB2WH connection string](#configuring-mas-and-getting-the-db2wh-connection-string)
+  * [Installing Kafka](#installing-kafka)
+    + [Configuring MAS with Kafka](#configuring-mas-with-kafka)
+- [Step 7: Installing applications on top of MAS](#step-7-installing-applications-on-top-of-mas)
+  * [Installing Manage](#installing-manage)
+  * [Installing Health](#installing-health)
+  * [Installing Visual Inspection](#installing-visual-inspection)
+  * [Installing IoT](#installing-iot)
+  * [Installing Monitor](#installing-monitor)
+  * [Installing Predict](#installing-predict)
+- [Tips and Tricks](#tips-and-tricks)
+  * [To get your credentials to login](#to-get-your-credentials-to-login)
+  * [Shutting down your cluster](#shutting-down-your-cluster)
+  * [Restarting Kafka inside BAS](#restarting-kafka-inside-bas)
+  * [Pods refusing to schedule](#pods-refusing-to-schedule)
+  * [Grabbing username and password for CP4D and MAS](#grabbing-username-and-password-for-cp4d-and-mas)
+- [Contributing](#contributing)
+- [Trademarks](#trademarks)
 
 
 ## Getting Started
@@ -504,7 +504,7 @@ oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/bas/b
 
 To get the credentials and details from BAS, please see [Setting up Maximo](#setting-up-maximo).
 
-#### Installing IBM Suite License Service (SLS)
+### Installing IBM Suite License Service (SLS)
 
 [IBM Suite License Service](https://github.com/IBM/ibm-licensing-operator) (SLS) is a token-based licensing system based on Rational License Key Server (RLKS) with MongoDB as the data store.
 
@@ -804,7 +804,7 @@ Run the following cpdcli commands:
 ./cpd-cli install --accept-all-licenses --repo /tmp/repo.yaml --assembly db2wh --namespace cp4d --storageclass azurefiles-premium --latest-dependency
 ```
 
-## Step 7: Post Install Dependencies
+## Step 6: Post Install Dependencies
 
 ### Dedicated nodes
 
@@ -953,7 +953,7 @@ echo QUIT | openssl s_client -connect localhost:7000 -servername localhost -show
 
 <!-- Solution deployments -->
 
-## Step 8: Installing applications on top of MAS
+## Step 7: Installing applications on top of MAS
 
 Maximo Application Suite is the base platform that one or more Maximo applications are installed on top of. Each application supports a variety of databases, but the requirements on the database are different per application. Generally speaking you can use SQL Server, Oracle or Db2. Azure SQL DB is currently not supported. As it stands right now, we you run DB2WH on OpenShift using Cloud Park for Data 3.5. You can back the DB2WH using Azure Files Premium.
 
@@ -982,7 +982,7 @@ graph TD
   Z[End]
 ```
 
-## Step 8a: Installing Manage
+### Installing Manage
 
 Management requires only DB2WH. If you want to deploy Health, make sure to read the instructions on how to do so first. To start, go to the MAS admin panel, go to the catalog and click on Manage to set up the channel:
 
@@ -996,7 +996,7 @@ Next, configure the database. Grab the connection string for your DB2WH (either 
 
 Enter the connection string, username and password (default admin/password) and check the SSL Enabled box. There are no additional driver settings and the certificates are not required unless the DB2WH is outside of the cluster. Click save and and then activate. This takes ~2 hours, have patience. After that manage is available in your workspace.
 
-## Step 8b: Installing Health
+### Installing Health
 
 Health can be installed with or without Manage. For now we have only tested with manage and this is the recommended path. 
 
@@ -1008,7 +1008,7 @@ Current recommendation is to use DB2WH, this means you'll need to create a DB2WH
 
 Once you have set up the database, you can go ahead and install Health as part of Manage. Follow the installation instructions for Manage and make sure to check the Health checkbox on the Components overview.
 
-## Step 8c: Installing Visual Inspection
+### Installing Visual Inspection
 
 If you wish to use Visual Inspection (VI), your OpenShift deployment must accomodate GPU-enabled worker nodes. To do this, you can deploy a Machineset set specification as follows:
 
@@ -1033,7 +1033,7 @@ Once the machinesets have been deployed, you can proceed to deploying the Visual
 
 For more information, see the IBM Docs for [Visual Inspection](https://www.ibm.com/docs/en/mas87/8.7.0?topic=applications-maximo-visual-inspection).
 
-## Step 8d: Installing IoT
+### Installing IoT
 
 IoT has 3 dependencies:
   - DB2WH
@@ -1052,7 +1052,7 @@ Finally, configure the Kafka Broker by [Installing Kafka](#installing-kafka) and
 
 Once all of these dependencies have been configured, you can proceed to the MAS admin panel, go to the catalog and click on Tools > IoT to deploy and activate.
 
-## Step 8e: Installing Monitor
+### Installing Monitor
 
 Monitor has 2 dependencies:
  - DB2WH
@@ -1064,11 +1064,11 @@ Monitor has 2 dependencies:
 
 Enter the connection string, username and password (default admin/password) and check the SSL Enabled box. There are no additional driver settings and the certificates are not required unless the DB2WH is outside of the cluster. Click save and and then activate. This takes ~2 hours, have patience. After that manage is available in your workspace.
 
-IoT steps were completed in the [Step 8d: Installing IoT](#step-8d-installing-iot).
+IoT steps were completed in the [Step 8d: Installing IoT](#installing-iot).
 
 Once all of these dependencies have been configured, you can proceed to the MAS admin panel, go to the catalog and click on Monitor to deploy and activate.
 
-## Step 8f: Installing Predict
+### Installing Predict
 
 To start the deployment of predict, DB2WH must be configured. For more information on configuring DB2WH see these steps: [configuring MAS and getting the DB2WH connection string](#configuring-mas-and-getting-the-db2wh-connection-string).
 
@@ -1076,8 +1076,8 @@ Following the deployment, you will need to configure the following:
 
   - IBM Watson Studio
   - IBM Watson Machine Learning
-  - [Installing Health](#step-8b-installing-health)
-  - [Installing Monitor](#step-8e-installing-monitor)
+  - [Installing Health](#installing-health)
+  - [Installing Monitor](#installing-monitor)
 
 IBM Watson products must be installed on Cloud Pak for Data. To get started, follow these steps for [Installing CP4D 3.5](#installing-cp4d-35). Once this is complete, using the same installer, you can deploy the dependencies running the following commands:
 
