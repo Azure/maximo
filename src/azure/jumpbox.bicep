@@ -31,8 +31,8 @@ param subnetWorkerNodeName string
 param subnetEndpointsName string
 param controlMachineSize string
 param workerMachineSize string
-param numControlReplicas string
-param numWorkerReplicas string
+param numControlReplicas int
+param numWorkerReplicas int
 param customInstallConfigURL string
 param installMAS string
 param installOCS string

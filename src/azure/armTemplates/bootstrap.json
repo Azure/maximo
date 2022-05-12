@@ -5,33 +5,62 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1008.15138",
-      "templateHash": "18212629084163701197"
+      "templateHash": "8818352144515751052"
     }
   },
   "parameters": {
     "location": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]"
     },
     "networkSecurityGroupRules": {
-      "type": "array"
+      "type": "array",
+      "defaultValue": [
+        {
+          "name": "SSH",
+          "properties": {
+            "priority": 300,
+            "protocol": "TCP",
+            "access": "Allow",
+            "direction": "Inbound",
+            "sourceAddressPrefix": "*",
+            "sourcePortRange": "*",
+            "destinationAddressPrefix": "*",
+            "destinationPortRange": "22"
+          }
+        }
+      ]
     },
     "virtualMachineName": {
-      "type": "string"
+      "type": "string",
+      "metadata": {
+        "description": "Name of the JumpBox that will deploy the OpenShift installer."
+      }
     },
     "osDiskType": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "Premium_LRS"
     },
     "virtualMachineSize": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "Standard_B2ms"
     },
     "adminUsername": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "azureuser",
+      "metadata": {
+        "description": "Admin username for the JumpBox"
+      }
     },
     "adminPassword": {
-      "type": "secureString"
+      "type": "secureString",
+      "metadata": {
+        "description": "Admin password for the JumpBox"
+      }
     },
     "zone": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "1"
     },
     "baseDomainResourceGroup": {
       "type": "string",
@@ -40,106 +69,217 @@
       }
     },
     "domainName": {
-      "type": "string"
+      "type": "string",
+      "metadata": {
+        "description": "Domain Name of your Public DNS Zone. For Example: contoso.com"
+      }
     },
     "clusterName": {
-      "type": "string"
+      "type": "string",
+      "metadata": {
+        "description": "Name of the OpenShift cluster"
+      }
     },
     "customInstallConfigURL": {
-      "type": "string"
+      "type": "string",
+      "metadata": {
+        "description": "You can optionally replace the install-config.yaml with a custom version by providing the full URL to the file"
+      }
     },
     "installMAS": {
-      "type": "string"
+      "type": "string",
+      "allowedValues": [
+        "Yes",
+        "No"
+      ]
     },
     "installOCS": {
-      "type": "string"
+      "type": "string",
+      "allowedValues": [
+        "Yes",
+        "No"
+      ]
     },
     "installCP4D": {
-      "type": "string"
+      "type": "string",
+      "allowedValues": [
+        "Yes",
+        "No"
+      ]
     },
     "installVI": {
-      "type": "string"
+      "type": "string",
+      "allowedValues": [
+        "Yes",
+        "No"
+      ]
     },
     "applicationId": {
-      "type": "string"
+      "type": "string",
+      "metadata": {
+        "description": "Client Id of the application registration that has at least Contributor and User Access Administrator access on the subscription"
+      }
     },
     "applicationSecret": {
-      "type": "secureString"
+      "type": "secureString",
+      "metadata": {
+        "description": "Secret for the Client Id provided above."
+      }
     },
     "sshPubKey": {
-      "type": "string"
+      "type": "string",
+      "metadata": {
+        "description": "SSH Public key that can be used to connect to the OpenShift nodes"
+      }
     },
     "pullSecret": {
-      "type": "string"
+      "type": "string",
+      "metadata": {
+        "description": "Pull Secret for the OpenShift cluster to pull images from the RedHat registry"
+      }
     },
     "entitlementKey": {
-      "type": "string"
+      "type": "string",
+      "metadata": {
+        "description": "IBM Entitlement Key used to pull images from the IBM registry"
+      }
     },
     "vnetName": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "maximo-vnet",
+      "metadata": {
+        "description": "Virtual network name to be created"
+      }
     },
     "vnetAddressPrefix": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "10.0.0.0/16"
     },
     "subnetControlNodePrefix": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "10.0.0.0/24"
     },
     "subnetControlNodeName": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "control",
+      "metadata": {
+        "description": "Name of the subnet where the management nodes will be deployed"
+      }
     },
     "subnetWorkerNodePrefix": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "10.0.2.0/23"
     },
     "subnetWorkerNodeName": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "workers",
+      "metadata": {
+        "description": "Name of the subnet where the worker nodes will be deployed"
+      }
     },
     "subnetEndpointsPrefix": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "10.0.1.0/24"
     },
     "subnetEndpointsName": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "endpoints",
+      "metadata": {
+        "description": "Name of the subnet where the private endpoints will be deployed"
+      }
     },
     "storageNamePrefix": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "maximofiles",
+      "metadata": {
+        "description": "Prefix for the storage accounts"
+      }
     },
     "subnetBastionPrefix": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "10.0.4.0/27"
     },
     "subnetBastionName": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "AzureBastionSubnet",
+      "metadata": {
+        "description": "Do not change the Subnet name for the Bastion host"
+      }
     },
     "bastionHostName": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "maximoBastionHost",
+      "metadata": {
+        "description": "Name of the Bastion host"
+      }
     },
     "controlMachineSize": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "Standard_D8s_v3",
+      "metadata": {
+        "description": "VM Size for the management nodes"
+      }
     },
     "workerMachineSize": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "Standard_D8s_v3",
+      "metadata": {
+        "description": "VM Size for the worker nodes"
+      }
     },
     "numControlReplicas": {
-      "type": "string"
+      "type": "int",
+      "defaultValue": 3,
+      "minValue": 3,
+      "metadata": {
+        "description": "Number of management nodes"
+      }
     },
     "numWorkerReplicas": {
-      "type": "string"
+      "type": "int",
+      "defaultValue": 9,
+      "metadata": {
+        "description": "Number of worker nodes"
+      }
     },
     "openshiftVersion": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "4.8.22",
+      "metadata": {
+        "description": "Version of OpenShift to deploy"
+      }
     },
     "azureFilesCSIVersion": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "v1.12.0",
+      "metadata": {
+        "description": "Version of Azure CSI drivers to install"
+      }
     },
     "masChannel": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "8.7.x",
+      "metadata": {
+        "description": "MAS Channel to deploy from"
+      }
     },
     "nvidiaOperatorChannel": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "v1.9.0",
+      "metadata": {
+        "description": "NVidia Channel to deploy from"
+      }
     },
     "nvidiaOperatorCSV": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "gpu-operator-certified.v1.9.1"
     },
     "branchName": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "main",
+      "metadata": {
+        "description": "Branch name where scripts are pulled from"
+      }
     }
   },
   "functions": [],
@@ -950,7 +1090,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.4.1008.15138",
-              "templateHash": "14511094482602868716"
+              "templateHash": "15700348134168853234"
             }
           },
           "parameters": {
@@ -1033,10 +1173,10 @@
               "type": "string"
             },
             "numControlReplicas": {
-              "type": "string"
+              "type": "int"
             },
             "numWorkerReplicas": {
-              "type": "string"
+              "type": "int"
             },
             "customInstallConfigURL": {
               "type": "string"
