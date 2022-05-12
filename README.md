@@ -1010,7 +1010,15 @@ Once you have set up the database, you can go ahead and install Health as part o
 
 ### Installing Visual Inspection
 
-If you wish to use Visual Inspection (VI), your OpenShift deployment must accomodate GPU-enabled worker nodes. To do this, you can deploy a Machineset set specification as follows:
+If you wish to use [Visual Inspection](https://www.ibm.com/docs/en/mas87/8.7.0?topic=applications-maximo-visual-inspection) or VI, OpenShift needs GPU-enabled worker nodes. There are few steps to go do this 
+
+1. Deploy a machineset with GPU nodes in them
+1. Deploy the Node Feature Discovery operator, to discover the GPU capability
+1. Deploy the Nvidia Operator to install the Nvidia drivers onto the machines
+
+> ❗**IMPORTANT** To make Nvidia GPUs work on OpenShift seamlessly you need OpenShift 4.8.22 or newer.
+
+First you need to deploy VMs with GPUs in them. At `src/machinesets/worker-vi-tesla.yaml` there is a machineset provided that does this. Deploy it as follows:
 
 ```bash
 #Set variables to match your environment
@@ -1018,20 +1026,33 @@ export clusterInstanceName="clusterInstanceName"
 export resourceGroupName="resourceGroupName"
 export subnetWorkerNodeName="subnetWorkerNodeName"
 export branchName="main"
-
-wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/machinesets/worker-vi-tesla.yaml -O /tmp/OCPInstall/worker-vi-tesla.yaml
-
 export zone=1
 export numReplicas=1
-envsubst < /tmp/OCPInstall/worker-vi-tesla.yaml > /tmp/OCPInstall/QuickCluster/worker-vi-tesla.yaml
-oc apply -f /tmp/OCPInstall/QuickCluster/worker-vi-tesla.yaml
+
+wget -nv -qO-  https://raw.githubusercontent.com/Azure/maximo/$branchName/src/machinesets/worker-vi-tesla.yaml | envsubst | oc apply -f -
 ```
 
-Thie file can be found in the directory: `src/machinesets/worker-vi-tesla.yaml` which will deploy Standard_NC12s_v3 Virtual Machines. These are NVIDIA Tesla V100 GPUs.
+The machineset deploys [Standard_NC12s_v3 virtual machines](https://docs.microsoft.com/en-us/azure/virtual-machines/ncv3-series). These machines are powered by NVIDIA Tesla V100 GPUs. If you need to run YOLOv3 models, you can deploy Ampere VMs instead - either [ND A100v4](https://docs.microsoft.com/en-us/azure/virtual-machines/nda100-v4-series) or [ND A10v5](https://docs.microsoft.com/en-us/azure/virtual-machines/nva10v5-series)
 
-Once the machinesets have been deployed, you can proceed to deploying the Visual Inspection application inside of MAS. To deploy Visual Inspection, navigate to the catalog > Visual Inspection. Once this is open, click deploy (you can ignore the VI Edge integration for now).
+Once the machinesets have been deployed and came up, you need to install the Node Feature Discovery.
 
-For more information, see the IBM Docs for [Visual Inspection](https://www.ibm.com/docs/en/mas87/8.7.0?topic=applications-maximo-visual-inspection).
+```bash
+export branchName="main"
+
+wget -nv -qO- https://raw.githubusercontent.com/Azure/maximo/$branchName/src/nfd/nfd-operator.yaml | envsubst | oc apply -f -
+```
+
+Once that one is up, it is time to install the Nvidia drivers. For that you need to install the Nvidia Operator, this will take care of the install of the GPU nodes based on the Node Feature Discovery. This takes a while to complete.
+
+```bash
+export branchName="main"
+export nvidiaOperatorChannel="v1.9.0"
+export nvidiaOperatorCSV="gpu-operator-certified.v1.9.1"
+
+wget -nv -qO- https://raw.githubusercontent.com/Azure/maximo/$branchName/src/vi/nv-operator.yaml | envsubst | oc apply -f -
+```
+
+Once that is done you can proceed to deploying the Visual Inspection application on top of MAS. To deploy Visual Inspection, navigate to the catalog > Visual Inspection. After that click on deploy (ignore the VI Edge piece).
 
 ### Installing IoT
 
