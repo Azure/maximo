@@ -144,6 +144,10 @@ Version: v1.12.0 (Newer versions may be supported)
 > 💡 **TIP**:
 > Copy the `oc` and `kubectl` client to your `/usr/bin` directory to access the client from any directory. This will be required for some installing scripts.
 
+> 💡 **NOTE**: Azure File Shares (SMB) [does not support hard links](https://docs.microsoft.com/en-us/rest/api/storageservices/features-not-supported-by-the-azure-file-service) for most services. Azure Premium Files (NFS) is required and recommended as the backend storage for various services support MAS.
+
+> 🚧 **WARNING** Enabling `Secure Transfer Required` on the storage account will block access to NFS shares on Azure Premium Files. This must be disabled to prevent Pods from failing to start.
+
 Run the following commands to configure Azure Files within your cluster:
 
 ```bash
@@ -161,6 +165,7 @@ export tenantId="tenantId"
 export subscriptionId="subscriptionId"
 export clientId="clientId" #This account will be used by OCP to access azure files to create shares within Azure Storage.
 export clientSecret="clientSecret"
+export branchName="main"
 
  #Configure Azure Files Standard
  wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/azurefiles-standard.yaml -O /tmp/OCPInstall/azurefiles-standard.yaml
@@ -835,7 +840,7 @@ To grab the URL check the svc endpoint that sits in front of the nodes. To get t
 oc get svc -n cp4d | grep db2u-engn
 ```
 
-Your URL shuld be formed like this: `jdbc:db2://hostname:50001/BLUDB;sslConnection=true;`.
+Your URL should be formed like this: `jdbc:db2://hostname:50001/BLUDB;sslConnection=true;`.
 
 Your hostname is in the list of services above. For example c-db2wh-1634180797242781-db2u-engn-svc.cp4d.svc ("service name".projectname.svc). The port is 50000 for plain or 50001 for SSL, you should use 50001. For the connection string to work with Monitor you MUST append `;sslConnection=true;` to the end of the connection string.
 
