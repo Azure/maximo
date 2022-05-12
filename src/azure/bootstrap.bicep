@@ -1,5 +1,4 @@
-
-param region string = resourceGroup().location
+var location = resourceGroup().location
 // param networkInterfaceName string
 // param networkSecurityGroupName string
 var networkSecurityGroupRules = [
@@ -25,21 +24,32 @@ var networkSecurityGroupRules = [
 // param publicIpAddressSku string
 @description('Name of the JumpBox that will deploy the OpenShift installer.')
 param virtualMachineName string
-//param virtualMachineComputerName string
-var osDiskType = 'Premium_LRS'
-param virtualMachineSize string = 'Standard_B2ms'
 @description('Admin username for the JumpBox')
 param adminUsername string = 'azureuser'
 @secure()
 @description('Admin password for the JumpBox')
 param adminPassword string
-var zone = '1'
+@description('Client Id of the application registration that has at least Contributor and User Access Administrator access on the subscription')
+param applicationId string
+@description('Secret for the Client Id provided above.')
+@secure()
+param applicationSecret string
 @description('Resource Group Name where Public DNS Zone exists')
 param baseDomainResourceGroup string //used for ocp yaml config
 @description('Domain Name of your Public DNS Zone. For Example: contoso.com')
 param domainName string
+@description('SSH Public key that can be used to connect to the OpenShift nodes')
+param sshPubKey string
+@description('Pull Secret for the OpenShift cluster to pull images from the RedHat registry')
+param pullSecret string
+@description('IBM Entitlement Key used to pull images from the IBM registry')
+param entitlementKey string
 @description('Name of the OpenShift cluster')
 param clusterName string
+//param virtualMachineComputerName string
+var osDiskType = 'Premium_LRS'
+param virtualMachineSize string = 'Standard_B2ms'
+var zone = '1'
 @description('You can optionally replace the install-config.yaml with a custom version by providing the full URL to the file')
 param customInstallConfigURL string
 @allowed([
@@ -62,17 +72,6 @@ param installCP4D string = 'Yes'
   'No'
 ])
 param installVI string = 'Yes'
-@description('Client Id of the application registration that has at least Contributor and User Access Administrator access on the subscription')
-param applicationId string
-@description('Secret for the Client Id provided above.')
-@secure()
-param applicationSecret string
-@description('SSH Public key that can be used to connect to the OpenShift nodes')
-param sshPubKey string
-@description('Pull Secret for the OpenShift cluster to pull images from the RedHat registry')
-param pullSecret string
-@description('IBM Entitlement Key used to pull images from the IBM registry')
-param entitlementKey string
 @description('Virtual network name to be created')
 param vnetName string = 'maximo-vnet'
 param vnetAddressPrefix string = '10.0.0.0/16'
@@ -134,7 +133,7 @@ module network 'networking.bicep' = {
     subnetWorkerNodeName: subnetWorkerNodeName
     subnetEndpointsPrefix: subnetEndpointsPrefix
     subnetEndpointsName: subnetEndpointsName
-    location: region
+    location: location
 
   }
 }
@@ -146,7 +145,7 @@ module premiumStorage 'storage.bicep' = {
     storageNamePrefix: storageNamePrefix
     subnetEndpointsName: subnetEndpointsName
     vnetName: vnetName
-    location: region
+    location: location
   }
   dependsOn:[
     network
@@ -161,7 +160,7 @@ module bastionHost 'bastion.bicep' = {
     subnetBastionPrefix: subnetBastionPrefix
     bastionHostName: bastionHostName
     vnetName: vnetName
-    location: region
+    location: location
   }
   dependsOn:[
     network
@@ -173,7 +172,7 @@ module sidecarVM 'jumpbox.bicep' = {
   name: 'LinuxVM'
   scope: resourceGroup()
   params: {
-    location: region
+    location: location
     networkInterfaceName: '${virtualMachineName}-nic'
     networkSecurityGroupName: '${virtualMachineName}-nsg'
     networkSecurityGroupRules:networkSecurityGroupRules
