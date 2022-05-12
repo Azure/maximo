@@ -1,8 +1,8 @@
 
-param location string = resourceGroup().location
+param region string = resourceGroup().location
 // param networkInterfaceName string
 // param networkSecurityGroupName string
-param networkSecurityGroupRules array = [
+var networkSecurityGroupRules = [
   {
     'name': 'SSH'
     'properties': {
@@ -26,14 +26,14 @@ param networkSecurityGroupRules array = [
 @description('Name of the JumpBox that will deploy the OpenShift installer.')
 param virtualMachineName string
 //param virtualMachineComputerName string
-param osDiskType string = 'Premium_LRS'
+var osDiskType = 'Premium_LRS'
 param virtualMachineSize string = 'Standard_B2ms'
 @description('Admin username for the JumpBox')
 param adminUsername string = 'azureuser'
 @secure()
 @description('Admin password for the JumpBox')
 param adminPassword string
-param zone string = '1'
+var zone = '1'
 @description('Resource Group Name where Public DNS Zone exists')
 param baseDomainResourceGroup string //used for ocp yaml config
 @description('Domain Name of your Public DNS Zone. For Example: contoso.com')
@@ -46,22 +46,22 @@ param customInstallConfigURL string
   'Yes'
   'No'
 ])
-param installMAS string
+param installMAS string = 'Yes'
 @allowed([
   'Yes'
   'No'
 ])
-param installOCS string
+param installOCS string = 'Yes'
 @allowed([
   'Yes'
   'No'
 ])
-param installCP4D string
+param installCP4D string = 'Yes'
 @allowed([
   'Yes'
   'No'
 ])
-param installVI string
+param installVI string = 'Yes'
 @description('Client Id of the application registration that has at least Contributor and User Access Administrator access on the subscription')
 param applicationId string
 @description('Secret for the Client Id provided above.')
@@ -102,16 +102,16 @@ param numControlReplicas int = 3
 @description('Number of worker nodes')
 param numWorkerReplicas int = 9
 @description('Version of OpenShift to deploy')
-param openshiftVersion string = '4.8.22'
+var openshiftVersion = '4.8.22'
 @description('Version of Azure CSI drivers to install')
-param azureFilesCSIVersion string = 'v1.12.0'
+var azureFilesCSIVersion = 'v1.12.0'
 @description('MAS Channel to deploy from')
-param masChannel string = '8.7.x'
+var masChannel = '8.7.x'
 @description('NVidia Channel to deploy from')
-param nvidiaOperatorChannel string = 'v1.9.0'
-param nvidiaOperatorCSV string = 'gpu-operator-certified.v1.9.1'
+var nvidiaOperatorChannel = 'v1.9.0'
+var nvidiaOperatorCSV = 'gpu-operator-certified.v1.9.1'
 @description('Branch name where scripts are pulled from')
-param branchName string = 'main'
+var branchName = 'main'
 
 //create dns zone
 module dnsZone 'dns.bicep' = {
@@ -134,7 +134,7 @@ module network 'networking.bicep' = {
     subnetWorkerNodeName: subnetWorkerNodeName
     subnetEndpointsPrefix: subnetEndpointsPrefix
     subnetEndpointsName: subnetEndpointsName
-    location: location
+    location: region
 
   }
 }
@@ -146,7 +146,7 @@ module premiumStorage 'storage.bicep' = {
     storageNamePrefix: storageNamePrefix
     subnetEndpointsName: subnetEndpointsName
     vnetName: vnetName
-    location: location
+    location: region
   }
   dependsOn:[
     network
@@ -161,7 +161,7 @@ module bastionHost 'bastion.bicep' = {
     subnetBastionPrefix: subnetBastionPrefix
     bastionHostName: bastionHostName
     vnetName: vnetName
-    location: location
+    location: region
   }
   dependsOn:[
     network
@@ -173,7 +173,7 @@ module sidecarVM 'jumpbox.bicep' = {
   name: 'LinuxVM'
   scope: resourceGroup()
   params: {
-    location: location
+    location: region
     networkInterfaceName: '${virtualMachineName}-nic'
     networkSecurityGroupName: '${virtualMachineName}-nsg'
     networkSecurityGroupRules:networkSecurityGroupRules
