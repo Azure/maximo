@@ -63,6 +63,7 @@ To move forward with a Maximo install you will need a few basics:
 * An active Azure subscription.
   * A quota of at least 40 vCPU allowed for your VM type of choice (Dsv4 recommended). Request [a quota increase](https://docs.microsoft.com/azure/azure-portal/supportability/regional-quota-requests) if needed.
   * You will need subscription owner permissions for the deployment.
+    * If you cannot obtain subscription level permissions, it is possible to target a resource group in the `install-config.yaml` file instead.
 * A domain or subdomain. If you don't have one, you can register one through Azure using an App Service Domain.
   * If you will be using a subdomain, you will need to delegate authority of the sub domain to the public Azure DNS Zone as described [here](https://docs.microsoft.com/azure/dns/delegate-subdomain)
 * Access to the IBM licensing service for IBM Maximo.
@@ -70,7 +71,10 @@ To move forward with a Maximo install you will need a few basics:
 
 These are normally provided by your organization. The IBM Entitlement key will be needed after your OpenShift cluster is deployed but you will not need the IBM License for Maximo until the last few steps. Once you have secured access to an Azure subscription, you need:
 
-* An Application Registration (SPN) with Contributor and User Access Administrator access on the Subscription you are intending to deploy into.
+* An Application Registration (SPN) with Contributor and User Access Administrator access on the Subscription you are intending to deploy into. If you are not able to assign permissions at a resource group level, the prefered method is to create 2 resource groups:
+  * [Template deployed resources](src/azure/README.md) (VNet, Storage Accounts, Bastion, JumpBox...etc)
+  * Installer (IPI) deployed resources (control nodes, worker nodes, load balancers...etc)
+  After these 2 resource groups are created, you will need to grant `Owner` or  `Contributor` + `User Access Administrator` to the SPN on both resource groups. The resource group for the template deployed resources should be used in the parameters file for the bicep file and the resoruce group for the installer should be added as a setting in the `install-config.yaml` file under `platform.azure.resourceGroupName` section. More information can be found in the [openshift installer docs](https://docs.openshift.com/container-platform/4.8/installing/installing_azure/installing-azure-customizations.html#installation-configuration-parameters-additional-azure_installing-azure-customizations).
 <!-- * OpenShift Container Platform up and running on a cluster with at least 24 vCPUs active for the worker nodes. You can deploy Azure Red Hat OpenShift or [OpenShift Container Platform](docs/openshift/ocp/README.md). -->
 
 > 💡 **TIP**: It is recommended to use a Linux, Windows Subsystem for Linux or macOS system to complete the installation. You will need some command line binaries that are not as readily available on Windows.
