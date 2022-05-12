@@ -20,21 +20,12 @@ sudo -E /tmp/OCPInstall/oc apply -f /tmp/OCPInstall/QuickCluster/worker-vi-tesla
 # Set up Node Feature Discovery (nfd)
 sudo -E /tmp/OCPInstall/oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/nfd/nfd-operator.yaml
 
-# NOTE: Cluster-wide entitement required for certain version of Openshift: See here:
-# 
-
 # Set up NVIDIA GPU Operator
-wget https://raw.githubusercontent.com/Azure/maximo/$branchName/src/vi/nv-operator.yaml -O /tmp/OCPInstall/nv-operator.yaml
+# We've set the current known working version and channel service version of the operator, but if you want to have the script pull the most recent version, you can uncomment these lines
+# nvidiaOperatorChannel=$(oc get packagemanifest gpu-operator-certified -n openshift-marketplace -o jsonpath='{.status.defaultChannel}')
+# nvidiaOperatorCSV=$(oc get packagemanifests/gpu-operator-certified -n openshift-marketplace -ojson | jq -r '.status.channels[] | select(.name == "'$CHANNEL'") | .currentCSV')
 
-#We've set the current known working version and channel service version of the operator, but if you want to have the script pull the most recent version, you can uncomment these lines
-#nvidiaOperatorChannel=$(oc get packagemanifest gpu-operator-certified -n openshift-marketplace -o jsonpath='{.status.defaultChannel}')
-#nvidiaOperatorCSV=$(oc get packagemanifests/gpu-operator-certified -n openshift-marketplace -ojson | jq -r '.status.channels[] | select(.name == "'$CHANNEL'") | .currentCSV')
-
-sed -i "s/{CHANNEL}/$nvidiaOperatorChannel/" /tmp/OCPInstall/nv-operator.yaml
-
-sed -i "s/{CSV}/$nvidiaOperatorCSV/" /tmp/OCPInstall/nv-operator.yaml
-
-sudo -E /tmp/OCPInstall/oc apply -f /tmp/OCPInstall/nv-operator.yaml
+wget -nv -qO- https://raw.githubusercontent.com/Azure/maximo/$branchName/src/vi/nv-operator.yaml | envsubst | sudo -E /tmp/OCPInstall/oc apply -f -
 
 #wait for operator to be created
 
