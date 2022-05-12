@@ -2,7 +2,7 @@
 
 This repository provides deployment guidance, scripts and best practices for running IBM Maximo Application Suite (Maximo or MAS) on OpenShift using the Azure Cloud. The instruction below have been tested with Maximo 8.7.x on OpenShift 4.8.x.
 
-> 🚧 **NOTE**: The scripts contained within this repo were written with the intention of testing various configurations and integrations on Azure. They allow you to quickly deploy Maximo on Azure so that configurations can be evaluated.
+> 💡 **NOTE**: The scripts contained within this repo were written with the intention of testing various configurations and integrations on Azure. They allow you to quickly deploy Maximo on Azure so that configurations can be evaluated.
 
 > 🚧 **WARNING** this guide is currently under active development. If you would like to contribute or use this right now, please reach out so we can support you.
 
@@ -39,7 +39,7 @@ This repository provides deployment guidance, scripts and best practices for run
   - [Step 7: Post Install Dependencies](#step-7-post-install-dependencies)
     - [Dedicated nodes](#dedicated-nodes)
     - [Deploying Db2 Warehouse](#deploying-db2-warehouse)
-    - [Configuring MAS with DB2WH](#configuring-mas-with-db2wh)
+    - [Configuring MAS and getting the DB2WH connection string](#configuring-mas-and-getting-the-db2wh-connection-string)
     - [Installing Kafka](#installing-kafka)
     - [Install IoT Dependencies](#install-iot-dependencies)
   - [Step 8: Installing applications on top of Maximo](#step-8-installing-applications-on-top-of-maximo)
@@ -819,7 +819,7 @@ In CP4D you will now see a "database" link pop up. If you go to instances and hi
 
 Click on it, press next and deploy. In this deployment we are using OCS as the certified deployment mechanism. The specifications are [provided by IBM in their documentation](https://www.ibm.com/support/producthub/icpdata/docs/content/SSQNUZ_latest/svc-db2w/db2wh-cert-storage.html).
 
-### Configuring MAS with DB2WH
+### Configuring MAS and getting the DB2WH connection string
 
 Go to the configuration panel for Maximo by pressing on the cog on the top right or by going to https://<admin.maximocluster.domain>/config. It will ask you for some details that you can get from the CP4D DB2 overview. On your DB2 Warehouse instance, go to details. In the overview you will get the JDBC URL. Something like `jdbc:db2://<CLUSTER_ACCESSIBLE_IP>:32209/BLUDB:user=admin;password=<password>;securityMechanism=9;encryptionAlgorithm=2`. If you click on the copy icon, it gives you the required details.
 
@@ -831,9 +831,9 @@ To grab the URL check the svc endpoint that sits in front of the nodes. To get t
 oc get svc -n cp4d | grep db2u-engn
 ```
 
-Your URL shuld be formed like this: `jdbc:db2://hostname:50001/BLUDB;sslConnection=true;`.
+Your URL shuld be formed like this: `jdbc:db2://hostname:50001/BLUDB:sslConnection=true;`.
 
-Your hostname is in the list of services above. For example c-db2wh-1634180797242781-db2u-engn-svc.cp4d.svc ("service name".projectname.svc). The port is 50000 for plain or 50001 for SSL, you should use 50001. For the connection string to work with Monitor you MUST append `;sslConnection=true;` to the end of the connection string.
+Your hostname is in the list of services above. For example c-db2wh-1634180797242781-db2u-engn-svc.cp4d.svc ("service name".projectname.svc). The port is 50000 for plain or 50001 for SSL, you should use 50001. For the connection string to work with Monitor you MUST append `:sslConnection=true;` to the end of the connection string.
 
 ### Installing Kafka
 
@@ -929,7 +929,11 @@ oc create secret docker-registry ibm-entitlement --docker-username=cp --docker-p
 
 ## Step 8: Installing applications on top of Maximo
 
-Maximo Application Suite is the base platform that Maximo Applications will need to be installed on top of. Figuring out what technologies are required is a bit of a challenge. Follow the Flowchart below to determine what is needed.
+Maximo Application Suite is the base platform that one or more Maximo applications are installed on top of. Each application supports a variety of databases, but the requirements on the database are different per application. Generally speaking you can use SQL Server, Oracle or Db2. Azure SQL DB is currently not supported. As it stands right now, we you run DB2WH on OpenShift using Cloud Park for Data 3.5. You can back the DB2WH using Azure Files Premium.
+
+> 🚧 **WARNING** you can not use the same database between Health and Monitor, you'll need two separate databases.
+
+Follow the flowchart below to determine what technologies you'll need to set up to meet the requirements for each of the applications.
 
 ```mermaid
 graph TD
@@ -954,11 +958,29 @@ graph TD
 
 ## Step 8a: Installing Manage
 
-TODO
+Management requires only DB2WH. If you want to deploy Health, make sure to read the instructions on how to do so first. To start, go to the MAS admin panel, go to the catalog and click on Manage to set up the channel:
+
+![Channel setup](docs/images/maximo-manage-channel-setup.png)
+
+This will take a while, it installing the operator to a manage namespace that will deploy manage for you. Once that is done you'll need to activate it, which includes the configuration. One the activate button lights up, click it.
+
+Next, configure the database. Grab the connection string for your DB2WH (either in COLUMN or ROW mode, depending on whether health is installed) as described above in the [configuring MAS and getting the DB2WH connection string](#configuring-mas-and-getting-the-db2wh-connection-string) section.
+
+> ❗**IMPORTANT** Make sure the connection string for the DB2WH includes `sslConnection=true;` otherwise the install will fail. An example, correct, connection string is as follows: `jdbc:db2://c-db2wh-1652286547816056-db2u-engn-svc.cp4d.svc:50001/BLUDB:sslConnection=true;`
+
+Enter the connection string, username and password (default admin/password) and check the SSL Enabled box. There are no additional driver settings and the certificates are not required unless the DB2WH is outside of the cluster. Click save and and then activate. This takes ~2 hours, have patience. After that manage is available in your workspace.
 
 ## Step 8b: Installing Health
 
-TODO
+Health can be installed with or without Manage. For now we have only tested with manage and this is the recommended path. 
+
+It is important you make a choice to install Health before you install Manage itself as the database set up needs [to be altered to support Health](https://www.ibm.com/docs/en/mas83/8.3.0?topic=dependencies-configure-database-health&msclkid=b503713bd16011eca8a76bca6e9c83ef). If you have an existing installation of Manage, you may need to redeploy to support Health. 
+
+Current recommendation is to use DB2WH, this means you'll need to create a DB2WH using CP4D 3.5 and then configure it [per IBM's instructions](https://www.ibm.com/docs/en/mhmpmh-and-p-u/8.5.0?topic=deployment-configuring-db2-warehouse).
+
+> 💡 **NOTE**: There are two errors in the script in step 4 of the configuration page. There needs to be a variable defined for $APP_HEAP_SZ and $LOCKTIMEOUT. You can use a value of 2048 for APP_HEAP_SZ and 300 for LOCKTIMEOUT. 
+
+Once you have set up the database, you can go ahead and install Health as part of Manage. Follow the installation instructions for Manage and make sure to check the Health checkbox on the Components overview.
 
 ## Step 8c: Installing Visual Inspection
 
@@ -973,8 +995,6 @@ TODO
 TODO
 
 ## Tips and Tricks
-
-TODO
 
 ### To get your credentials to login
 
@@ -1001,6 +1021,19 @@ The Kafka deployment inside of BAS sometimes gets messed up. It loses track of w
 ### Pods refusing to schedule
 
 Sometimes pods refuse to schedule saying they can't find nodes, this is particularly the case for OCS and Kafka. Most of this is to do with where the virtual machines are logically: their availability zones. Make sure you have worker nodes in each of the availability zones a region provides.
+
+### Grabbing username and password for CP4D and MAS
+
+Here's a little script to grab login details for Maximo:
+
+```bash
+#!/bin/bash
+echo "===== MAS ====="
+oc extract secret/nonprod-credentials-superuser -n mas-nonprod-core --to=-
+echo "===== CP4D ====="
+echo "User = admin"
+oc extract secret/admin-user-details -n cp4d --to=-
+```
 
 <!-- markdown-link-check-disable -->
 ## Contributing
