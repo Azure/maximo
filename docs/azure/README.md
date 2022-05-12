@@ -11,9 +11,11 @@
 
 ## Service Principal
 
-In order to allow the OCP IPI Installer to deploy within your environment, you will need to [create an Azure Application Registration (SPN)](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal) and grant it `Contributor` and `User Access Administrator` permissions on the subscription you plan to deploy into.
+In order to allow the OCP IPI Installer to deploy within your environment, you will need to [create an Azure Application Registration (SPN)](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal) and grant it `Contributor` and `User Access Administrator` permissions on the subscription you plan to deploy into. If granting permissions at the subscription level is not possible, you can also create a resource group for the IPI installer and configure the permissions on this resource group instead. You will need to target the resource group in the `install-config.yaml` file under the `platform.azure.resourceGroupName` section. More information can be found in the [openshift installer docs](https://docs.openshift.com/container-platform/4.8/installing/installing_azure/installing-azure-customizations.html#installation-configuration-parameters-additional-azure_installing-azure-customizations).
 
 > 💡 **NOTE**: After deployment, you may remove the User Access Administrator access to the subscription. It is used to configure the Managed Identity within the Clusters Resource Group.
+
+> 💡 **NOTE**: If you are using the deployment scripts found in this guide, you will need 2 resource groups. 1 will be targeted by the Bicep deployment and the other will be targeted by the IPI Installer. The IPI Installer uses terraform inside of the binary and will have issue with state when attempting to use a single resource group.
 
 After creating the SPN and assigning its access, you will need to create a [secret](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal#option-2-create-a-new-application-secret) that will be used during the OCP install process.
 
