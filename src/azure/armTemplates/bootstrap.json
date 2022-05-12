@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1008.15138",
-      "templateHash": "10052371043283615658"
+      "templateHash": "3012530134425528644"
     }
   },
   "parameters": {
@@ -13,6 +13,13 @@
       "type": "string",
       "metadata": {
         "description": "Name of the JumpBox that will deploy the OpenShift installer."
+      }
+    },
+    "virtualMachineSize": {
+      "type": "string",
+      "defaultValue": "Standard_B2ms",
+      "metadata": {
+        "description": "VM Size for JumpBox"
       }
     },
     "adminUsername": {
@@ -76,10 +83,6 @@
         "description": "Name of the OpenShift cluster"
       }
     },
-    "virtualMachineSize": {
-      "type": "string",
-      "defaultValue": "Standard_B2ms"
-    },
     "customInstallConfigURL": {
       "type": "string",
       "metadata": {
@@ -118,6 +121,13 @@
         "No"
       ]
     },
+    "storageNamePrefix": {
+      "type": "string",
+      "defaultValue": "maximofiles",
+      "metadata": {
+        "description": "Prefix for the storage accounts"
+      }
+    },
     "vnetName": {
       "type": "string",
       "defaultValue": "maximo-vnet",
@@ -129,10 +139,6 @@
       "type": "string",
       "defaultValue": "10.0.0.0/16"
     },
-    "subnetControlNodePrefix": {
-      "type": "string",
-      "defaultValue": "10.0.0.0/24"
-    },
     "subnetControlNodeName": {
       "type": "string",
       "defaultValue": "control",
@@ -140,9 +146,9 @@
         "description": "Name of the subnet where the management nodes will be deployed"
       }
     },
-    "subnetWorkerNodePrefix": {
+    "subnetControlNodePrefix": {
       "type": "string",
-      "defaultValue": "10.0.2.0/23"
+      "defaultValue": "10.0.0.0/24"
     },
     "subnetWorkerNodeName": {
       "type": "string",
@@ -151,9 +157,9 @@
         "description": "Name of the subnet where the worker nodes will be deployed"
       }
     },
-    "subnetEndpointsPrefix": {
+    "subnetWorkerNodePrefix": {
       "type": "string",
-      "defaultValue": "10.0.1.0/24"
+      "defaultValue": "10.0.2.0/23"
     },
     "subnetEndpointsName": {
       "type": "string",
@@ -162,16 +168,9 @@
         "description": "Name of the subnet where the private endpoints will be deployed"
       }
     },
-    "storageNamePrefix": {
+    "subnetEndpointsPrefix": {
       "type": "string",
-      "defaultValue": "maximofiles",
-      "metadata": {
-        "description": "Prefix for the storage accounts"
-      }
-    },
-    "subnetBastionPrefix": {
-      "type": "string",
-      "defaultValue": "10.0.4.0/27"
+      "defaultValue": "10.0.1.0/24"
     },
     "subnetBastionName": {
       "type": "string",
@@ -179,6 +178,10 @@
       "metadata": {
         "description": "Do not change the Subnet name for the Bastion host"
       }
+    },
+    "subnetBastionPrefix": {
+      "type": "string",
+      "defaultValue": "10.0.4.0/27"
     },
     "bastionHostName": {
       "type": "string",

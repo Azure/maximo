@@ -24,6 +24,8 @@ var networkSecurityGroupRules = [
 // param publicIpAddressSku string
 @description('Name of the JumpBox that will deploy the OpenShift installer.')
 param virtualMachineName string
+@description('VM Size for JumpBox')
+param virtualMachineSize string = 'Standard_B2ms'
 @description('Admin username for the JumpBox')
 param adminUsername string = 'azureuser'
 @secure()
@@ -48,7 +50,6 @@ param entitlementKey string
 param clusterName string
 //param virtualMachineComputerName string
 var osDiskType = 'Premium_LRS'
-param virtualMachineSize string = 'Standard_B2ms'
 var zone = '1'
 @description('You can optionally replace the install-config.yaml with a custom version by providing the full URL to the file')
 param customInstallConfigURL string
@@ -72,23 +73,23 @@ param installCP4D string = 'Yes'
   'No'
 ])
 param installVI string = 'Yes'
+@description('Prefix for the storage accounts')
+param storageNamePrefix string = 'maximofiles'
 @description('Virtual network name to be created')
 param vnetName string = 'maximo-vnet'
 param vnetAddressPrefix string = '10.0.0.0/16'
-param subnetControlNodePrefix string = '10.0.0.0/24'
 @description('Name of the subnet where the management nodes will be deployed')
 param subnetControlNodeName string = 'control'
-param subnetWorkerNodePrefix string = '10.0.2.0/23'
+param subnetControlNodePrefix string = '10.0.0.0/24'
 @description('Name of the subnet where the worker nodes will be deployed')
 param subnetWorkerNodeName string = 'workers'
-param subnetEndpointsPrefix string = '10.0.1.0/24'
+param subnetWorkerNodePrefix string = '10.0.2.0/23'
 @description('Name of the subnet where the private endpoints will be deployed')
 param subnetEndpointsName string = 'endpoints'
-@description('Prefix for the storage accounts')
-param storageNamePrefix string = 'maximofiles'
-param subnetBastionPrefix string = '10.0.4.0/27'
+param subnetEndpointsPrefix string = '10.0.1.0/24'
 @description('Do not change the Subnet name for the Bastion host')
 param subnetBastionName string = 'AzureBastionSubnet'
+param subnetBastionPrefix string = '10.0.4.0/27'
 @description('Name of the Bastion host')
 param bastionHostName string = 'maximoBastionHost'
 @description('VM Size for the management nodes')
