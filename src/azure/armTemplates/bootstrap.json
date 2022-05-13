@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1008.15138",
-      "templateHash": "2608124782614293471"
+      "templateHash": "9956584930239740307"
     }
   },
   "parameters": {
@@ -17,6 +17,7 @@
     },
     "virtualMachineName": {
       "type": "string",
+      "defaultValue": "JumpBoxVM",
       "metadata": {
         "description": "Name of the JumpBox that will deploy the OpenShift installer."
       }
@@ -85,6 +86,7 @@
     },
     "customInstallConfigURL": {
       "type": "string",
+      "defaultValue": "https://raw.githubusercontent.com/Azure/maximo/main/src/ocp/install-config.yaml",
       "metadata": {
         "description": "You can optionally replace the install-config.yaml with a custom version by providing the full URL to the file"
       }

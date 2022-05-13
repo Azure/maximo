@@ -25,7 +25,7 @@ var networkSecurityGroupRules = [
 @description('Name of the OpenShift cluster')
 param clusterName string
 @description('Name of the JumpBox that will deploy the OpenShift installer.')
-param virtualMachineName string
+param virtualMachineName string = 'JumpBoxVM'
 @description('VM Size for JumpBox')
 param virtualMachineSize string = 'Standard_B2ms'
 @description('Admin username for the JumpBox')
@@ -52,7 +52,7 @@ param entitlementKey string
 var osDiskType = 'Premium_LRS'
 var zone = '1'
 @description('You can optionally replace the install-config.yaml with a custom version by providing the full URL to the file')
-param customInstallConfigURL string
+param customInstallConfigURL string = 'https://raw.githubusercontent.com/Azure/maximo/main/src/ocp/install-config.yaml'
 @allowed([
   'Yes'
   'No'
