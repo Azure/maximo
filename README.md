@@ -951,6 +951,39 @@ echo QUIT | openssl s_client -connect localhost:7000 -servername localhost -show
  cat outfile01
 ```
 
+### Setting up SMTP
+
+If you need Maximo to send out emails, you'll need to provide an SMTP endpoint. It is not possible to run SMTP on Azure yourself, instead you should use Twilio SendGrid which is provided through the Azure Marketplace. You'll need to take the following steps:
+
+1. Set up SendGrid
+1. Identify yourself against SendGrid as the owner of the domain
+1. Configure the SMTP
+1. Configure Maximo to use the SMTP
+
+First things first, go to the [Azure portal and create a Twilio SendGrid account](https://portal.azure.com/#create/sendgrid.tsg-saas-offer). Name it as you like, and pick a plan. Free 100 may suffice for most simple use cases. Click create and wait for the deployment to complete. You'll be redirected to Twilio and asked to provide a few more details.
+
+Once that's completed, you need "authenticate a domain" - this will require a bit of editing of your DNS records. For DNS host selected Other and say no to the rewrite. Press Next.
+
+![Twilio set up](docs/images/maximo-smtp-setup.png)
+
+Next, you need to enter the domainname you want to use for sending the emails. You can reuse the domain and the public DNS zone you are using for Maximo. It has to be a public zone as Twilio needs to reach out to it. Press next. You'll now be asked to set up a set of DNS record sets into the public DNS zone you referenced. Create the record set as requested and pay close attention to the `TYPE`, which is `CNAME`. TTL of 1 hour is OK and set Alias to no. 
+
+![Twilio DNS set up](docs/images/maximo-smtp-dns-setup.png)
+
+Azure's set up looks like this:
+
+![Azure DNS set up](docs/images/azure-dns-add-recordset.png)
+
+Once done, check "I've verified the records" and then press Verify. Your domain is now verified with Twilio and you are ready to send. If you get stuck, [please review the Twilio documentation for SendGrid](https://docs.sendgrid.com/ui/account-and-settings/how-to-set-up-domain-authentication#setting-up-domain-authentication).
+
+With the first two steps completed, we can go ahead and set up the SMTP Relay at Twilio. Go to set up an API Key for the SMTP relay](https://app.sendgrid.com/guide/integrate/langs/smtp). This will give you the SMTP credentials you need.
+
+> 💡 **NOTE**: Do not base64 encode the details, the library does it for you and breaks if you do so.
+
+Fill out sender and recipient details, making sure that the sender is on the domain that you just configure for Twilio. The recipient is probably your email address. Press save.
+
+Maximo will now send you an email. In the Twilio dashboard you can click on verify settings, and it should confirm that the email was sent to you.
+
 <!-- Solution deployments -->
 
 ## Step 7: Installing applications on top of MAS
