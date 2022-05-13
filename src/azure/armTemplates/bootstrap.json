@@ -5,10 +5,16 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1008.15138",
-      "templateHash": "3012530134425528644"
+      "templateHash": "2608124782614293471"
     }
   },
   "parameters": {
+    "clusterName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the OpenShift cluster"
+      }
+    },
     "virtualMachineName": {
       "type": "string",
       "metadata": {
@@ -77,12 +83,6 @@
         "description": "IBM Entitlement Key used to pull images from the IBM registry"
       }
     },
-    "clusterName": {
-      "type": "string",
-      "metadata": {
-        "description": "Name of the OpenShift cluster"
-      }
-    },
     "customInstallConfigURL": {
       "type": "string",
       "metadata": {
@@ -92,6 +92,9 @@
     "installMAS": {
       "type": "string",
       "defaultValue": "Yes",
+      "metadata": {
+        "description": "Install MAS 8.7.x"
+      },
       "allowedValues": [
         "Yes",
         "No"
@@ -99,7 +102,10 @@
     },
     "installOCS": {
       "type": "string",
-      "defaultValue": "Yes",
+      "defaultValue": "No",
+      "metadata": {
+        "description": "Install OCS (Not needed with Azure Files Premium)"
+      },
       "allowedValues": [
         "Yes",
         "No"
@@ -108,6 +114,9 @@
     "installCP4D": {
       "type": "string",
       "defaultValue": "Yes",
+      "metadata": {
+        "description": "Install Cloud Pak for Data 3.5"
+      },
       "allowedValues": [
         "Yes",
         "No"

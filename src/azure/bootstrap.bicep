@@ -22,6 +22,8 @@ var networkSecurityGroupRules = [
 // param publicIpAddressName string
 // param publicIpAddressType string
 // param publicIpAddressSku string
+@description('Name of the OpenShift cluster')
+param clusterName string
 @description('Name of the JumpBox that will deploy the OpenShift installer.')
 param virtualMachineName string
 @description('VM Size for JumpBox')
@@ -46,8 +48,6 @@ param sshPubKey string
 param pullSecret string
 @description('IBM Entitlement Key used to pull images from the IBM registry')
 param entitlementKey string
-@description('Name of the OpenShift cluster')
-param clusterName string
 //param virtualMachineComputerName string
 var osDiskType = 'Premium_LRS'
 var zone = '1'
@@ -57,16 +57,19 @@ param customInstallConfigURL string
   'Yes'
   'No'
 ])
+@description('Install MAS 8.7.x')
 param installMAS string = 'Yes'
 @allowed([
   'Yes'
   'No'
 ])
-param installOCS string = 'Yes'
+@description('Install OCS (Not needed with Azure Files Premium)')
+param installOCS string = 'No'
 @allowed([
   'Yes'
   'No'
 ])
+@description('Install Cloud Pak for Data 3.5')
 param installCP4D string = 'Yes'
 @allowed([
   'Yes'
