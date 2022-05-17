@@ -175,14 +175,14 @@ export branchName="main"
  #Configure Azure Files Standard
  wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/azurefiles-standard.yaml -O ./azurefiles-standard.yaml
  envsubst < ./azurefiles-standard.yaml > ./customFiles/azurefiles-standard.yaml
- oc apply -f /tmp/OCPInstall/QuickCluster/azurefiles-standard.yaml
+ oc apply -f ./customFiles/azurefiles-standard.yaml
 
 #Configure Azure Files Premium
 
 #Create the azure.json file and upload as secret
 wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/azure.json -O ./azure.json
 envsubst < ./azure.json > ./customFiles/azure.json
-oc create secret generic azure-cloud-provider --from-literal=cloud-config=$(cat /tmp/OCPInstall/QuickCluster/azure.json | base64 | awk '{printf $0}'; echo) -n kube-system
+oc create secret generic azure-cloud-provider --from-literal=cloud-config=$(cat ./customFiles/azure.json | base64 | awk '{printf $0}'; echo) -n kube-system
 
 #Grant access
 oc adm policy add-scc-to-user privileged system:serviceaccount:kube-system:csi-azurefile-node-sa
