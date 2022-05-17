@@ -158,16 +158,19 @@ export subscriptionId="subscriptionId"
 export clientId="clientId" #This account will be used by OCP to access azure files to create shares within Azure Storage.
 export clientSecret="clientSecret"
 
+ #create directory to store modified files
+ mkdir customFiles
+
  #Configure Azure Files Standard
- wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/azurefiles-standard.yaml -O /tmp/OCPInstall/azurefiles-standard.yaml
- envsubst < /tmp/OCPInstall/azurefiles-standard.yaml > /tmp/OCPInstall/QuickCluster/azurefiles-standard.yaml
+ wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/azurefiles-standard.yaml -O ./azurefiles-standard.yaml
+ envsubst < ./azurefiles-standard.yaml > ./customFiles/azurefiles-standard.yaml
  oc apply -f /tmp/OCPInstall/QuickCluster/azurefiles-standard.yaml
 
 #Configure Azure Files Premium
 
 #Create the azure.json file and upload as secret
-wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/azure.json -O /tmp/OCPInstall/azure.json
-envsubst < /tmp/OCPInstall/azure.json > /tmp/OCPInstall/QuickCluster/azure.json
+wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/azure.json -O ./azure.json
+envsubst < ./azure.json > ./customFiles/azure.json
 oc create secret generic azure-cloud-provider --from-literal=cloud-config=$(cat /tmp/OCPInstall/QuickCluster/azure.json | base64 | awk '{printf $0}'; echo) -n kube-system
 
 #Grant access
@@ -181,9 +184,9 @@ echo "Driver version " $driver_version
 curl -skSL https://raw.githubusercontent.com/kubernetes-sigs/azurefile-csi-driver/$driver_version/deploy/install-driver.sh | bash -s $driver_version --
 
 #Deploy premium Storage Class
- wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/azurefiles-premium.yaml -O /tmp/OCPInstall/azurefiles-premium.yaml
- envsubst < /tmp/OCPInstall/azurefiles-premium.yaml > /tmp/OCPInstall/QuickCluster/azurefiles-premium.yaml
- oc apply -f /tmp/OCPInstall/QuickCluster/azurefiles-premium.yaml
+ wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/azurefiles-premium.yaml -O ./azurefiles-premium.yaml
+ envsubst < ./azurefiles-premium.yaml > ./customFiles/azurefiles-premium.yaml
+ oc apply -f ./customFiles/azurefiles-premium.yaml
 
  oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/persistent-volume-binder.yaml
 ```
