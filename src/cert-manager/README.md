@@ -32,7 +32,7 @@ oc apply -f cert-manager.yaml
 Once that is done, create a client secret with your Azure client secret
 
 ```bash
-oc create secret generic azuredns-config --from-literal=client-secret="B.y7Q~O-zBR8q~GC-ZoIsBVmGlxNzRgHQEiVK"
+oc create secret generic azuredns-config --from-literal=client-secret="<ClientIdSecret>"
 ```
 
 Now edit the letsencrypt.yaml and make sure it reflects your DNS zone, resource group, subscription, tenant, etc. Once done, apply it.
