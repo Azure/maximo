@@ -62,7 +62,7 @@ This directory, contains the arm templates required for the steps below. You can
 ## Steps
 
 ```bash
-#copy install-config.yaml file into directory
+#copy install-config.yaml file into directory. ENSURE that the pull secret contains your mirror credentials. This version will require the port :443 in the key name otherwise it will error during the deployment. The auth value is the base64 version of user:password from the Azure Container Registry
 ./openshift-install create install-config
 
 #manually update Compute Replicas to 0
