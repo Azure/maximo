@@ -19,7 +19,7 @@ export OCP_RELEASE=4.8.42
 export LOCAL_REGISTRY='<registry>.azurecr.io:443'
 export LOCAL_REPOSITORY='ocp4/openshift48'
 export PRODUCT_REPO='openshift-release-dev'
-export LOCAL_SECRET_JSON='/home/user/pullsecret.json' #openshift pull secret + add azure container registry pull secret wihtout port.
+export LOCAL_SECRET_JSON='/home/user/pullsecret.json' #openshift pull secret + add azure container registry pull secret without port.
 export RELEASE_NAME="ocp-release"
 export ARCHITECTURE=x86_64
 
@@ -34,7 +34,7 @@ This step takes 10 hours so its best to run this in a tmux session using a bash 
 
 export OCP_RELEASE=4.8
 export LOCAL_REGISTRY='<registry>.azurecr.io:443'
-export LOCAL_SECRET_JSON='/home/user/pullsecret.json'
+export LOCAL_SECRET_JSON='/home/user/pullsecret.json' #openshift pull secret + add azure container registry pull secret without port.
 
 export LOCAL_REPOSITORY='ocp48/redhat-operators'
 export SOURCE_CATALOG='registry.redhat.io/redhat/redhat-operator-index:v'${OCP_RELEASE}
@@ -62,7 +62,7 @@ This directory, contains the arm templates required for the steps below. You can
 ## Deploy Cluster
 
 ```bash
-# Copy install-config.yaml file into directory. ENSURE that the pull secret contains your mirror credentials. This version will require the port :443 in the key name otherwise it will error during the deployment. The auth value is the base64 version of user:password from the Azure Container Registry
+# Copy install-config.yaml file into directory. **ENSURE** that the pull secret contains your mirror credentials. This version will require the port :443 in the key name otherwise it will error during the deployment. The auth value is the base64 version of user:password from the Azure Container Registry
 ./openshift-install create install-config
 
 # Manually update Compute Replicas to 0
