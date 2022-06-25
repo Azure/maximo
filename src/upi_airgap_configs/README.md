@@ -1,4 +1,4 @@
-# Setting up an Openshift cluster with no access to the internet
+# Setting up an Openshift cluster with no internet access
 
 ## Prereqs
 
