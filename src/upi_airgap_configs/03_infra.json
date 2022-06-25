@@ -43,7 +43,7 @@
         "virtualNetworkID" : "[resourceId(parameters('vnetBaseResourceGroupName'), 'Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
         "masterSubnetName": "[parameters('controlSubnetName')]",
         "masterSubnetRef": "[concat(variables('virtualNetworkID'), '/subnets/', variables('masterSubnetName'))]",
-        "internalLoadBalancerName": "[concat(parameters('baseName'), '-internal-lb')]",
+        "internalLoadBalancerName": "[concat(parameters('baseName'), '-internal')]",
         "internalLoadBalancerID": "[resourceId('Microsoft.Network/loadBalancers', variables('internalLoadBalancerName'))]",
         "skuName": "Standard"
     },
@@ -59,7 +59,7 @@
             "properties": {
                 "frontendIPConfigurations": [
                     {
-                        "name": "internal-lb-ip",
+                        "name": "internal-ip",
                         "properties": {
                             "privateIPAllocationMethod": "Dynamic",
                             "subnet": {
@@ -71,7 +71,7 @@
                 ],
                 "backendAddressPools": [
                     {
-                        "name": "internal-lb-backend"
+                        "name": "internal-backend"
                     }
                 ],
                 "loadBalancingRules": [
@@ -79,7 +79,7 @@
                         "name": "api-internal",
                         "properties": {
                             "frontendIPConfiguration": {
-                                "id": "[concat(variables('internalLoadBalancerID'), '/frontendIPConfigurations/internal-lb-ip')]"
+                                "id": "[concat(variables('internalLoadBalancerID'), '/frontendIPConfigurations/internal-ip')]"
                             },
                             "frontendPort": 6443,
                             "backendPort": 6443,
@@ -89,7 +89,7 @@
                             "enableTcpReset": false,
                             "loadDistribution": "Default",
                             "backendAddressPool": {
-                                "id": "[concat(variables('internalLoadBalancerID'), '/backendAddressPools/internal-lb-backend')]"
+                                "id": "[concat(variables('internalLoadBalancerID'), '/backendAddressPools/internal-backend')]"
                             },
                             "probe": {
                                 "id": "[concat(variables('internalLoadBalancerID'), '/probes/api-internal-probe')]"
@@ -100,7 +100,7 @@
                         "name": "sint",
                         "properties": {
                             "frontendIPConfiguration": {
-                                "id": "[concat(variables('internalLoadBalancerID'), '/frontendIPConfigurations/internal-lb-ip')]"
+                                "id": "[concat(variables('internalLoadBalancerID'), '/frontendIPConfigurations/internal-ip')]"
                             },
                             "frontendPort": 22623,
                             "backendPort": 22623,
@@ -110,7 +110,7 @@
                             "enableTcpReset": false,
                             "loadDistribution": "Default",
                             "backendAddressPool": {
-                                "id": "[concat(variables('internalLoadBalancerID'), '/backendAddressPools/internal-lb-backend')]"
+                                "id": "[concat(variables('internalLoadBalancerID'), '/backendAddressPools/internal-backend')]"
                             },
                             "probe": {
                                 "id": "[concat(variables('internalLoadBalancerID'), '/probes/sint-probe')]"
