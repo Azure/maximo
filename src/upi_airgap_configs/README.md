@@ -62,10 +62,10 @@ This directory, contains the arm templates required for the steps below. You can
 ## Deploy Cluster
 
 ```bash
-#copy install-config.yaml file into directory. ENSURE that the pull secret contains your mirror credentials. This version will require the port :443 in the key name otherwise it will error during the deployment. The auth value is the base64 version of user:password from the Azure Container Registry
+# Copy install-config.yaml file into directory. ENSURE that the pull secret contains your mirror credentials. This version will require the port :443 in the key name otherwise it will error during the deployment. The auth value is the base64 version of user:password from the Azure Container Registry
 ./openshift-install create install-config
 
-#manually update Compute Replicas to 0
+# Manually update Compute Replicas to 0
 
 export CLUSTER_NAME=`yq .metadata.name install-config.yaml`
 export AZURE_REGION=`yq .platform.azure.region install-config.yaml`
@@ -80,12 +80,12 @@ rm -f openshift/99_openshift-cluster-api_worker-machineset-*.yaml
 nano manifests/cluster-scheduler-02-config.yml
 nano manifests/cluster-dns-02-config.yml
 
-#If you do not want to use the resource name from th yaml file below, you can can override these variables with your own
+# If you do not want to use the resource name from th yaml file below, you can can override these variables with your own
 export INFRA_ID=`yq '.status.infrastructureName' manifests/cluster-infrastructure-02-config.yml`
 export RESOURCE_GROUP=`yq '.status.platformStatus.azure.resourceGroupName' manifests/cluster-infrastructure-02-config.yml`
 
-#install pip3 dotmap
-#pull down setup-manifests.py and update the variables inside the file to match your deployment.
+# Install pip3 dotmap
+# Pull down setup-manifests.py and update the variables inside the file to match your deployment.
 python3 setup-manifests.py $RESOURCE_GROUP $INFRA_ID
 
 ./openshift-install create ignition-configs
@@ -95,7 +95,7 @@ python3 setup-manifests.py $RESOURCE_GROUP $INFRA_ID
 az identity create -g $RESOURCE_GROUP -n ${INFRA_ID}-identity
 
 az storage account create -g $RESOURCE_GROUP --location $AZURE_REGION --name ${CLUSTER_NAME}sa --kind StorageV2 --sku Standard_LRS
-#manually create private endpoint to storage account
+# Manually create private endpoint to storage account
 
 export ACCOUNT_KEY=`az storage account keys list -g $RESOURCE_GROUP --account-name ${CLUSTER_NAME}sa --query "[0].value" -o tsv`
 
@@ -108,9 +108,9 @@ az storage blob upload --account-name ${CLUSTER_NAME}sa --account-key $ACCOUNT_K
 
 az network private-dns zone create -g $RESOURCE_GROUP -n ${CLUSTER_NAME}.${BASE_DOMAIN}
 
-#manually create private dns link back to vnet
+# Manually create private dns link back to vnet
 
-# check blob upload status:
+# Check blob upload status:
 status="unknown"
 while [ "$status" != "success" ]
 do
@@ -146,7 +146,7 @@ az deployment group create -g $RESOURCE_GROUP --template-file "06_workers.json" 
 # Get the cert signing requests
 oc get csr -A
 
-#Approve the csrs
+# Approve the csrs
 oc adm certificate approve csr-8bppf csr-dj2w4 csr-ph8s8 #replace with correct csr #s
 
 export PRIVATE_IP_ROUTER=`oc -n openshift-ingress get service router-default --no-headers | awk '{print $4}'`
@@ -157,5 +157,5 @@ az network private-dns record-set a add-record -g $RESOURCE_GROUP -z ${CLUSTER_N
 
 ./openshift-install wait-for install-complete --log-level debug
 
-#wait for cluster to finish upgrading
+# Wait for cluster to finish upgrading
 ```
