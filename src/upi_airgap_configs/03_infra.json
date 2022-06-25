@@ -1,0 +1,180 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "baseName": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "Base name to be used in resource names (usually the cluster's Infra ID)"
+            }
+        },
+        "vnetBaseName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "The specific customer vnet's base name (optional)"
+            }
+        },
+        "vnetBaseResourceGroupName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "The specific resource group for the vnet's base name (optional)"
+            }
+        },
+        "controlSubnetName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "The name of the master subnet"
+            }
+        },
+        "privateDNSZoneName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the private DNS zone"
+            }
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "virtualNetworkName" : "[concat(if(not(empty(parameters('vnetBaseName'))), parameters('vnetBaseName'), parameters('baseName')))]",
+        "virtualNetworkID" : "[resourceId(parameters('vnetBaseResourceGroupName'), 'Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
+        "masterSubnetName": "[parameters('controlSubnetName')]",
+        "masterSubnetRef": "[concat(variables('virtualNetworkID'), '/subnets/', variables('masterSubnetName'))]",
+        "internalLoadBalancerName": "[concat(parameters('baseName'), '-internal-lb')]",
+        "internalLoadBalancerID": "[resourceId('Microsoft.Network/loadBalancers', variables('internalLoadBalancerName'))]",
+        "skuName": "Standard"
+    },
+    "resources": [
+        {
+            "apiVersion": "2018-12-01",
+            "type": "Microsoft.Network/loadBalancers",
+            "name": "[variables('internalLoadBalancerName')]",
+            "location": "[variables('location')]",
+            "sku": {
+                "name": "[variables('skuName')]"
+            },
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "internal-lb-ip",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('masterSubnetRef')]"
+                            },
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "internal-lb-backend"
+                    }
+                ],
+                "loadBalancingRules": [
+                    {
+                        "name": "api-internal",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(variables('internalLoadBalancerID'), '/frontendIPConfigurations/internal-lb-ip')]"
+                            },
+                            "frontendPort": 6443,
+                            "backendPort": 6443,
+                            "enableFloatingIP": false,
+                            "idleTimeoutInMinutes": 30,
+                            "protocol": "Tcp",
+                            "enableTcpReset": false,
+                            "loadDistribution": "Default",
+                            "backendAddressPool": {
+                                "id": "[concat(variables('internalLoadBalancerID'), '/backendAddressPools/internal-lb-backend')]"
+                            },
+                            "probe": {
+                                "id": "[concat(variables('internalLoadBalancerID'), '/probes/api-internal-probe')]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "sint",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(variables('internalLoadBalancerID'), '/frontendIPConfigurations/internal-lb-ip')]"
+                            },
+                            "frontendPort": 22623,
+                            "backendPort": 22623,
+                            "enableFloatingIP": false,
+                            "idleTimeoutInMinutes": 30,
+                            "protocol": "Tcp",
+                            "enableTcpReset": false,
+                            "loadDistribution": "Default",
+                            "backendAddressPool": {
+                                "id": "[concat(variables('internalLoadBalancerID'), '/backendAddressPools/internal-lb-backend')]"
+                            },
+                            "probe": {
+                                "id": "[concat(variables('internalLoadBalancerID'), '/probes/sint-probe')]"
+                            }
+                        }
+                    }
+                ],
+                "probes": [
+                    {
+                        "name": "api-internal-probe",
+                        "properties": {
+                            "protocol": "Https",
+                            "port": 6443,
+                            "requestPath": "/readyz",
+                            "intervalInSeconds": 10,
+                            "numberOfProbes": 3
+                        }
+                    },
+                    {
+                        "name": "sint-probe",
+                        "properties": {
+                            "protocol": "Https",
+                            "port": 22623,
+                            "requestPath": "/healthz",
+                            "intervalInSeconds": 10,
+                            "numberOfProbes": 3
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2018-09-01",
+            "type": "Microsoft.Network/privateDnsZones/A",
+            "name": "[concat(parameters('privateDNSZoneName'), '/api')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/loadBalancers/', variables('internalLoadBalancerName'))]"
+            ],
+            "properties": {
+                "ttl": 60,
+                "aRecords": [
+                    {
+                        "ipv4Address": "[reference(variables('internalLoadBalancerName')).frontendIPConfigurations[0].properties.privateIPAddress]"
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2018-09-01",
+            "type": "Microsoft.Network/privateDnsZones/A",
+            "name": "[concat(parameters('privateDNSZoneName'), '/api-int')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/loadBalancers/', variables('internalLoadBalancerName'))]"
+            ],
+            "properties": {
+                "ttl": 60,
+                "aRecords": [
+                    {
+                        "ipv4Address": "[reference(variables('internalLoadBalancerName')).frontendIPConfigurations[0].properties.privateIPAddress]"
+                    }
+                ]
+            }
+        }
+    ]
+}
