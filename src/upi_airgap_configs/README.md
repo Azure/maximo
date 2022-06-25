@@ -59,7 +59,7 @@ After the cluster is deployed, you will need to setup catalog policies to use th
 ### ARM Templates
 This directory, contains the arm templates required for the steps below. You can download them to your jumpbox to do the install.
 
-## Steps
+## Deploy Cluster
 
 ```bash
 #copy install-config.yaml file into directory. ENSURE that the pull secret contains your mirror credentials. This version will require the port :443 in the key name otherwise it will error during the deployment. The auth value is the base64 version of user:password from the Azure Container Registry
