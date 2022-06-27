@@ -78,6 +78,7 @@
         "sshKeyPath": "/home/capi/.ssh/authorized_keys",
         "identityName": "[parameters('identityName')]",
         "imageName": "[concat(parameters('baseName'), '-image')]",
+        "internalBackend": "[parameters('baseName')]",
         "copy": [
             {
                 "name": "vmNames",
@@ -117,7 +118,7 @@
                                             },
                                             "loadBalancerBackendAddressPools": [
                                                 {
-                                                    "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/loadBalancers/', variables('internalLoadBalancerName'), '/backendAddressPools/internal-backend')]"
+                                                    "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/loadBalancers/', variables('internalLoadBalancerName'), '/backendAddressPools/', variables('internalBackend'))]"
                                                 }
                                             ]
                                         }

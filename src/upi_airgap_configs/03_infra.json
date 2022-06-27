@@ -45,7 +45,8 @@
         "masterSubnetRef": "[concat(variables('virtualNetworkID'), '/subnets/', variables('masterSubnetName'))]",
         "internalLoadBalancerName": "[concat(parameters('baseName'), '-internal')]",
         "internalLoadBalancerID": "[resourceId('Microsoft.Network/loadBalancers', variables('internalLoadBalancerName'))]",
-        "skuName": "Standard"
+        "skuName": "Standard",
+        "internalBackend": "[parameters('baseName')]"
     },
     "resources": [
         {
@@ -71,7 +72,7 @@
                 ],
                 "backendAddressPools": [
                     {
-                        "name": "internal-backend"
+                        "name": "[variables('internalBackend')]"
                     }
                 ],
                 "loadBalancingRules": [
@@ -89,7 +90,7 @@
                             "enableTcpReset": false,
                             "loadDistribution": "Default",
                             "backendAddressPool": {
-                                "id": "[concat(variables('internalLoadBalancerID'), '/backendAddressPools/internal-backend')]"
+                                "id": "[concat(variables('internalLoadBalancerID'), '/backendAddressPools/', variables('internalBackend'))]"
                             },
                             "probe": {
                                 "id": "[concat(variables('internalLoadBalancerID'), '/probes/api-internal-probe')]"
@@ -110,7 +111,7 @@
                             "enableTcpReset": false,
                             "loadDistribution": "Default",
                             "backendAddressPool": {
-                                "id": "[concat(variables('internalLoadBalancerID'), '/backendAddressPools/internal-backend')]"
+                                "id": "[concat(variables('internalLoadBalancerID'), '/backendAddressPools/', variables('internalBackend'))]"
                             },
                             "probe": {
                                 "id": "[concat(variables('internalLoadBalancerID'), '/probes/sint-probe')]"

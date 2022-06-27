@@ -71,7 +71,8 @@
       "vmName" : "[concat(parameters('baseName'), '-bootstrap')]",
       "nicName" : "[concat(variables('vmName'), '-nic')]",
       "imageName" : "[concat(parameters('baseName'), '-image')]",
-      "clusterNsgName" : "[concat(if(not(empty(parameters('vnetBaseName'))), parameters('vnetBaseName'), parameters('baseName')), '-nsg')]"
+      "clusterNsgName" : "[concat(if(not(empty(parameters('vnetBaseName'))), parameters('vnetBaseName'), parameters('baseName')), '-nsg')]",
+      "internalBackend": "[parameters('baseName')]"
     },
     "resources" : [
       {
@@ -92,7 +93,7 @@
                 },
                 "loadBalancerBackendAddressPools" : [
                   {
-                    "id" : "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/loadBalancers/', variables('internalLoadBalancerName'), '/backendAddressPools/internal-backend')]"
+                    "id" : "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/loadBalancers/', variables('internalLoadBalancerName'), '/backendAddressPools/', variables('internalBackend'))]"
                   }
                 ]
               }
