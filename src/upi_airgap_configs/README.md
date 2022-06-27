@@ -7,6 +7,13 @@ The openshift cluster requires the following for UPI install to succeed:
 - Allow outbound for service tag: `AzureResourceManager`
 - Allow outbound for service tag: `AzureActiveDirectory`
 
+To verify connectivity, you can run the following commands from inside your restricted network and confirm you get a response back:
+
+```bash
+curl -i https://management.azure.com #Should get a response code 400
+curl -i https://login.microsoftonline.com/common/oauth2/v2.0/authorize #Should get a response code 200
+```
+
 If you allow service connectivity to Azure Storage without private endpoints then you can skip the steps for creating the private endpoints for the storage account. If you wish to allow outbound connectivity to storage accounts public interface, you can allow outbound access to: `Storage.Region` or `Storage`.
 
 ### Setup Mirror
