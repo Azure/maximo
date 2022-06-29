@@ -118,7 +118,7 @@ You will need to login to the `oc` CLI. You can get an easy way to do this by na
 Login by clicking on display token and use the oc login command to authenticate your `oc` client to your OpenShift deployment OR by exporting the KUKBECONFIG path.
 
 ```bash
-export KUBECONFIG=/tmp/OCPInstall/QuickCluster/auth/kubeconfig
+export KUBECONFIG="$PWD/auth/kubeconfig"
 ```
 
 > 💡 **TIP**:
@@ -148,7 +148,7 @@ mkdir /tmp/OCPInstall
 mkdir /tmp/OCPInstall/QuickCluster
 
 #Prepare openshift client for connectivity
-export KUBECONFIG=/tmp/OCPInstall/QuickCluster/auth/kubeconfig
+export KUBECONFIG="$PWD/auth/kubeconfig"
 
 #set variables for deployment
 export deployRegion="eastus"
@@ -157,6 +157,7 @@ export tenantId="tenantId"
 export subscriptionId="subscriptionId"
 export clientId="clientId" #This account will be used by OCP to access azure files to create shares within Azure Storage.
 export clientSecret="clientSecret"
+export branchName="main"
 
  #Configure Azure Files Standard
  wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/azurefiles-standard.yaml -O /tmp/OCPInstall/azurefiles-standard.yaml

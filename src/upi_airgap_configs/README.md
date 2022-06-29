@@ -74,22 +74,22 @@ This directory, contains the arm templates required for the steps below. You can
 
 # Manually update Compute Replicas to 0
 
-export CLUSTER_NAME=`yq .metadata.name install-config.yaml`
-export AZURE_REGION=`yq .platform.azure.region install-config.yaml`
-export BASE_DOMAIN=`yq .baseDomain install-config.yaml`
-export BASE_DOMAIN_RESOURCE_GROUP=`yq .platform.azure.baseDomainResourceGroupName install-config.yaml`
+export CLUSTER_NAME=`yq -r .metadata.name install-config.yaml`
+export AZURE_REGION=`yq -r .platform.azure.region install-config.yaml`
+export BASE_DOMAIN=`yq -r .baseDomain install-config.yaml`
+export BASE_DOMAIN_RESOURCE_GROUP=`yq -r .platform.azure.baseDomainResourceGroupName install-config.yaml`
 
 ./openshift-install create manifests
 
 rm -f openshift/99_openshift-cluster-api_master-machines-*.yaml
 rm -f openshift/99_openshift-cluster-api_worker-machineset-*.yaml
 
-nano manifests/cluster-scheduler-02-config.yml
-nano manifests/cluster-dns-02-config.yml
+nano manifests/cluster-scheduler-02-config.yml #Set master scheduling to false
+nano manifests/cluster-dns-02-config.yml #Delete private dns zone object
 
 # If you do not want to use the resource name from th yaml file below, you can can override these variables with your own
-export INFRA_ID=`yq '.status.infrastructureName' manifests/cluster-infrastructure-02-config.yml`
-export RESOURCE_GROUP=`yq '.status.platformStatus.azure.resourceGroupName' manifests/cluster-infrastructure-02-config.yml`
+export INFRA_ID=`yq -r '.status.infrastructureName' manifests/cluster-infrastructure-02-config.yml`
+export RESOURCE_GROUP=`yq -r '.status.platformStatus.azure.resourceGroupName' manifests/cluster-infrastructure-02-config.yml`
 
 # Install pip3 dotmap
 # Pull down setup-manifests.py and update the variables inside the file to match your deployment.
@@ -101,17 +101,20 @@ python3 setup-manifests.py $RESOURCE_GROUP $INFRA_ID
 # Manually grant this identity subnet reader on the Virtual Network where the cluster will be deployed and contributor on the resource group where the cluster will be deployed.
 az identity create -g $RESOURCE_GROUP -n ${INFRA_ID}-identity
 
-az storage account create -g $RESOURCE_GROUP --location $AZURE_REGION --name ${CLUSTER_NAME}sa --kind StorageV2 --sku Standard_LRS
-# Manually create private endpoint to storage account
+# Create unique name for storage account
+export STORAGE_ACCOUNT_NAME="myuniquenamexyz"
 
-export ACCOUNT_KEY=`az storage account keys list -g $RESOURCE_GROUP --account-name ${CLUSTER_NAME}sa --query "[0].value" -o tsv`
+az storage account create -g $RESOURCE_GROUP --location $AZURE_REGION --name ${STORAGE_ACCOUNT_NAME} --kind StorageV2 --sku Standard_LRS
+# Manually create private endpoint to storage account with access to blob
 
-az storage container create --name vhd --account-name ${CLUSTER_NAME}sa
+export ACCOUNT_KEY=`az storage account keys list -g $RESOURCE_GROUP --account-name ${STORAGE_ACCOUNT_NAME} --query "[0].value" -o tsv`
+
+az storage container create --name vhd --account-name ${STORAGE_ACCOUNT_NAME}
 export VHD_URL=$(./openshift-install coreos print-stream-json | jq -r '.architectures.x86_64."rhel-coreos-extensions"."azure-disk".url')
-az storage blob copy start --account-name ${CLUSTER_NAME}sa --account-key $ACCOUNT_KEY --destination-blob "rhcos.vhd" --destination-container vhd --source-uri "$VHD_URL"
+az storage blob copy start --account-name ${STORAGE_ACCOUNT_NAME} --account-key $ACCOUNT_KEY --destination-blob "rhcos.vhd" --destination-container vhd --source-uri "$VHD_URL"
 
-az storage container create --name files --account-name ${CLUSTER_NAME}sa
-az storage blob upload --account-name ${CLUSTER_NAME}sa --account-key $ACCOUNT_KEY -c "files" -f "bootstrap.ign" -n "bootstrap.ign"
+az storage container create --name files --account-name ${STORAGE_ACCOUNT_NAME}
+az storage blob upload --account-name ${STORAGE_ACCOUNT_NAME} --account-key $ACCOUNT_KEY -c "files" -f "bootstrap.ign" -n "bootstrap.ign"
 
 az network private-dns zone create -g $RESOURCE_GROUP -n ${CLUSTER_NAME}.${BASE_DOMAIN}
 
@@ -121,18 +124,18 @@ az network private-dns zone create -g $RESOURCE_GROUP -n ${CLUSTER_NAME}.${BASE_
 status="unknown"
 while [ "$status" != "success" ]
 do
-  status=`az storage blob show --container-name vhd --name "rhcos.vhd" --account-name ${CLUSTER_NAME}sa --account-key $ACCOUNT_KEY -o tsv --query properties.copy.status`
+  status=`az storage blob show --container-name vhd --name "rhcos.vhd" --account-name ${STORAGE_ACCOUNT_NAME} --account-key $ACCOUNT_KEY -o tsv --query properties.copy.status`
   echo $status
 done
 
-export VHD_BLOB_URL=`az storage blob url --account-name ${CLUSTER_NAME}sa --account-key $ACCOUNT_KEY -c vhd -n "rhcos.vhd" -o tsv`
+export VHD_BLOB_URL=`az storage blob url --account-name ${STORAGE_ACCOUNT_NAME} --account-key $ACCOUNT_KEY -c vhd -n "rhcos.vhd" -o tsv`
 
 az deployment group create -g $RESOURCE_GROUP  --template-file "02_storage.json"  --parameters vhdBlobURL="$VHD_BLOB_URL"  --parameters baseName="$INFRA_ID"
 
 az deployment group create -g $RESOURCE_GROUP  --template-file "03_infra.json"  --parameters privateDNSZoneName="${CLUSTER_NAME}.${BASE_DOMAIN}"  --parameters baseName="$INFRA_ID" --parameters vnetBaseName="airgap-vnet" --parameters vnetBaseResourceGroupName="airgap-maximo" --parameters controlSubnetName="control"
 
 bootstrap_url_expiry=`date -u -d "10 hours" '+%Y-%m-%dT%H:%MZ'`
-export BOOTSTRAP_URL=`az storage blob generate-sas -c 'files' -n 'bootstrap.ign' --https-only --full-uri --permissions r --expiry $bootstrap_url_expiry --account-name ${CLUSTER_NAME}sa --account-key $ACCOUNT_KEY -o tsv`
+export BOOTSTRAP_URL=`az storage blob generate-sas -c 'files' -n 'bootstrap.ign' --https-only --full-uri --permissions r --expiry $bootstrap_url_expiry --account-name ${STORAGE_ACCOUNT_NAME} --account-key $ACCOUNT_KEY -o tsv`
 export BOOTSTRAP_IGNITION=`jq -rcnM --arg v "3.1.0" --arg url $BOOTSTRAP_URL '{ignition:{version:$v,config:{replace:{source:$url}}}}' | base64 | tr -d '\n'`
 
 # Ensure the securityGroupName that was set with setup-manifests matches what will be created in this step: ${vnetBaseName}-nsg. This is a dummy NSG so the ingress operator does not error.
@@ -145,6 +148,25 @@ export MASTER_IGNITION=`cat master.ign | base64 | tr -d '\n'`
 # Make sure the identity name matches what was deployed (or created ahead of the deployment)
 az deployment group create -g $RESOURCE_GROUP  --template-file "05_masters.json"  --parameters masterIgnition="$MASTER_IGNITION"  --parameters baseName="$INFRA_ID" --parameters vnetBaseName="airgap-vnet" --parameters vnetBaseResourceGroupName="airgap-maximo" --parameters controlSubnetName="control" --parameters identityName="devcluster-bwjl4-identity"
 
+# Wait for bootstrap process to complete
+./openshift-install wait-for bootstrap-complete --log-level debug
+
+# You can delete the bootstrap resources if desired
+az network nsg rule delete -g $RESOURCE_GROUP --nsg-name ${INFRA_ID}-nsg --name bootstrap_ssh_in
+az vm stop -g $RESOURCE_GROUP --name ${INFRA_ID}-bootstrap
+az vm deallocate -g $RESOURCE_GROUP --name ${INFRA_ID}-bootstrap
+az vm delete -g $RESOURCE_GROUP --name ${INFRA_ID}-bootstrap --yes
+az disk delete -g $RESOURCE_GROUP --name ${INFRA_ID}-bootstrap_OSDisk --no-wait --yes
+az network nic delete -g $RESOURCE_GROUP --name ${INFRA_ID}-bootstrap-nic --no-wait
+az storage blob delete --account-key $ACCOUNT_KEY --account-name ${STORAGE_ACCOUNT_NAME} --container-name files --name bootstrap.ign
+az network public-ip delete -g $RESOURCE_GROUP --name ${INFRA_ID}-bootstrap-ssh-pip
+
+# Confirm you can login to the cluster
+export KUBECONFIG="$PWD/auth/kubeconfig"
+oc get nodes
+oc get clusteroperator
+
+# Deploy worker nodes
 export WORKER_IGNITION=`cat worker.ign | base64 | tr -d '\n'`
 
 # Make sure the identity name matches what was deployed (or created ahead of the deployment)
