@@ -161,6 +161,8 @@ Create a managed identity that will be used by the cluster to manage resources i
 
 ```bash
 az identity create -g $RESOURCE_GROUP -n ${INFRA_ID}-identity
+
+export managedIdentity=$(az resource list --resource-group $RESOURCE_GROUP --resource-type "Microsoft.ManagedIdentity/userAssignedIdentities" --query "[].{name:name}" --out tsv)
 ```
 
 ### Step 9
@@ -251,7 +253,7 @@ export BOOTSTRAP_IGNITION=`jq -rcnM --arg v "3.1.0" --arg url $BOOTSTRAP_URL '{i
 
 Update the parameters in the cli command below and deploy the bootstrap VM:
 ```bash
-az deployment group create -g $RESOURCE_GROUP  --template-file "04_bootstrap.json"  --parameters bootstrapIgnition="$BOOTSTRAP_IGNITION"  --parameters baseName="$INFRA_ID" --parameters vnetBaseName="airgap-vnet" --parameters vnetBaseResourceGroupName="airgap-maximo" --parameters controlSubnetName="control" --parameters identityName="devcluster-bwjl4-identity"
+az deployment group create -g $RESOURCE_GROUP  --template-file "04_bootstrap.json"  --parameters bootstrapIgnition="$BOOTSTRAP_IGNITION"  --parameters baseName="$INFRA_ID" --parameters vnetBaseName="airgap-vnet" --parameters vnetBaseResourceGroupName="airgap-maximo" --parameters controlSubnetName="control" --parameters identityName=$managedIdentity
 ```
 
 ### Step 18
@@ -262,7 +264,7 @@ Update the parameters in the cli command below and deploy the master VMs:
 export MASTER_IGNITION=`cat master.ign | base64 | tr -d '\n'`
 
 # Make sure the identity name matches what was deployed (or created ahead of the deployment)
-az deployment group create -g $RESOURCE_GROUP  --template-file "05_masters.json"  --parameters masterIgnition="$MASTER_IGNITION"  --parameters baseName="$INFRA_ID" --parameters vnetBaseName="airgap-vnet" --parameters vnetBaseResourceGroupName="airgap-maximo" --parameters controlSubnetName="control" --parameters identityName="devcluster-bwjl4-identity"
+az deployment group create -g $RESOURCE_GROUP  --template-file "05_masters.json"  --parameters masterIgnition="$MASTER_IGNITION"  --parameters baseName="$INFRA_ID" --parameters vnetBaseName="airgap-vnet" --parameters vnetBaseResourceGroupName="airgap-maximo" --parameters controlSubnetName="control" --parameters identityName=$managedIdentity
 ```
 
 ### Step 19
@@ -301,7 +303,7 @@ Update the parameters in the cli command below and deploy the master VMs:
 export WORKER_IGNITION=`cat worker.ign | base64 | tr -d '\n'`
 
 # Make sure the identity name matches what was deployed (or created ahead of the deployment)
-az deployment group create -g $RESOURCE_GROUP --template-file "06_workers.json"  --parameters workerIgnition="$WORKER_IGNITION"  --parameters baseName="$INFRA_ID" --parameters vnetBaseName="airgap-vnet" --parameters vnetBaseResourceGroupName="airgap-maximo" --parameters computeSubnetName="workers" --parameters identityName="devcluster-bwjl4-identity"
+az deployment group create -g $RESOURCE_GROUP --template-file "06_workers.json"  --parameters workerIgnition="$WORKER_IGNITION"  --parameters baseName="$INFRA_ID" --parameters vnetBaseName="airgap-vnet" --parameters vnetBaseResourceGroupName="airgap-maximo" --parameters computeSubnetName="workers" --parameters identityName=$managedIdentity
 ```
 
 ### Step 22
