@@ -1,7 +1,7 @@
 apiVersion: machine.openshift.io/v1beta1
 kind: MachineSet
 metadata:
-  name: $clusterInstanceName-worker-eastus$zone
+  name: $clusterInstanceName-worker-$deployRegion$zone
   namespace: openshift-machine-api
   labels:
     machine.openshift.io/cluster-api-cluster: $clusterInstanceName
@@ -12,14 +12,14 @@ spec:
   selector:
     matchLabels:
       machine.openshift.io/cluster-api-cluster: $clusterInstanceName
-      machine.openshift.io/cluster-api-machineset: $clusterInstanceName-worker-eastus$zone
+      machine.openshift.io/cluster-api-machineset: $clusterInstanceName-worker-$deployRegion$zone
   template:
     metadata:
       labels:
         machine.openshift.io/cluster-api-cluster: $clusterInstanceName
         machine.openshift.io/cluster-api-machine-role: worker
         machine.openshift.io/cluster-api-machine-type: worker
-        machine.openshift.io/cluster-api-machineset: $clusterInstanceName-worker-eastus$zone
+        machine.openshift.io/cluster-api-machineset: $clusterInstanceName-worker-$deployRegion$zone
     spec:
       metadata: {}
       providerSpec:
