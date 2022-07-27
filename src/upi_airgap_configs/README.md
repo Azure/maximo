@@ -180,7 +180,7 @@ az storage account create -g $RESOURCE_GROUP --location $AZURE_REGION --name ${S
 
 ### Step 11
 
-Create a private endpoint to storage account with access to blob. Also verify the private DNS Zone for the storage accounts private endpoint has a link to the the VNet where the cluster is deployed.
+Create a private endpoint to storage account with access to blob and file. Also verify the private DNS Zone for the storage accounts private endpoint has a link to the the VNet where the cluster is deployed.
 
 ### Step 12
 Fetch the storage account key and upload the base image and ignition file for the bootstrap VM:
@@ -314,7 +314,7 @@ oc get csr -A
 ```
 Approve the csrs
 ```bash
-oc adm certificate approve csr-8bppf csr-dj2w4 csr-ph8s8 #replace with correct csr #s
+oc get csr -A | grep Pending | grep csr | awk '{print $1}' | xargs oc adm certificate approve
 ```
 
 Repeat this step twice to fully approve the CSRs.
@@ -328,6 +328,8 @@ Wait for private IP to be provisioned by the load balancer for the ingress opera
 oc -n openshift-ingress get service router-default --no-headers
 ```
 
+> 🚧 **NOTE**: If the private IP is stuck on `Pending` then you can check the events for the namespace using the command: `oc get events -n openshift-ingress`. After issues are resolved, you can trigger recreation of the route with the following command: `oc delete service router-default -n openshift-ingress`.
+
 Configure the DNS Zone:
 ```bash
 export PRIVATE_IP_ROUTER=`oc -n openshift-ingress get service router-default --no-headers | awk '{print $4}'`
@@ -339,7 +341,7 @@ az network private-dns record-set a add-record -g $RESOURCE_GROUP -z ${CLUSTER_N
 
 ### Step 24
 
-Watch the cluster resource group for 2 `imageregistryxxx` storage accounts to be created and add private endpoints (reusing the same dns zone for blob storage) into the virtual network for the operator to fully complete. 
+Watch the cluster resource group for 2 `imageregistryxxx` storage accounts to be created and add private endpoints for `blob` access (reusing the same dns zone for blob storage) into the virtual network for the operator to fully complete.
 
 ### Step 25
 Wait for the cluster to finish upgrading:
@@ -349,28 +351,6 @@ Wait for the cluster to finish upgrading:
 ```
 
 ### Step 26
-
-Create a premium storage account:
-```bash
-export PREMIUM_STORAGE_ACCOUNT_NAME = "mypremiumstorageaccountname"
-
-az storage account create -g $RESOURCE_GROUP --location $AZURE_REGION --name ${PREMIUM_STORAGE_ACCOUNT_NAME} --kind StorageV2 --sku Premium_ZRS
-```
-
-Create a private endpoint to storage account with access to blob. Also verify the private DNS Zone for the storage accounts private endpoint has a link to the the VNet where the cluster is deployed.
-
-### Step 27
-
-Follow our [csi driver isntall steps](../../README.md#azure-files-csi-drivers) to deploy the CSI drivers for azure storage.
-
-Update the environment variables to align with the resource group where the storage account was deployed. The client id & secret will be used to create NFS shares inside of this storage account. You can either reuse the one you already provisioned or create another one with the proper permissions on the storage account.
-
-You should see 2 new storage classes in the cluster:
-```bash
-oc get storageclass
-```
-
-### Step 28
 
 Navigate to the directory where the catalog mirror manifests were created and deploy the catalog sources:
 
@@ -394,6 +374,28 @@ oc create -f ./manifests-redhat-marketplace-index-xxxx/catalogSource.yaml
 oc create -f ./manifests-redhat-operator-index-xxxx/imageContentSourcePolicy.yaml
 
 oc create -f ./manifests-redhat-operator-index-xxxx/catalogSource.yaml
+```
+
+### Step 27
+
+Create a premium storage account:
+```bash
+export PREMIUM_STORAGE_ACCOUNT_NAME="mypremiumstorageaccountname"
+
+az storage account create -g $RESOURCE_GROUP --location $AZURE_REGION --name ${PREMIUM_STORAGE_ACCOUNT_NAME} --kind FileStorage --sku Premium_ZRS --enable-large-file-share
+```
+
+Create a private endpoint to storage account with access to file. Also verify the private DNS Zone for the storage accounts private endpoint has a link to the the VNet where the cluster is deployed.
+
+### Step 28
+
+Follow our [csi driver install steps](../../README.md#azure-files-csi-drivers) to deploy the CSI drivers for azure storage.
+
+Update the environment variables to align with the resource group where the storage account was deployed. The client id & secret will be used to create NFS shares inside of this storage account. You can either reuse the one you already provisioned or create another one with the proper permissions on the storage account.
+
+You should see 2 new storage classes in the cluster:
+```bash
+oc get storageclass
 ```
 
 ### Finishing Up

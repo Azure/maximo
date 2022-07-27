@@ -8,7 +8,7 @@ parameters:
   networkEndpointType: privateEndpoint
   location: $deployRegion
   resourceGroup: $resourceGroupName
-  skuName: Premium_LRS
+  skuName: Premium_ZRS
 reclaimPolicy: Retain
 volumeBindingMode: Immediate
 allowVolumeExpansion: true
