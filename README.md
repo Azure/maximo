@@ -385,7 +385,7 @@ If you are not using our globally available service, Azure CosmosDB, then we rec
 git clone https://github.com/ibm-watson-iot/iot-docs.git
 
 #navigate to the certs directory
-cd mongodb/iot-docs/mongodb/certs/
+cd iot-docs/mongodb/certs/
 
 #generate self signed certs
 ./generateSelfSignedCert.sh

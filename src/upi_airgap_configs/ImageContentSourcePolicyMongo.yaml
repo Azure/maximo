@@ -1,0 +1,11 @@
+---
+apiVersion: operator.openshift.io/v1alpha1
+kind: ImageContentSourcePolicy
+metadata:
+  labels:
+  name: mongo
+spec:
+  repositoryDigestMirrors:
+  - mirrors:
+    - airgapmirror.azurecr.io:443/mongodb
+    source: quay.io/ibmmas
