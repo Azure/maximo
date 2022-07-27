@@ -401,3 +401,9 @@ oc get storageclass
 ### Finishing Up
 
 The cluster should now be online and accessible from the cli and the web console. You may proceed with your use case deployments.
+
+You can retrieve login information from the logs here:
+
+```bash
+./openshift-install wait-for install-complete --log-level debug
+```
