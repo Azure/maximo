@@ -9,3 +9,6 @@ spec:
   - mirrors:
     - airgapmirror.azurecr.io:443/mongodb
     source: quay.io/ibmmas
+  - mirrors:
+      - 'airgapmirror.azurecr.io:443/mongodb'
+    source: quay.io/mongo

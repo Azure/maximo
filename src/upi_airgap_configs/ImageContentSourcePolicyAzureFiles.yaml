@@ -1,0 +1,14 @@
+---
+apiVersion: operator.openshift.io/v1alpha1
+kind: ImageContentSourcePolicy
+metadata:
+  labels:
+  name: azureFiles
+spec:
+  repositoryDigestMirrors:
+  - mirrors:
+    - airgapmirror.azurecr.io:443/kubernetes-csi
+    source: mcr.microsoft.com/oss/kubernetes-csi
+  - mirrors:
+    - airgapmirror.azurecr.io:443/kubernetes-csi
+    source: mcr.microsoft.com/k8s/csi

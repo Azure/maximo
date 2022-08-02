@@ -382,21 +382,155 @@ Create a premium storage account:
 ```bash
 export PREMIUM_STORAGE_ACCOUNT_NAME="mypremiumstorageaccountname"
 
-az storage account create -g $RESOURCE_GROUP --location $AZURE_REGION --name ${PREMIUM_STORAGE_ACCOUNT_NAME} --kind FileStorage --sku Premium_ZRS --enable-large-file-share
+az storage account create -g $RESOURCE_GROUP --location $AZURE_REGION --name ${PREMIUM_STORAGE_ACCOUNT_NAME} --kind FileStorage --sku Premium_ZRS --enable-large-file-share --https-only false
 ```
 
 Create a private endpoint to storage account with access to file. Also verify the private DNS Zone for the storage accounts private endpoint has a link to the the VNet where the cluster is deployed.
 
 ### Step 28
 
-Follow our [csi driver install steps](../../README.md#azure-files-csi-drivers) to deploy the CSI drivers for azure storage.
+To install Azure Files CSI drivers v1.12.0, you must use a special fork that supports digest references for the deployment. Alternatively, you may create a registry.conf file for the mirroring and disable `mirror-by-digest-only`. This file will need to be base64'd and put into a `MachineConfig` yaml and pushed to the cluster.
 
-Update the environment variables to align with the resource group where the storage account was deployed. The client id & secret will be used to create NFS shares inside of this storage account. You can either reuse the one you already provisioned or create another one with the proper permissions on the storage account.
+#### Mirror the public images to your repo
+```bash
+export LOCAL_REGISTRY='<registry>.azurecr.io:443'
 
-You should see 2 new storage classes in the cluster:
+skopeo login ${LOCAL_REGISTRY}
+
+skopeo copy --all docker://mcr.microsoft.com/oss/kubernetes-csi/csi-provisioner@sha256:542c9258a1441e4927883ea73425e21f9a14043a649686bf6b51700f34c64f8e docker://${LOCAL_REGISTRY}/kubernetes-csi/csi-provisioner@sha256:542c9258a1441e4927883ea73425e21f9a14043a649686bf6b51700f34c64f8e
+skopeo copy --all docker://mcr.microsoft.com/oss/kubernetes-csi/csi-attacher@sha256:19fbca01394f7ed80151731180cfde0a3367f038beae2a97cda7928034010057 docker://${LOCAL_REGISTRY}/kubernetes-csi/csi-attacher@sha256:19fbca01394f7ed80151731180cfde0a3367f038beae2a97cda7928034010057
+skopeo copy --all docker://mcr.microsoft.com/oss/kubernetes-csi/csi-snapshotter@sha256:a889e925e15f9423f7842f1b769f64cbcf6a20b6956122836fc835cf22d9073f docker://${LOCAL_REGISTRY}/kubernetes-csi/csi-snapshotter@sha256:a889e925e15f9423f7842f1b769f64cbcf6a20b6956122836fc835cf22d9073f
+skopeo copy --all docker://mcr.microsoft.com/oss/kubernetes-csi/csi-resizer@sha256:ab6c2e18a4d943f2bf8688e1779622277a1d14c355c9d4bfc0d761d86c5108b3 docker://${LOCAL_REGISTRY}/kubernetes-csi/csi-resizer@sha256:ab6c2e18a4d943f2bf8688e1779622277a1d14c355c9d4bfc0d761d86c5108b3
+skopeo copy --all docker://mcr.microsoft.com/oss/kubernetes-csi/livenessprobe@sha256:c96a6255c42766f6b8bb1a7cda02b0060ab1b20b2e2dafcc64ec09e7646745a6 docker://${LOCAL_REGISTRY}/kubernetes-csi/livenessprobe@sha256:c96a6255c42766f6b8bb1a7cda02b0060ab1b20b2e2dafcc64ec09e7646745a6
+skopeo copy --all docker://mcr.microsoft.com/k8s/csi/azurefile-csi@sha256:e48a5045decd1b55480da9ceb8b4ee557c043c9d8c19776998c1424e6f4a5af0 docker://${LOCAL_REGISTRY}/kubernetes-csi/azurefile-csi@sha256:e48a5045decd1b55480da9ceb8b4ee557c043c9d8c19776998c1424e6f4a5af0
+skopeo copy --all docker://mcr.microsoft.com/oss/kubernetes-csi/csi-node-driver-registrar@sha256:dbec3a8166686b09b242176ab5b99e993da4126438bbce68147c3fd654f35662 docker://${LOCAL_REGISTRY}/kubernetes-csi/csi-node-driver-registrar@sha256:dbec3a8166686b09b242176ab5b99e993da4126438bbce68147c3fd654f35662
+```
+
+#### Configure Image Content Source Policy
+
+This process may take 5-10 minutes to schedule on all nodes.
+
+```bash
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/upi_airgap_configs/ImageContentSourcePolicyAzureFiles.yaml
+```
+
+#### Install Azure Files within your cluster:
+
+```bash
+#Create directory for install files
+mkdir /tmp/OCPInstall
+mkdir /tmp/OCPInstall/QuickCluster
+
+#Prepare openshift client for connectivity
+export KUBECONFIG="$PWD/auth/kubeconfig"
+
+#set variables for deployment
+export deployRegion="eastus"
+export resourceGroupName="myRG"
+export tenantId="tenantId"
+export subscriptionId="subscriptionId"
+export clientId="clientId" #This account will be used by OCP to access azure files to create shares within Azure Storage.
+export clientSecret="clientSecret"
+export branchName="main"
+
+ #create directory to store modified files
+ mkdir customFiles
+
+ #Configure Azure Files Standard
+ wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/azurefiles-standard.yaml -O ./azurefiles-standard.yaml
+ envsubst < ./azurefiles-standard.yaml > ./customFiles/azurefiles-standard.yaml
+ oc apply -f ./customFiles/azurefiles-standard.yaml
+
+#Configure Azure Files Premium
+
+#Create the azure.json file and upload as secret
+wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/azure.json -O ./azure.json
+envsubst < ./azure.json > ./customFiles/azure.json
+oc create secret generic azure-cloud-provider --from-literal=cloud-config=$(cat ./customFiles/azure.json | base64 | awk '{printf $0}'; echo) -n kube-system
+
+#Grant access
+oc adm policy add-scc-to-user privileged system:serviceaccount:kube-system:csi-azurefile-node-sa
+
+#Install CSI Driver
+oc create configmap azure-cred-file --from-literal=path="/etc/kubernetes/cloud.conf" -n kube-system
+
+driver_version=v1.12.0
+echo "Driver version " $driver_version
+curl -skSL https://raw.githubusercontent.com/grtn316/azurefile-csi-driver/local/deploy/install-driver.sh | bash -s $driver_version --
+
+#Deploy premium Storage Class
+ wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/azurefiles-premium.yaml -O ./azurefiles-premium.yaml
+ envsubst < ./azurefiles-premium.yaml > ./customFiles/azurefiles-premium.yaml
+ oc apply -f ./customFiles/azurefiles-premium.yaml
+
+ oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/persistent-volume-binder.yaml
+```
+
+Once this is complete, you should see 2 new storage classes in the cluster:
 ```bash
 oc get storageclass
 ```
+
+### Installing Mongo CE
+
+To install MongoDB:
+
+#### Mirror the public images to your repo
+
+```bash
+export LOCAL_REGISTRY='<registry>.azurecr.io:443'
+
+skopeo login ${LOCAL_REGISTRY}
+
+skopeo copy docker://quay.io/mongodb/mongodb-kubernetes-operator-version-upgrade-post-start-hook@sha256:da347eb74525715a670280545e78ecee1195ec2630037b3821591c87f7a314ee docker://${LOCAL_REGISTRY}/mongodb/mongodb-kubernetes-operator-version-upgrade-post-start-hook@sha256:da347eb74525715a670280545e78ecee1195ec2630037b3821591c87f7a314ee
+
+skopeo copy docker://quay.io/mongodb/mongodb-kubernetes-readinessprobe@sha256:bf5a4ffc8d2d257d6d9eb45d3e521f30b2e049a9b60ddc8e4865448e035502ca docker://${LOCAL_REGISTRY}/mongodb/mongodb-kubernetes-readinessprobe@sha256:bf5a4ffc8d2d257d6d9eb45d3e521f30b2e049a9b60ddc8e4865448e035502ca
+
+skopeo copy docker://quay.io/mongodb/mongodb-agent@sha256:a6b316e6df0fee2c3d64cb065260e33586330784dcaab02cc7a3052cde3c94b9 docker://${LOCAL_REGISTRY}/mongodb/mongodb-agent@sha256:a6b316e6df0fee2c3d64cb065260e33586330784dcaab02cc7a3052cde3c94b9
+
+skopeo copy docker://quay.io/mongodb/mongodb-kubernetes-operator@sha256:e19ae43539521f0350fb71684757dc535fc989deb75f3789cd84b782489eda80 docker://${LOCAL_REGISTRY}/mongodb/mongodb-kubernetes-operator@sha256:e19ae435
+39521f0350fb71684757dc535fc989deb75f3789cd84b782489eda80
+
+skopeo copy docker://quay.io/ibmmas/mongo@sha256:8c48baa1571469d7f5ae6d603b92b8027ada5eb39826c009cb33a13b46864908 docker://${LOCAL_REGISTRY}/mongodb/mongo@sha256:8c48baa1571469d7f5ae6d603b92b8027ada5eb39826c009cb33a13b46864908
+```
+#### Configure Image Content Source Policy
+
+This process may take 5-10 minutes to schedule on all nodes.
+
+```bash
+oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/upi_airgap_configs/ImageContentSourcePolicyMongo.yaml
+```
+
+#### Install Mongo
+
+```bash
+#navigate to the directory where the auth folder exists for your cluster
+export KUBECONFIG="$PWD/auth/kubeconfig"
+
+#clone repo for install scripts
+git clone https://github.com/grtn316/iot-docs.git
+
+#navigate to certs directory
+cd iot-docs/mongodb/certs/
+
+#generate self signed certs
+./generateSelfSignedCert.sh
+
+#navigate back a directory to: /mongodb/iot-docs/mongodb
+cd ..
+
+#export the following variables, replacing the password
+export MONGODB_STORAGE_CLASS="managed-premium"
+export MONGO_NAMESPACE=mongo
+export MONGO_PASSWORD="<enterpassword>"
+
+#install MongoDB
+./install-mongo-ce.sh
+
+```
+
+Follow our [testing steps](../../README.md#installing-mongodb) to verify MongoDB is deployed and functioning.
+
 
 ### Finishing Up
 
