@@ -483,14 +483,10 @@ export LOCAL_REGISTRY='<registry>.azurecr.io:443'
 skopeo login ${LOCAL_REGISTRY}
 
 skopeo copy docker://quay.io/mongodb/mongodb-kubernetes-operator-version-upgrade-post-start-hook@sha256:da347eb74525715a670280545e78ecee1195ec2630037b3821591c87f7a314ee docker://${LOCAL_REGISTRY}/mongodb/mongodb-kubernetes-operator-version-upgrade-post-start-hook@sha256:da347eb74525715a670280545e78ecee1195ec2630037b3821591c87f7a314ee
-
 skopeo copy docker://quay.io/mongodb/mongodb-kubernetes-readinessprobe@sha256:bf5a4ffc8d2d257d6d9eb45d3e521f30b2e049a9b60ddc8e4865448e035502ca docker://${LOCAL_REGISTRY}/mongodb/mongodb-kubernetes-readinessprobe@sha256:bf5a4ffc8d2d257d6d9eb45d3e521f30b2e049a9b60ddc8e4865448e035502ca
-
 skopeo copy docker://quay.io/mongodb/mongodb-agent@sha256:a6b316e6df0fee2c3d64cb065260e33586330784dcaab02cc7a3052cde3c94b9 docker://${LOCAL_REGISTRY}/mongodb/mongodb-agent@sha256:a6b316e6df0fee2c3d64cb065260e33586330784dcaab02cc7a3052cde3c94b9
-
 skopeo copy docker://quay.io/mongodb/mongodb-kubernetes-operator@sha256:e19ae43539521f0350fb71684757dc535fc989deb75f3789cd84b782489eda80 docker://${LOCAL_REGISTRY}/mongodb/mongodb-kubernetes-operator@sha256:e19ae435
 39521f0350fb71684757dc535fc989deb75f3789cd84b782489eda80
-
 skopeo copy docker://quay.io/ibmmas/mongo@sha256:8c48baa1571469d7f5ae6d603b92b8027ada5eb39826c009cb33a13b46864908 docker://${LOCAL_REGISTRY}/mongodb/mongo@sha256:8c48baa1571469d7f5ae6d603b92b8027ada5eb39826c009cb33a13b46864908
 ```
 #### Configure Image Content Source Policy
