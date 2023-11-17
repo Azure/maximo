@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "location": {
-            "value": "eastus"
+            "value": "northeurope"
         },
         "networkSecurityGroupRules": {
             "value": [
@@ -19,6 +19,36 @@
                         "destinationAddressPrefix": "*",
                         "destinationPortRange": "22"
                     }
+                },
+                {
+                    "name": "Allow_haavard_ip4",
+                    "properties": {
+                        "protocol": "TCP",
+                        "sourcePortRange": "*",
+                        "destinationAddressPrefix": "*",
+                        "access": "Allow",
+                        "priority": 310,
+                        "direction": "Inbound",
+                        "sourcePortRanges": [],
+                        "destinationPortRanges": [
+                            "443",
+                            "6443"
+                        ],
+                        "sourceAddressPrefixes": [
+                            "147.161.146.0/23",
+                            "147.161.188.0/23",
+                            "165.225.192.0/23",
+                            "188.95.247.249",
+                            "213.52.58.53",
+                            "188.95.247.248",
+                            "145.62.64.0/24",
+                            "62.63.21.0/24",
+                            "62.92.71.0/24",
+                            "212.125.246.0/24",
+                            "85.165.186.0/24"
+                        ],
+                        "destinationAddressPrefixes": []
+                    }
                 }
             ]
         },
@@ -32,16 +62,16 @@
             "value": "Standard_B2ms"
         },
         "controlMachineSize": {
-            "value": "Standard_D8s_v3"
+            "value": "Standard_D4as_v4"
         },
         "numControlReplicas": {
             "value" : "3"
         },
         "workerMachineSize": {
-            "value": "Standard_D8s_v3"
+            "value": "Standard_D8as_v4"
         },
         "numWorkerReplicas": {
-            "value" : "9"
+            "value" : "3"
         },
         "adminUsername": {
             "value": "azureuser"
@@ -86,7 +116,7 @@
             "value": "maximoBastionHost"
         },
         "openshiftVersion":{
-            "value": "4.8.22"
+            "value": "4.12.30"
         },
         "azureFilesCSIVersion":{
             "value": "v1.12.0"
