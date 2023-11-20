@@ -33,9 +33,9 @@ You will need a public DNS Zone that can be accessed by the OpenShift installer.
 The Domain Name must match the name of the DNS Zone that you will be using for OpenShift. During the deployment this DNS Zone will be updated with records to resolve to the cluster. If it is not accessible by the Client Id, the deployment will fail.
 
 ```bash
-az group create --location "East US" --name OCP-Sidecar
+az group create --location "North Europe" --name OCP-MAS-PREPROD-northeurope
 
-az deployment group create --resource-group  OCP-Sidecar --template-file bootstrap.bicep --parameters parameters.json
+az deployment group create --resource-group  OCP-MAS-PREPROD-northeurope --template-file bootstrap.bicep --parameters parameters.json
 ```
 
 After the deployment is finished, you can SSH into the JumpBoxVM and look in the directory: `/tmp/OCPInstall/QuickCluster` for install artifacts. For logs, you can look at: `cat /var/log/cloud-init-output.log`

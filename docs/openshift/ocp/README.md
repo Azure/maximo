@@ -15,7 +15,7 @@ Once this file has been created, you can execute the deployment:
 ```bash
 #Everything in the /tmp directory will be purged upon reboot.
 mkdir /tmp/OCPInstall/QuickCluster
-wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/ocp/install-config.yaml -O /tmp/OCPInstall/QuickCluster/install-config.yaml
+wget -nv https://raw.githubusercontent.com/haavape/maximo/$branchName/src/ocp/install-config.yaml -O /tmp/OCPInstall/QuickCluster/install-config.yaml
 #You will need to customize your install-confi.yaml file before installing.
 sudo openshift-install create cluster --dir=/tmp/OCPInstall/QuickCluster --log-level=info
 ```

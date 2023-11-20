@@ -411,7 +411,7 @@ skopeo copy --all docker://mcr.microsoft.com/oss/kubernetes-csi/csi-node-driver-
 This process may take 5-10 minutes to schedule on all nodes.
 
 ```bash
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/upi_airgap_configs/ImageContentSourcePolicyAzureFiles.yaml
+oc apply -f https://raw.githubusercontent.com/haavape/maximo/main/src/upi_airgap_configs/ImageContentSourcePolicyAzureFiles.yaml
 ```
 
 #### Install Azure Files within your cluster:
@@ -437,14 +437,14 @@ export branchName="main"
  mkdir customFiles
 
  #Configure Azure Files Standard
- wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/azurefiles-standard.yaml -O ./azurefiles-standard.yaml
+ wget -nv https://raw.githubusercontent.com/haavape/maximo/$branchName/src/storageclasses/azurefiles-standard.yaml -O ./azurefiles-standard.yaml
  envsubst < ./azurefiles-standard.yaml > ./customFiles/azurefiles-standard.yaml
  oc apply -f ./customFiles/azurefiles-standard.yaml
 
 #Configure Azure Files Premium
 
 #Create the azure.json file and upload as secret
-wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/azure.json -O ./azure.json
+wget -nv https://raw.githubusercontent.com/haavape/maximo/$branchName/src/storageclasses/azure.json -O ./azure.json
 envsubst < ./azure.json > ./customFiles/azure.json
 oc create secret generic azure-cloud-provider --from-literal=cloud-config=$(cat ./customFiles/azure.json | base64 | awk '{printf $0}'; echo) -n kube-system
 
@@ -459,11 +459,11 @@ echo "Driver version " $driver_version
 curl -skSL https://raw.githubusercontent.com/grtn316/azurefile-csi-driver/local/deploy/install-driver.sh | bash -s $driver_version --
 
 #Deploy premium Storage Class
- wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/azurefiles-premium.yaml -O ./azurefiles-premium.yaml
+ wget -nv https://raw.githubusercontent.com/haavape/maximo/$branchName/src/storageclasses/azurefiles-premium.yaml -O ./azurefiles-premium.yaml
  envsubst < ./azurefiles-premium.yaml > ./customFiles/azurefiles-premium.yaml
  oc apply -f ./customFiles/azurefiles-premium.yaml
 
- oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/persistent-volume-binder.yaml
+ oc apply -f https://raw.githubusercontent.com/haavape/maximo/$branchName/src/storageclasses/persistent-volume-binder.yaml
 ```
 
 Once this is complete, you should see 2 new storage classes in the cluster:
@@ -494,7 +494,7 @@ skopeo copy docker://quay.io/ibmmas/mongo@sha256:8c48baa1571469d7f5ae6d603b92b80
 This process may take 5-10 minutes to schedule on all nodes.
 
 ```bash
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/main/src/upi_airgap_configs/ImageContentSourcePolicyMongo.yaml
+oc apply -f https://raw.githubusercontent.com/haavape/maximo/main/src/upi_airgap_configs/ImageContentSourcePolicyMongo.yaml
 ```
 
 #### Install Mongo

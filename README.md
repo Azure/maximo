@@ -170,14 +170,14 @@ export branchName="main"
  mkdir customFiles
 
  #Configure Azure Files Standard
- wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/azurefiles-standard.yaml -O ./azurefiles-standard.yaml
+ wget -nv https://raw.githubusercontent.com/haavape/maximo/$branchName/src/storageclasses/azurefiles-standard.yaml -O ./azurefiles-standard.yaml
  envsubst < ./azurefiles-standard.yaml > ./customFiles/azurefiles-standard.yaml
  oc apply -f ./customFiles/azurefiles-standard.yaml
 
 #Configure Azure Files Premium
 
 #Create the azure.json file and upload as secret
-wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/azure.json -O ./azure.json
+wget -nv https://raw.githubusercontent.com/haavape/maximo/$branchName/src/storageclasses/azure.json -O ./azure.json
 envsubst < ./azure.json > ./customFiles/azure.json
 oc create secret generic azure-cloud-provider --from-literal=cloud-config=$(cat ./customFiles/azure.json | base64 | awk '{printf $0}'; echo) -n kube-system
 
@@ -192,11 +192,11 @@ echo "Driver version " $driver_version
 curl -skSL https://raw.githubusercontent.com/kubernetes-sigs/azurefile-csi-driver/master/deploy/install-driver.sh | bash -s $driver_version --
 
 #Deploy premium Storage Class
- wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/azurefiles-premium.yaml -O ./azurefiles-premium.yaml
+ wget -nv https://raw.githubusercontent.com/haavape/maximo/$branchName/src/storageclasses/azurefiles-premium.yaml -O ./azurefiles-premium.yaml
  envsubst < ./azurefiles-premium.yaml > ./customFiles/azurefiles-premium.yaml
  oc apply -f ./customFiles/azurefiles-premium.yaml
 
- oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/storageclasses/persistent-volume-binder.yaml
+ oc apply -f https://raw.githubusercontent.com/haavape/maximo/$branchName/src/storageclasses/persistent-volume-binder.yaml
 ```
 
 ### Enabling SAML authentication against Azure AD
@@ -255,7 +255,7 @@ export resourceGroupName="resourceGroupName"
 export subnetWorkerNodeName="subnetWorkerNodeName"
 export branchName="main"
 
-wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/machinesets/worker.yaml -O /tmp/OCPInstall/worker.yaml
+wget -nv https://raw.githubusercontent.com/haavape/maximo/$branchName/src/machinesets/worker.yaml -O /tmp/OCPInstall/worker.yaml
 
 export zone=1
 export numReplicas=3
@@ -293,7 +293,7 @@ export resourceGroupName="resourceGroupName"
 export subnetWorkerNodeName="subnetWorkerNodeName"
 export branchName="main"
 
-wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/machinesets/ocs.yaml -O ocs.yaml
+wget -nv https://raw.githubusercontent.com/haavape/maximo/$branchName/src/machinesets/ocs.yaml -O ocs.yaml
 
 export zone=1
 export numReplicas=2
@@ -309,7 +309,7 @@ oc apply -f /tmp/OCPInstall/QuickCluster/ocs.yaml
 oc create ns openshift-storage
 
 # Install the operator
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/ocs/ocs-operator.yaml
+oc apply -f https://raw.githubusercontent.com/haavape/maximo/$branchName/src/ocs/ocs-operator.yaml
 ```
 
 After provisioning the cluster, go to the OpenShift Container Storage operator in the `openshift-storage` namespace and create a `StorageCluster`. Following settings (which are the default):
@@ -329,7 +329,7 @@ To install, run the following commands:
 
 ```bash
 export branchName="main"
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/operatorcatalogs/catalog-source.yaml
+oc apply -f https://raw.githubusercontent.com/haavape/maximo/$branchName/src/operatorcatalogs/catalog-source.yaml
 ```
 
 To validate everything is up and running, check `oc get catalogsource/ibm-operator-catalog -n openshift-marketplace`.
@@ -444,7 +444,7 @@ We have to put this operator on manual approval and you can NOT and should NOT u
 
 ```bash
 export branchName="main"
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/servicebinding/service-binding-operator.yaml
+oc apply -f https://raw.githubusercontent.com/haavape/maximo/$branchName/src/servicebinding/service-binding-operator.yaml
 
 installplan=$(oc get installplan -n openshift-operators | grep -i service-binding | awk '{print $1}'); echo "installplan: $installplan"
 oc patch installplan ${installplan} -n openshift-operators --type merge --patch '{"spec":{"approved":true}}'
@@ -469,7 +469,7 @@ To install, run the following commands:
 
 ```bash
 export branchName="main"
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/bas/bas-operator.yaml
+oc apply -f https://raw.githubusercontent.com/haavape/maximo/$branchName/src/bas/bas-operator.yaml
 ```
 
 Next, you will need to create 2 secrets. Be sure to update the username and password in the example below:
@@ -484,7 +484,7 @@ Finally, deploy the Analytics Proxy. This will take up to 30 minutes to complete
 ```bash
 # Deploy
 export branchName="main"
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/bas/bas-service.yaml
+oc apply -f https://raw.githubusercontent.com/haavape/maximo/$branchName/src/bas/bas-service.yaml
 
 # You can monitor the progress, keep an eye on the status section:
 oc describe AnalyticsProxy analyticsproxy -n ibm-bas
@@ -499,7 +499,7 @@ Once this is complete, retrieve the bas endpoint and the API Key for use when do
 export branchName="main"
 
 oc get routes bas-endpoint -n ibm-bas
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/bas/bas-api-key.yaml
+oc apply -f https://raw.githubusercontent.com/haavape/maximo/$branchName/src/bas/bas-api-key.yaml
 ```
 
 To get the credentials and details from BAS, please see [Setting up Maximo](#setting-up-maximo).
@@ -528,7 +528,7 @@ Deploy the operator group and subscription configurations for both Suite Licensi
 
 ```bash
 export branchName="main"
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/sls/sls-operator.yaml
+oc apply -f https://raw.githubusercontent.com/haavape/maximo/$branchName/src/sls/sls-operator.yaml
 ```
 
 This will take a while, as usual, check its progress with `oc get csv -n ibm-sls`.
@@ -565,14 +565,14 @@ If you are happy with the default configuration then proceed with the following 
 ```bash
 # Deploy
 export branchName="main"
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/sls/sls-service.yaml
+oc apply -f https://raw.githubusercontent.com/haavape/maximo/$branchName/src/sls/sls-service.yaml
 ```
 
 If you prefer to modify the setup, pull down the config and edit it:
 
 ```bash
 export branchName="main"
-wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/sls/sls-service.yaml -O sls-service.yaml
+wget -nv https://raw.githubusercontent.com/haavape/maximo/$branchName/src/sls/sls-service.yaml -O sls-service.yaml
 ```
 
 After editing:
@@ -601,7 +601,7 @@ Lets deploy the operator:
 
 ```bash
 export branchName="main"
-oc apply -f https://raw.githubusercontent.com/Azure/maximo/$branchName/src/mas/mas-operator.yaml
+oc apply -f https://raw.githubusercontent.com/haavape/maximo/$branchName/src/mas/mas-operator.yaml
 ```
 
 Add the entitlement key secret to the mas project:
@@ -626,7 +626,7 @@ export clusterName=myclustername
 export baseDomain=mydomain.com
 export branchName="main"
 
-wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/mas/mas-service.yaml -O mas-service.yaml
+wget -nv https://raw.githubusercontent.com/haavape/maximo/$branchName/src/mas/mas-service.yaml -O mas-service.yaml
 envsubst < mas-service.yaml > mas-service-nonprod.yaml
 oc apply -f mas-service-nonprod.yaml
 ```
@@ -704,7 +704,7 @@ export mongoCert1=$(cat outfile00)
 export mongoCert2=$(cat outfile01)
 #mongoCert1=$(openssl s_client -showcerts -servername localhost -connect localhost:7000 </dev/null 2>/dev/null | openssl x509 -outform PEM)
 kill $PID
-wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/mas/mongoCfg.yaml -O mongoCfg.yaml
+wget -nv https://raw.githubusercontent.com/haavape/maximo/$branchName/src/mas/mongoCfg.yaml -O mongoCfg.yaml
 envsubst < mongoCfg.yaml > mongoCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$mongoCert1\"" -i mongoCfg-nonprod.yaml
 yq eval ".spec.certificates[1].crt = \"$mongoCert2\"" -i mongoCfg-nonprod.yaml
@@ -726,7 +726,7 @@ rm -f outfile*
 openssl s_client -connect $basURL:443 -servername $basURL -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
 export basCert1=$(cat outfile00)
 export basCert2=$(cat outfile01)
-wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/mas/basCfg.yaml -O basCfg.yaml
+wget -nv https://raw.githubusercontent.com/haavape/maximo/$branchName/src/mas/basCfg.yaml -O basCfg.yaml
 envsubst < basCfg.yaml > basCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$basCert1\"" -i basCfg-nonprod.yaml
 yq eval ".spec.certificates[1].crt = \"$basCert2\"" -i basCfg-nonprod.yaml
@@ -752,7 +752,7 @@ rm -f outfile*
 openssl s_client -connect localhost:7000 -servername localhost -showcerts 2>/dev/null | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | csplit --prefix=outfile - "/-----END CERTIFICATE-----/+1" "{*}" --elide-empty-files --quiet
 export slsCert1=$(cat outfile00)
 export slsCert2=$(cat outfile01)
-wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/mas/slsCfg.yaml -O slsCfg.yaml
+wget -nv https://raw.githubusercontent.com/haavape/maximo/$branchName/src/mas/slsCfg.yaml -O slsCfg.yaml
 envsubst < slsCfg.yaml > slsCfg-nonprod.yaml
 yq eval ".spec.certificates[0].crt = \"$slsCert1\"" -i slsCfg-nonprod.yaml
 yq eval ".spec.certificates[1].crt = \"$slsCert2\"" -i slsCfg-nonprod.yaml
@@ -842,7 +842,7 @@ export clusterInstanceName="clusterInstanceName"
 export resourceGroupName="resourceGroupName"
 export subnetWorkerNodeName="subnetWorkerNodeName"
 export branchName="main"
-wget -nv https://raw.githubusercontent.com/Azure/maximo/$branchName/src/machinesets/db2.yaml -O /tmp/OCPInstall/db2.yaml
+wget -nv https://raw.githubusercontent.com/haavape/maximo/$branchName/src/machinesets/db2.yaml -O /tmp/OCPInstall/db2.yaml
 export zone=1
 #Setup DB2 MachineSet
 export numReplicas=1
@@ -1068,7 +1068,7 @@ export branchName="main"
 export zone=1
 export numReplicas=1
 
-wget -nv -qO-  https://raw.githubusercontent.com/Azure/maximo/$branchName/src/machinesets/worker-vi-tesla.yaml | envsubst | oc apply -f -
+wget -nv -qO-  https://raw.githubusercontent.com/haavape/maximo/$branchName/src/machinesets/worker-vi-tesla.yaml | envsubst | oc apply -f -
 ```
 
 The machineset deploys [Standard_NC12s_v3 virtual machines](https://docs.microsoft.com/en-us/azure/virtual-machines/ncv3-series). These machines are powered by NVIDIA Tesla V100 GPUs. If you need to run YOLOv3 models, you can deploy Ampere VMs instead - either [ND A100v4](https://docs.microsoft.com/en-us/azure/virtual-machines/nda100-v4-series) or [ND A10v5](https://docs.microsoft.com/en-us/azure/virtual-machines/nva10v5-series)
@@ -1078,7 +1078,7 @@ Once the machinesets have been deployed and came up, you need to install the Nod
 ```bash
 export branchName="main"
 
-wget -nv -qO- https://raw.githubusercontent.com/Azure/maximo/$branchName/src/nfd/nfd-operator.yaml | envsubst | oc apply -f -
+wget -nv -qO- https://raw.githubusercontent.com/haavape/maximo/$branchName/src/nfd/nfd-operator.yaml | envsubst | oc apply -f -
 ```
 
 Once that one is up, it is time to install the Nvidia drivers. For that you need to install the Nvidia Operator, this will take care of the install of the GPU nodes based on the Node Feature Discovery. This takes a while to complete.
@@ -1088,7 +1088,7 @@ export branchName="main"
 export nvidiaOperatorChannel="v1.9.0"
 export nvidiaOperatorCSV="gpu-operator-certified.v1.9.1"
 
-wget -nv -qO- https://raw.githubusercontent.com/Azure/maximo/$branchName/src/vi/nv-operator.yaml | envsubst | oc apply -f -
+wget -nv -qO- https://raw.githubusercontent.com/haavape/maximo/$branchName/src/vi/nv-operator.yaml | envsubst | oc apply -f -
 ```
 
 Once that is done you can proceed to deploying the Visual Inspection application on top of MAS. To deploy Visual Inspection, navigate to the catalog > Visual Inspection. After that click on deploy (ignore the VI Edge piece).
