@@ -343,12 +343,12 @@ ibm-operator-catalog   IBM Operator Catalog   grpc   IBM         5d21h
 
 ### Installing cert-manager
 
-[cert-manager](https://github.com/jetstack/cert-manager) is a Kubernetes add-on to automate the management and issuance of TLS certificates from various issuing sources. It is required for [Maximo](https://www.ibm.com/docs/en/mas87/8.7.0?topic=installation-system-requirements#mas-requirements). For more installation and usage information check out the [cert-manager documentation](https://cert-manager.io/v0.16-docs/installation/openshift/).
+[cert-manager](https://github.com/jetstack/cert-manager) is a Kubernetes add-on to automate the management and issuance of TLS certificates from various issuing sources. It is required for [Maximo](https://www.ibm.com/docs/en/mas87/8.7.0?topic=installation-system-requirements#mas-requirements). For more installation and usage information check out the [cert-manager documentation](https://cert-manager.io/v1.2-docs/installation/openshift/).
 Installation of cert-manager is relatively straight forward. Create a namespace and install:
 
 ```bash
 oc create namespace cert-manager
-oc apply -f https://github.com/jetstack/cert-manager/releases/download/v1.1.0/cert-manager.yaml
+oc apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.2.0/cert-manager.yaml
 ```
 
 To validate everything is up and running, check `oc get po -n cert-manager`. If you have the [kubectl cert-manager extension](https://cert-manager.io/docs/usage/kubectl-plugin/#installation) installed, you can also verify the install with `kubectl cert-manager check api`.
