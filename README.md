@@ -18,7 +18,7 @@ This repository provides deployment guidance, scripts and best practices for run
     - [Logging In](#logging-in)
   - [Step 3: Install dependencies for MAS](#step-3-install-dependencies-for-mas)
     - [Azure Files CSI drivers](#azure-files-csi-drivers)
-    - [Enabling SAML authentication against Microsoft Entra ID](#enabling-saml-authentication-against-azure-ad)
+    - [Enabling SAML authentication against Microsoft Entra ID](#enabling-saml-authentication-against-microsoft-entra-id)
     - [Updating pull secrets](#updating-pull-secrets)
     - [Updating Worker Nodes](#updating-worker-nodes)
     - [Installing OpenShift Container Storage (Optional)](#installing-openshift-container-storage-optional)
