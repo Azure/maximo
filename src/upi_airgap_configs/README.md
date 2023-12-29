@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The steps below will walk through the UPI (User Provisioned Infrastructure) method of deploying an Openshift Cluster on Azure into a virtual network with no outbound internet access (Airgapped Cluster). It includes an Azure Container Registry and steps to mirror the Openshift images into the registry from a JumpBox with internet connectivity. Your clusters network will need outbound access to Azure AD and ARM for authentication and resource management.
+The steps below will walk through the UPI (User Provisioned Infrastructure) method of deploying an Openshift Cluster on Azure into a virtual network with no outbound internet access (Airgapped Cluster). It includes an Azure Container Registry and steps to mirror the Openshift images into the registry from a JumpBox with internet connectivity. Your clusters network will need outbound access to Microsoft Entra ID and ARM for authentication and resource management.
 
 ## Prereqs
 
