@@ -107,7 +107,7 @@ Please follow [this guide](docs/azure/README.md) to configure Azure.
 
 ## Step 2: Deploy and prepare OpenShift
 
-> 💡 **NOTE**: IBM MAS does not currently officially support the current version of OpenShift running on Azure Redhat OpenShift (ARO).
+> 💡 **NOTE**: IBM MAS supports Azure Red Hat OpenShift provided that the underlying versions of OpenShift and Cloud Pak for Data (CP4D) align.
 
 ### Install OCP
 Please follow [this guide](docs/openshift/ocp/README.md) to configure OpenShift Container Platform on Azure.
